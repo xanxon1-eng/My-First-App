@@ -1,7 +1,7 @@
 const CACHE_NAME = "uhu-club-v1.0.5";
 const ASSETS = [
-  "./",
-  "./index.html",
+  "/",
+  "/index.html",
   "app_icon_192.png",
   "app_icon_512.png"
 ];
