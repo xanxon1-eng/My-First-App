@@ -10,13 +10,32 @@
   </head>
   <body>
     <div id="root">
-      <div style="font-family: sans-serif; height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #f0f9ff; color: #0c4a6e;">
+      <div style="font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #f0f9ff; color: #0c4a6e; position: relative;">
         <div style="text-align: center;">
           <div style="width: 24px; height: 24px; border: 2px solid #bae6fd; border-top-color: #0ea5e9; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 1rem;"></div>
           <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+          <div id="loading-status" style="font-size: 0.75rem; opacity: 0.6;">Loading Nest...</div>
+        </div>
+        <div style="position: absolute; bottom: 1rem; font-size: 0.6rem; opacity: 0.3; font-family: monospace; display: flex; gap: 1rem;">
+          <span>v1.0.2</span>
+          <span id="init-id">BOOTING...</span>
         </div>
       </div>
     </div>
+    <script>
+      // Early ID generation for the loader
+      const initId = 'BOOT-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      document.getElementById('init-id').innerText = initId;
+      window.INITIAL_ID = initId;
+
+      // Troubleshooting timeout
+      setTimeout(() => {
+        const status = document.getElementById('loading-status');
+        if (status && status.innerText === 'Loading Nest...') {
+          status.innerHTML = 'Still loading? <button onclick="location.reload()" style="background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; padding:0; font:inherit;">Try Refreshing</button>';
+        }
+      }, 5000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       window.onerror = function(msg, url, line, col, error) {

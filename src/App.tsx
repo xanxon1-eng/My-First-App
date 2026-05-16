@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Save, 
   Settings, 
@@ -20,6 +20,7 @@ import {
   ArrowUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { APP_VERSION, INTERFACE_ID } from './constants';
 
 interface Note {
   id: string;
@@ -39,12 +40,17 @@ const STORAGE_KEYS = {
   GH_CONFIG: 'kingfisher_gh_config_v1'
 };
 
+function Footer() {
+  return (
+    <div className="fixed bottom-1 left-0 right-0 flex justify-center items-center gap-4 text-[8px] font-mono opacity-20 pointer-events-none select-none z-[9999]">
+      <span>v{APP_VERSION}</span>
+      <span>{INTERFACE_ID}</span>
+    </div>
+  );
+}
+
 export default function App() {
-  const [isStandalone, setIsStandalone] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.matchMedia('(display-mode: standalone)').matches || 
-           (window.navigator as any).standalone === true;
-  });
+  const [isStandalone, setIsStandalone] = useState<boolean>(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   const [notes, setNotes] = useState<Note[]>([]);
@@ -62,6 +68,22 @@ export default function App() {
 
   // PWA Detection and Installation
   useEffect(() => {
+    // Initial check
+    const checkStandalone = () => {
+      if (typeof window === 'undefined') return false;
+      
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
+                               (window.navigator as any).standalone === true;
+      
+      // Also check for a URL parameter we might have set
+      const urlParams = new URLSearchParams(window.location.search);
+      const isPWAUrl = urlParams.get('source') === 'pwa';
+      
+      return isStandaloneMode || isPWAUrl;
+    };
+
+    setIsStandalone(checkStandalone());
+
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -71,15 +93,24 @@ export default function App() {
     
     // Watch for display-mode changes
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
-    const listener = (e: MediaQueryListEvent) => {
-      setIsStandalone(e.matches || (window.navigator as any).standalone === true);
+    const listener = (e: MediaQueryListEvent | Event) => {
+      setIsStandalone(checkStandalone());
     };
     
-    mediaQuery.addEventListener('change', listener);
+    // Support both new and old listener styles for cross-browser safety
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener('change', listener);
+    } else if ((mediaQuery as any).addListener) {
+      (mediaQuery as any).addListener(listener);
+    }
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handler);
-      mediaQuery.removeEventListener('change', listener);
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener('change', listener);
+      } else if ((mediaQuery as any).removeListener) {
+        (mediaQuery as any).removeListener(listener);
+      }
     };
   }, []);
 
@@ -286,6 +317,7 @@ export default function App() {
               </div>
             </div>
           </div>
+          <Footer />
         </motion.div>
       </div>
     );
@@ -293,7 +325,8 @@ export default function App() {
 
   // FULL APP (STANDALONE ONLY)
   return (
-    <div className="flex h-screen bg-sky-50/30 overflow-hidden font-sans">
+    <div className="flex h-screen bg-sky-50/30 overflow-hidden font-sans relative">
+      <Footer />
       {/* Sidebar */}
       <div className="w-80 flex-shrink-0 bg-white border-r border-sky-100 flex flex-col h-full shadow-lg shadow-sky-900/5 z-10">
         <div className="p-5 border-b border-sky-100 flex items-center justify-between bg-white">
