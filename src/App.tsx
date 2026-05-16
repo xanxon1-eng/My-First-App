@@ -80,8 +80,8 @@ export default function App() {
     }, 1500);
 
     const handleUpdateCheck = async () => {
-      if ('serviceWorker' in navigator) {
-        try {
+      try {
+        if ('serviceWorker' in navigator) {
           // Solution 3: Add timeout to SW operations to prevent hanging and loops
           const registrationPromise = navigator.serviceWorker.getRegistration();
           const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('SW timeout'), 1000));
@@ -100,13 +100,13 @@ export default function App() {
               }
             }
           }
-        } catch (e) {
-          console.error('Update check failed or timed out', e);
         }
+      } catch (e) {
+        console.error('Update check failed or timed out', e);
+      } finally {
+        clearTimeout(failSafe);
+        setIsCheckingForUpdate(false);
       }
-      
-      clearTimeout(failSafe);
-      setIsCheckingForUpdate(false);
     };
 
     handleUpdateCheck();
@@ -325,7 +325,16 @@ export default function App() {
   };
 
   if (isCheckingForUpdate) {
-    return null; // No loading UI as per user request
+    return (
+      <div className="flex h-screen w-full items-center justify-center bg-king-base">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-king-accent/20 border-t-king-accent rounded-full animate-spin"></div>
+          <p className="text-king-muted text-sm font-medium animate-pulse">
+            Tuning the nest...
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
