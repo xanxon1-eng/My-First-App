@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "Base Hub",
-  "short_name": "Base Hub",
+  "short_name": "Let's Test",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

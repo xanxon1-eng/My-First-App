@@ -1,7 +1,7 @@
 {
   "name": "base-app",
   "private": true,
-  "description": "Static RPG Development Hub",
+  "description": ".",
   "scripts": {
     "dev": "npx -y serve -p 3000 .",
     "build": "mkdir -p dist && cp index.html manifest.json dist/ 2>/dev/null && sed \"s/const CACHE_NAME = .*/const CACHE_NAME = \\\"base-hub-$(date +%s)\\\";/\" sw.js > dist/sw.js"
