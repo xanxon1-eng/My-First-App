@@ -265,70 +265,10 @@ export default function App() {
     }
   };
 
-  // INSTALL GATE
-  if (!isStandalone) {
-    return (
-      <div className="h-screen bg-sky-50 flex flex-col items-center justify-center p-8 text-center font-sans">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-sky-200 border border-sky-100 max-w-sm w-full relative overflow-hidden"
-        >
-          <div className="absolute -top-10 -right-10 opacity-5">
-            <Bird size={200} />
-          </div>
-          
-          <div className="w-20 h-20 bg-sky-500 text-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-sky-200">
-            <Bird size={40} className="transform -rotate-12" />
-          </div>
-          
-          <h1 className="text-3xl font-display font-bold text-sky-950 mb-3 tracking-tight">Kingfisher</h1>
-          <p className="text-sky-800/60 font-medium mb-12 leading-relaxed">
-            Swift thoughts, captured instantly. <br/>Install the app to begin.
-          </p>
-          
-          <button 
-            onClick={handleInstallClick}
-            className="w-full py-4 bg-sky-600 text-white font-bold rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-200 flex items-center justify-center gap-3 active:scale-95"
-          >
-            <Download size={20} />
-            Install Kingfisher
-          </button>
-          
-          {/* iOS specific hint */}
-          <div className="mt-8 pt-8 border-t border-sky-50">
-            <p className="text-[10px] text-sky-300 font-bold uppercase tracking-[0.2em] mb-4 flex items-center justify-center gap-2">
-              <Share size={12} />
-              iOS Instructions
-            </p>
-            <div className="flex items-center justify-center gap-4 text-sky-400">
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
-                  <Share size={14} />
-                </div>
-                <span className="text-[8px] font-bold">1. Share</span>
-              </div>
-              <div className="w-4 h-px bg-sky-100" />
-              <div className="flex flex-col items-center gap-1">
-                <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
-                  <ArrowUp size={14} />
-                </div>
-                <span className="text-[8px] font-bold">2. Add to Home</span>
-              </div>
-            </div>
-          </div>
-          <Footer />
-        </motion.div>
-      </div>
-    );
-  }
-
-  // FULL APP (STANDALONE ONLY)
   return (
     <div className="flex h-screen bg-sky-50/30 overflow-hidden font-sans relative">
-      <Footer />
       {/* Sidebar */}
-      <div className="w-80 flex-shrink-0 bg-white border-r border-sky-100 flex flex-col h-full shadow-lg shadow-sky-900/5 z-10">
+      <div className="w-80 flex-shrink-0 bg-white border-r border-sky-100 flex flex-col h-full shadow-lg shadow-sky-900/5 z-10 relative">
         <div className="p-5 border-b border-sky-100 flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-sky-500 rounded-xl text-white shadow-md shadow-sky-200">
@@ -416,6 +356,23 @@ export default function App() {
               </button>
             ))
           )}
+        </div>
+
+        {/* Sidebar Footer with PWA status */}
+        <div className="p-4 border-t border-sky-50 bg-sky-50/20">
+          {!isStandalone && deferredPrompt && (
+            <button 
+              onClick={handleInstallClick}
+              className="w-full py-2 bg-sky-100 text-sky-700 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-sky-200 transition-colors flex items-center justify-center gap-2 mb-3"
+            >
+              <Download size={12} />
+              Install Native App
+            </button>
+          )}
+          <div className="flex items-center justify-between opacity-30 text-[8px] font-mono">
+            <span>v{APP_VERSION}</span>
+            <span>{INTERFACE_ID}</span>
+          </div>
         </div>
       </div>
 
