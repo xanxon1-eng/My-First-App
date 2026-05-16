@@ -12,6 +12,6 @@ self.addEventListener('activate', (event) => {
 });
 
 // No-op fetch to avoid hijacking
-self.addEventListener('fetch', () => {
-  return;
-});
+// self.addEventListener('fetch', () => {
+//   return;
+// });

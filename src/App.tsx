@@ -16,7 +16,7 @@ import {
   Waves,
   Sparkles
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Note {
   id: string;
