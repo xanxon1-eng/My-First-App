@@ -9,12 +9,12 @@
   "description": "RPG Development Roadmap & Resource Center",
   "icons": [
     {
-      "src": "https://picsum.photos/seed/worldbuilder/192",
+      "src": "./app_icon_192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "https://picsum.photos/seed/worldbuilder/512",
+      "src": "./app_icon_512.png",
       "sizes": "512x512",
       "type": "image/png"
     }

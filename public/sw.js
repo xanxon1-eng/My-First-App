@@ -2,7 +2,9 @@ const CACHE_NAME = "world-builder-v1";
 const ASSETS = [
   "./",
   "./index.html",
-  "./manifest.json"
+  "./manifest.json",
+  "./app_icon_192.png",
+  "./app_icon_512.png"
 ];
 
 self.addEventListener("install", (event) => {
