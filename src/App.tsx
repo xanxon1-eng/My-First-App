@@ -19,7 +19,7 @@ import {
   Share,
   ArrowUp
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface Note {
   id: string;
@@ -40,7 +40,7 @@ const STORAGE_KEYS = {
 };
 
 export default function App() {
-  const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
+  const [isStandalone, setIsStandalone] = useState<boolean | null>(true);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   const [notes, setNotes] = useState<Note[]>([]);
@@ -61,7 +61,8 @@ export default function App() {
     const checkStandalone = () => {
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
                              (window.navigator as any).standalone === true ||
-                             document.referrer.includes('android-app://');
+                             document.referrer.includes('android-app://') ||
+                             window.location.hostname.includes('europe-west2.run.app'); // Treat dev/shared URLs as "installed" for preview purposes
       setIsStandalone(isStandaloneMode);
     };
 
