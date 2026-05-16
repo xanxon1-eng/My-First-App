@@ -1,24 +1,9 @@
 {
   "name": "world-builder-hub",
   "private": true,
-  "type": "module",
-  "version": "1.0.0",
-  "description": "Static PWA for RPG Development Hub",
+  "description": "Static RPG Development Hub",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.0.0",
-    "@vitejs/plugin-react": "^6.0.2",
-    "autoprefixer": "^10.5.0",
-    "framer-motion": "^12.38.0",
-    "lucide-react": "^1.16.0",
-    "postcss": "^8.5.14",
-    "react": "^19.2.6",
-    "react-dom": "^19.2.6",
-    "tailwindcss": "^3.4.17",
-    "vite": "^8.0.13"
+    "dev": "npx -y serve -p 3000 .",
+    "build": "mkdir -p dist && cp index.html manifest.json sw.js dist/ 2>/dev/null || true"
   }
 }
