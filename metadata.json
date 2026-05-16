@@ -1,0 +1,8 @@
+{
+  "name": "World Builder Hub",
+  "description": "A progressive web app roadmap and resource center for developing complex 3D open-world RPGs, focusing on Unreal Engine optimization and scalable system architectures.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,38 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-primary: #06b6d4;
+  --color-brand-bg: #0f172a;
+  --color-brand-surface: #1e293b;
+  --color-brand-border: #334155;
+  --color-brand-text-dim: #94a3b8;
+}
+
+body {
+  @apply bg-brand-bg text-slate-100 font-sans antialiased selection:bg-cyan-500/30;
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.card-step {
+  @apply bg-brand-surface border border-brand-border p-6 rounded-xl hover:border-cyan-500/50 transition-all duration-300;
+}
+
+.code-snippet {
+  @apply font-mono text-xs bg-slate-900/50 p-4 rounded-lg border border-slate-700 overflow-x-auto;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-brand-bg;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-brand-border rounded-full hover:bg-slate-600 transition-colors;
+}
