@@ -1,9 +1,9 @@
-const CACHE_NAME = "base-hub-v1.0.3";
+const CACHE_NAME = "uhu-club-v1.0.4";
 const ASSETS = [
   "./",
   "./index.html",
-  "./app_icon_192.png",
-  "./app_icon_512.png"
+  "app_icon_192.png",
+  "app_icon_512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -28,10 +28,10 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const url = new URL(event.request.url);
 
-  // Network-first for manifest to ensure PWA updates are detected
+  // Network-only for manifest with no-cache flag to force update detection
   if (url.pathname.includes("manifest.json")) {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match(event.request))
+      fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
     );
     return;
   }

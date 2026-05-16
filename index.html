@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hitzefrei</title>
-    <link rel="manifest" href="manifest.json?v=1.0.3">
+    <title>Uhu Club</title>
+    <link rel="manifest" href="manifest.json?v=1.0.4">
     <link rel="apple-touch-icon" href="app_icon_192.png">
     <meta name="theme-color" content="#ffffff">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -26,8 +26,8 @@
         
         <div class="space-y-2">
             <h1 class="text-3xl font-bold tracking-tight">App Initialized</h1>
-            <p class="text-slate-500 leading-relaxed">
-                This is a clean state. Your application is ready for development.
+            <p id="app-status" class="text-slate-500 leading-relaxed font-bold text-red-500">
+                Checking for updates...
             </p>
         </div>
 
@@ -47,6 +47,7 @@
         let deferredPrompt;
         const installContainer = document.getElementById('install-container');
         const installButton = document.getElementById('install-button');
+        const statusEl = document.getElementById('app-status');
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
@@ -67,22 +68,35 @@
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js').then(reg => {
-                    // Check for updates on every load
-                    reg.update();
-                    
+                    console.log('SW Registered');
+                    statusEl.innerText = 'App is Ready';
+                    statusEl.classList.remove('text-red-500');
+                    statusEl.classList.add('text-slate-500');
+
+                    // Check for updates periodically
+                    setInterval(() => {
+                        reg.update();
+                    }, 60000); // every minute
+
                     reg.onupdatefound = () => {
                         const installingWorker = reg.installing;
+                        statusEl.innerText = 'Updating...';
                         installingWorker.onstatechange = () => {
                             if (installingWorker.state === 'installed') {
                                 if (navigator.serviceWorker.controller) {
-                                    console.log('New content is available; please refresh.');
+                                    console.log('New content detected.');
+                                    statusEl.innerText = 'Update found! Refreshing...';
+                                    setTimeout(() => window.location.reload(), 2000);
                                 }
                             }
                         };
                     };
-                }).catch(err => console.error('SW registration failed', err));
+                }).catch(err => {
+                    console.error('SW registration failed', err);
+                    statusEl.innerText = 'Offline Mode';
+                });
 
-                // Reload when the new service worker takes over
+                // Force detection of new service worker taking over
                 let refreshing = false;
                 navigator.serviceWorker.addEventListener('controllerchange', () => {
                     if (!refreshing) {
