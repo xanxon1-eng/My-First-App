@@ -40,7 +40,11 @@ const STORAGE_KEYS = {
 };
 
 export default function App() {
-  const [isStandalone, setIsStandalone] = useState<boolean | null>(true);
+  const [isStandalone, setIsStandalone] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           (window.navigator as any).standalone === true;
+  });
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   
   const [notes, setNotes] = useState<Note[]>([]);
@@ -58,16 +62,6 @@ export default function App() {
 
   // PWA Detection and Installation
   useEffect(() => {
-    const checkStandalone = () => {
-      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
-                             (window.navigator as any).standalone === true ||
-                             document.referrer.includes('android-app://') ||
-                             window.location.hostname.includes('europe-west2.run.app'); // Treat dev/shared URLs as "installed" for preview purposes
-      setIsStandalone(isStandaloneMode);
-    };
-
-    checkStandalone();
-
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -78,7 +72,7 @@ export default function App() {
     // Watch for display-mode changes
     const mediaQuery = window.matchMedia('(display-mode: standalone)');
     const listener = (e: MediaQueryListEvent) => {
-      setIsStandalone(e.matches);
+      setIsStandalone(e.matches || (window.navigator as any).standalone === true);
     };
     
     mediaQuery.addEventListener('change', listener);
@@ -239,18 +233,6 @@ export default function App() {
       });
     }
   };
-
-  // Only show the gate if we know we are NOT standalone.
-  // While we are checking, we show a neutral loading state.
-  if (isStandalone === null) {
-    return (
-      <div className="h-screen bg-sky-50 flex items-center justify-center">
-        <div className="animate-spin text-sky-500">
-          <RefreshCw size={32} />
-        </div>
-      </div>
-    );
-  }
 
   // INSTALL GATE
   if (!isStandalone) {

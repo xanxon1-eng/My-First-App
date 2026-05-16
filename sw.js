@@ -11,7 +11,11 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// No-op fetch to avoid hijacking
-// self.addEventListener('fetch', () => {
-//   return;
-// });
+self.addEventListener('fetch', (event) => {
+  // A simple fetch handler is enough for installability
+  event.respondWith(
+    fetch(event.request).catch(() => {
+      return caches.match(event.request);
+    })
+  );
+});
