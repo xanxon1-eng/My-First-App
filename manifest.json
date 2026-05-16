@@ -1,6 +1,6 @@
 {
-  "name": "Base App",
-  "short_name": "BaseApp",
+  "name": "Base Hub",
+  "short_name": "Base App",
   "start_url": ".",
   "scope": "./",
   "display": "standalone",
