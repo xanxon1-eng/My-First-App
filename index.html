@@ -3,341 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>World Builder Hub | RPG Development Resource</title>
-    <meta name="description" content="A resource center for developing complex open-world RPGs.">
-    <meta name="theme-color" content="#0f172a">
+    <title>Base App</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="app_icon_192.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <!-- Tailwind Play CDN (for development/utility) -->
+    <meta name="theme-color" content="#ffffff">
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style type="text/tailwindcss">
         @theme {
             --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-            --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-        }
-        :root {
-            --bg: #0f172a;
-            --ink: #f8fafc;
-            --accent: #38bdf8;
-            --line: #334155;
         }
         body {
-            @apply bg-[#0f172a] text-[#f8fafc] font-sans selection:bg-[#38bdf8] selection:text-[#0f172a];
-        }
-        .grid-line {
-            @apply border-slate-700/50;
-        }
-        .nav-link {
-            @apply px-3 py-1 text-xs font-mono uppercase tracking-widest opacity-60 hover:opacity-100 transition-opacity cursor-pointer;
-        }
-        .card {
-            @apply bg-slate-900/50 border border-slate-700/50 p-6 hover:border-sky-500/50 transition-all duration-300;
-        }
-        .tag {
-            @apply text-[10px] font-mono uppercase tracking-tighter px-2 py-0.5 bg-slate-800 border border-slate-700 text-slate-400;
+            @apply bg-white text-slate-900 font-sans;
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
-    <!-- Top Navigation -->
-    <nav class="border-b grid-line py-4 px-6 flex justify-between items-center sticky top-0 bg-[#0f172a]/80 backdrop-blur-md z-50">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 border border-sky-400 flex items-center justify-center">
-                <i data-lucide="box" class="w-5 h-5 text-sky-400"></i>
-            </div>
-            <span class="font-mono font-bold tracking-tighter text-lg">WORLD_BUILD_HUB v1.0</span>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+    <div class="max-w-md w-full text-center space-y-8">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-slate-100 rounded-2xl mb-4">
+            <i data-lucide="package" class="w-10 h-10 text-slate-400"></i>
         </div>
-        <div class="hidden md:flex gap-6">
-            <a href="#roadmap" class="nav-link">Roadmap</a>
-            <a href="#optimization" class="nav-link">Optimization</a>
-            <a href="#architecture" class="nav-link">Architecture</a>
-            <a href="#resources" class="nav-link">Resources</a>
+        
+        <div class="space-y-2">
+            <h1 class="text-3xl font-bold tracking-tight">App Initialized</h1>
+            <p class="text-slate-500 leading-relaxed">
+                This is a clean state. Your application is ready for development.
+            </p>
         </div>
-        <button class="border border-sky-500/50 px-4 py-1.5 text-xs font-mono uppercase tracking-widest bg-sky-500/10 hover:bg-sky-500/20 transition-all">
-            Access Terminal
-        </button>
-    </nav>
 
-    <main class="flex-grow">
-        <!-- Hero Section -->
-        <section class="border-b grid-line px-6 py-20 lg:py-32 relative overflow-hidden">
-            <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#38bdf8 0.5px, transparent 0.5px); background-size: 24px 24px;"></div>
-            <div class="max-w-5xl mx-auto relative">
-                <div class="inline-flex items-center gap-2 mb-6">
-                    <span class="w-2 h-2 bg-sky-500 rounded-full animate-pulse"></span>
-                    <span class="text-xs font-mono text-sky-400 uppercase tracking-[0.2em]">Systems Ready // Network Active</span>
-                </div>
-                <h1 class="text-5xl lg:text-8xl font-black italic uppercase leading-none tracking-tighter mb-8">
-                    Scale Beyond <br/> 
-                    <span class="text-sky-400">The Horizon.</span>
-                </h1>
-                <p class="text-lg text-slate-400 max-w-2xl font-light leading-relaxed">
-                    A technical resource center dedicated to the architecture of massive 3D open-world RPGs. 
-                    Master Unreal Engine optimization, scalable AI systems, and persistent world state management.
-                </p>
-                <div class="mt-12 flex flex-wrap gap-4">
-                    <div class="flex flex-col gap-1">
-                        <span class="text-[10px] font-mono uppercase text-slate-500 mb-1">Active Projects</span>
-                        <div class="flex -space-x-2">
-                            <div class="w-8 h-8 rounded-full border-2 border-[#0f172a] bg-slate-800"></div>
-                            <div class="w-8 h-8 rounded-full border-2 border-[#0f172a] bg-sky-500"></div>
-                            <div class="w-8 h-8 rounded-full border-2 border-[#0f172a] bg-slate-700"></div>
-                            <div class="w-8 h-8 rounded-full border-2 border-[#0f172a] flex items-center justify-center bg-slate-900 text-[10px] font-mono text-slate-500">+12</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Technical Roadmap -->
-        <section id="roadmap" class="border-b grid-line px-6 py-16">
-            <div class="max-w-6xl mx-auto">
-                <div class="flex justify-between items-end mb-12">
-                    <div>
-                        <h2 class="text-2xl font-bold uppercase tracking-tight flex items-center gap-2">
-                            <i data-lucide="map" class="w-6 h-6 text-sky-500"></i>
-                            Development Roadmap
-                        </h2>
-                        <p class="text-sm text-slate-500 mt-1">Foundational steps for world-scale development</p>
-                    </div>
-                    <div class="text-right hidden sm:block">
-                        <span class="text-xs font-mono text-slate-600">PHASE_04_INITIATED</span>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="card group">
-                        <div class="mb-4 flex justify-between">
-                            <i data-lucide="layers" class="w-8 h-8 text-sky-500 opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                            <span class="text-xs font-mono text-slate-600">01</span>
-                        </div>
-                        <h3 class="font-bold mb-2">System Core</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Building the foundation of persistent state and entity management.</p>
-                        <div class="flex gap-2">
-                            <span class="tag">DB_FLUX</span>
-                            <span class="tag">STATE_LOCK</span>
-                        </div>
-                    </div>
-
-                    <div class="card group">
-                        <div class="mb-4 flex justify-between">
-                            <i data-lucide="cpu" class="w-8 h-8 text-sky-500 opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                            <span class="text-xs font-mono text-slate-600">02</span>
-                        </div>
-                        <h3 class="font-bold mb-2">AI Architect</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Implementing utility-based AI and group behavior patterns.</p>
-                        <div class="flex gap-2">
-                            <span class="tag">GOAP</span>
-                            <span class="tag">NAV_MESH</span>
-                        </div>
-                    </div>
-
-                    <div class="card group">
-                        <div class="mb-4 flex justify-between">
-                            <i data-lucide="zap" class="w-8 h-8 text-sky-500 opacity-50 group-hover:opacity-100 transition-opacity"></i>
-                            <span class="text-xs font-mono text-slate-600">03</span>
-                        </div>
-                        <h3 class="font-bold mb-2">Rendering Pipeline</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed mb-4">Custom shaders and LOD systems for infinite draw distance.</p>
-                        <div class="flex gap-2">
-                            <span class="tag">HLOD</span>
-                            <span class="tag">NANITE</span>
-                        </div>
-                    </div>
-
-                    <div class="card border-sky-500/30 bg-sky-500/5 relative overflow-hidden group">
-                        <div class="absolute -right-4 -top-4 opacity-5 pointer-events-none">
-                            <i data-lucide="activity" class="w-32 h-32 text-sky-500"></i>
-                        </div>
-                        <div class="mb-4 flex justify-between">
-                            <i data-lucide="globe" class="w-8 h-8 text-sky-400"></i>
-                            <span class="text-xs font-mono text-sky-400">04</span>
-                        </div>
-                        <h3 class="font-bold mb-2">World Sync</h3>
-                        <p class="text-xs text-slate-300 leading-relaxed mb-4">Global networking and authority-based server logic.</p>
-                        <div class="flex gap-2 font-mono">
-                            <span class="text-[10px] text-sky-400 animate-pulse uppercase tracking-widest">In Progress</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Terminal Section -->
-        <section id="resources" class="px-6 py-16 bg-[#020617]">
-            <div class="max-w-6xl mx-auto">
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    <div class="lg:col-span-2">
-                        <div class="bg-black border border-slate-800 rounded-lg overflow-hidden shadow-2xl">
-                            <div class="bg-slate-900 px-4 py-2 border-b border-slate-800 flex justify-between items-center">
-                                <div class="flex gap-2">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-red-500/50"></div>
-                                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500/50"></div>
-                                    <div class="w-2.5 h-2.5 rounded-full bg-green-500/50"></div>
-                                </div>
-                                <span class="text-[10px] font-mono text-slate-500 uppercase">ue5_optimization_core.log</span>
-                            </div>
-                            <div class="p-6 font-mono text-xs leading-relaxed overflow-x-auto min-h-[300px]">
-                                <div class="mb-4">
-                                    <span class="text-green-500">[SYSTEM]</span> Initializing optimization parameters...<br/>
-                                    <span class="text-blue-400">[CONFIG]</span> Nanite: ENABLED<br/>
-                                    <span class="text-blue-400">[CONFIG]</span> Lumen: HIGH_PERFORMANCE<br/>
-                                    <span class="text-blue-400">[CONFIG]</span> VirtualShadowMaps: OPTIMIZED
-                                </div>
-                                <div class="text-slate-500 mb-2">// Critical optimization strategies:</div>
-                                <div class="flex gap-4 mb-2">
-                                    <span class="text-sky-500">01</span>
-                                    <span>Occlusion Culling: Always use strict volume bounds.</span>
-                                </div>
-                                <div class="flex gap-4 mb-2">
-                                    <span class="text-sky-500">02</span>
-                                    <span>Material Batching: Reduce draw calls by 40% via instances.</span>
-                                </div>
-                                <div class="flex gap-4 mb-2">
-                                    <span class="text-sky-500">03</span>
-                                    <span>Memory Pooling: Static allocations for enemy spawn pods.</span>
-                                </div>
-                                <div class="mt-6 flex items-center gap-2">
-                                    <span class="text-slate-500">$</span>
-                                    <span id="terminal-cursor" class="w-2 h-4 bg-sky-500"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold uppercase tracking-tight mb-6">Expert Resources</h3>
-                        <ul class="space-y-4">
-                            <li class="flex items-start gap-4 p-4 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer group">
-                                <i data-lucide="book-open" class="w-5 h-5 text-slate-500 group-hover:text-sky-500 transition-colors"></i>
-                                <div>
-                                    <h4 class="text-sm font-semibold mb-1">Architecture Masterclass</h4>
-                                    <p class="text-xs text-slate-500">Managing 10k+ dynamic entities without frame drops.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-4 p-4 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer group">
-                                <i data-lucide="terminal" class="w-5 h-5 text-slate-500 group-hover:text-sky-500 transition-colors"></i>
-                                <div>
-                                    <h4 class="text-sm font-semibold mb-1">Optimization Scripts</h4>
-                                    <p class="text-xs text-slate-500">Automated C++ scripts for Unreal Engine asset cleanup.</p>
-                                </div>
-                            </li>
-                            <li class="flex items-start gap-4 p-4 border border-slate-800 hover:border-slate-700 transition-colors cursor-pointer group">
-                                <i data-lucide="users" class="w-5 h-5 text-slate-500 group-hover:text-sky-500 transition-colors"></i>
-                                <div>
-                                    <h4 class="text-sm font-semibold mb-1">Community Insights</h4>
-                                    <p class="text-xs text-slate-500">Shared case studies from AAA RPG development teams.</p>
-                                </div>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="border-t grid-line py-8 px-6 text-center">
-        <p class="text-[10px] font-mono text-slate-600 uppercase tracking-[0.3em]">
-            Distributed System // Unauthorized Access Forbidden // &copy; 2026 World Builder Hub
-        </p>
-    </footer>
-
-    <!-- PWA Install Banner -->
-    <div id="pwa-install-banner" class="fixed bottom-6 left-6 right-6 md:left-auto md:w-96 bg-slate-900 border border-sky-500/50 p-5 shadow-2xl z-[100] translate-y-[150%] transition-transform duration-500 ease-out flex flex-col gap-4">
-        <div class="flex items-start gap-4">
-            <div class="w-12 h-12 shrink-0 border border-sky-400 p-1">
-                <img src="app_icon_192.png" alt="App Icon" class="w-full h-full object-cover">
-            </div>
-            <div>
-                <h4 class="font-mono font-bold text-sm text-sky-400">INSTALL_TERMINAL_V1</h4>
-                <p class="text-xs text-slate-400 leading-tight mt-1">Add World Builder Hub to your home screen for offline access and full-screen experience.</p>
-            </div>
-        </div>
-        <div class="flex gap-3 mt-1">
-            <button id="pwa-install-btn" class="flex-1 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/50 py-2 text-[10px] font-mono uppercase tracking-[0.2em] transition-all">
-                Install App
+        <div id="install-container" class="hidden animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <button id="install-button" class="group relative w-full flex items-center justify-center gap-3 bg-black text-white px-8 py-4 rounded-xl font-semibold hover:bg-slate-800 transition-all active:scale-[0.98]">
+                <i data-lucide="download" class="w-5 h-5"></i>
+                Install Application
             </button>
-            <button id="pwa-close-btn" class="px-4 border border-slate-700 text-slate-500 hover:text-slate-300 py-2 text-[10px] font-mono uppercase transition-all">
-                Dismiss
-            </button>
+            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-4">PWA READY</p>
         </div>
     </div>
 
     <script>
-        // Initialize Lucide Icons
+        // Init icons
         lucide.createIcons();
 
-        // PWA Installation Logic
         let deferredPrompt;
-        const installBanner = document.getElementById('pwa-install-banner');
-        const installBtn = document.getElementById('pwa-install-btn');
-        const closeBtn = document.getElementById('pwa-close-btn');
-
-        // Check if already installed
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const installContainer = document.getElementById('install-container');
+        const installButton = document.getElementById('install-button');
 
         window.addEventListener('beforeinstallprompt', (e) => {
-            // Prevent Chrome 67 and earlier from automatically showing the prompt
             e.preventDefault();
-            // Stash the event so it can be triggered later.
             deferredPrompt = e;
-            
-            // Show the custom banner if not already installed
-            if (!isStandalone) {
-                setTimeout(() => {
-                    installBanner.classList.remove('translate-y-[150%]');
-                }, 2000);
-            }
+            installContainer.classList.remove('hidden');
         });
 
-        installBtn.addEventListener('click', async () => {
+        installButton.addEventListener('click', async () => {
             if (!deferredPrompt) return;
-            // Show the install prompt
             deferredPrompt.prompt();
-            // Wait for the user to respond to the prompt
             const { outcome } = await deferredPrompt.userChoice;
-            console.log(`User response to the install prompt: ${outcome}`);
-            // We've used the prompt, and can't use it again
+            if (outcome === 'accepted') {
+                installContainer.classList.add('hidden');
+            }
             deferredPrompt = null;
-            // Hide our custom banner
-            installBanner.classList.add('translate-y-[150%]');
         });
 
-        closeBtn.addEventListener('click', () => {
-            installBanner.classList.add('translate-y-[150%]');
-        });
-
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./sw.js')
-                    .then(reg => console.log('Service Worker registered', reg))
-                    .catch(err => console.error('Service Worker registration failed', err));
+                    .catch(err => console.error('SW registration failed', err));
             });
         }
-
-        // Terminal animation cursor
-        setInterval(() => {
-            const cursor = document.getElementById('terminal-cursor');
-            cursor.style.opacity = cursor.style.opacity === '0' ? '1' : '0';
-        }, 600);
-
-        // Smooth scrolling for anchor links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                document.querySelector(this.getAttribute('href')).scrollIntoView({
-                    behavior: 'smooth'
-                });
-            });
-        });
     </script>
 </body>
 </html>

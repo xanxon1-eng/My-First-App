@@ -1,4 +1,4 @@
-const CACHE_NAME = "world-builder-v1";
+const CACHE_NAME = "base-app-v1";
 const ASSETS = [
   "./",
   "./index.html",

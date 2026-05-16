@@ -1,5 +1,5 @@
 {
-  "name": "world-builder-hub",
+  "name": "base-app",
   "private": true,
   "description": "Static RPG Development Hub",
   "scripts": {
