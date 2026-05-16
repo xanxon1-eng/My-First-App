@@ -1,7 +1,7 @@
 {
   "name": "World Builder Hub",
   "short_name": "WorldBuilder",
-  "start_url": "./",
+  "start_url": "./https://xanxon1-eng.github.io/My-First-App/",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0f172a",
