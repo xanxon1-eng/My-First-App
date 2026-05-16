@@ -53,7 +53,6 @@ function Footer() {
 }
 
 export default function App() {
-  const [isCheckingForUpdate, setIsCheckingForUpdate] = useState(true);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -71,47 +70,6 @@ export default function App() {
     type: 'idle' | 'loading' | 'success' | 'error';
     message?: string;
   }>({ type: 'idle' });
-
-  // Update Check Logic
-  useEffect(() => {
-    // Solution 1: Fail-safe timeout to ensure app always starts, even if SW crashes
-    const failSafe = setTimeout(() => {
-      setIsCheckingForUpdate(false);
-    }, 1500);
-
-    const handleUpdateCheck = async () => {
-      try {
-        if ('serviceWorker' in navigator) {
-          // Solution 3: Add timeout to SW operations to prevent hanging and loops
-          const registrationPromise = navigator.serviceWorker.getRegistration();
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('SW timeout'), 1000));
-          
-          const registration = await Promise.race([registrationPromise, timeoutPromise]) as ServiceWorkerRegistration | undefined;
-          
-          if (registration) {
-            await registration.update();
-            if (registration.waiting) {
-              // Only reload if we haven't tried in this session to prevent loops
-              if (!sessionStorage.getItem('kingfisher_update_attempted')) {
-                sessionStorage.setItem('kingfisher_update_attempted', 'true');
-                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                window.location.reload();
-                return;
-              }
-            }
-          }
-        }
-      } catch (e) {
-        console.error('Update check failed or timed out', e);
-      } finally {
-        clearTimeout(failSafe);
-        setIsCheckingForUpdate(false);
-      }
-    };
-
-    handleUpdateCheck();
-    return () => clearTimeout(failSafe);
-  }, []);
 
   // PWA Detection and Installation
   useEffect(() => {
@@ -323,19 +281,6 @@ export default function App() {
       setTimeout(() => setSyncStatus({ type: 'idle' }), 5000);
     }
   };
-
-  if (isCheckingForUpdate) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-king-base">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-king-accent/20 border-t-king-accent rounded-full animate-spin"></div>
-          <p className="text-king-muted text-sm font-medium animate-pulse">
-            Tuning the nest...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-king-base overflow-hidden font-sans relative text-king-neutral">
