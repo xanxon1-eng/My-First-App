@@ -6,12 +6,14 @@ import {
   Plus, 
   FileText, 
   RefreshCw, 
-  CheckCircle2, 
-  XCircle,
+  CircleCheck, 
+  CircleX,
   Key,
   Database,
-  Cloud
+  Cloud,
+  X
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface Note {
   id: string;
@@ -216,8 +218,8 @@ export default function App() {
         <div className="px-4 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 font-medium">
             {syncStatus.type === 'loading' && <RefreshCw size={14} className="animate-spin text-indigo-600" />}
-            {syncStatus.type === 'success' && <CheckCircle2 size={14} className="text-emerald-600" />}
-            {syncStatus.type === 'error' && <XCircle size={14} className="text-rose-600" />}
+            {syncStatus.type === 'success' && <CircleCheck size={14} className="text-emerald-600" />}
+            {syncStatus.type === 'error' && <CircleX size={14} className="text-rose-600" />}
             {syncStatus.type === 'idle' && <Cloud size={14} className="text-slate-400" />}
             <span className={
               syncStatus.type === 'error' ? 'text-rose-600' : 
@@ -317,98 +319,110 @@ export default function App() {
       </div>
 
       {/* Settings Modal */}
-      {isSettingsOpen && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-slate-900 text-white rounded-lg">
-                  <Database size={20} />
+      <AnimatePresence>
+        {isSettingsOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden"
+            >
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-slate-900 text-white rounded-lg">
+                    <Database size={20} />
+                  </div>
+                  <h2 className="text-lg font-bold text-slate-900">GitHub Cloud Sync</h2>
                 </div>
-                <h2 className="text-lg font-bold text-slate-900">GitHub Cloud Sync</h2>
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"
+                >
+                  <X size={24} />
+                </button>
               </div>
-              <button 
-                onClick={() => setIsSettingsOpen(false)}
-                className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"
-              >
-                <Plus size={24} className="rotate-45" />
-              </button>
-            </div>
-            
-            <div className="p-6 space-y-5">
-              <p className="text-sm text-slate-500">
-                To keep your notes permanent across devices without a traditional database, you can sync them to a private GitHub repository.
-              </p>
+              
+              <div className="p-6 space-y-5">
+                <p className="text-sm text-slate-500">
+                  To keep your notes permanent across devices without a traditional database, you can sync them to a private GitHub repository.
+                </p>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
-                    <Key size={14} />
-                    Personal Access Token
-                  </label>
-                  <input
-                    type="password"
-                    value={ghConfig.token}
-                    onChange={(e) => setGhConfig({ ...ghConfig, token: e.target.value })}
-                    placeholder="ghp_xxxxxxxxxxxx"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
-                  />
-                  <p className="text-[10px] text-slate-400">
-                    Create one at <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer" className="text-indigo-600 underline">GitHub Settings</a> with 'repo' scope.
-                  </p>
-                </div>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                      <Key size={14} />
+                      Personal Access Token
+                    </label>
+                    <input
+                      type="password"
+                      value={ghConfig.token}
+                      onChange={(e) => setGhConfig({ ...ghConfig, token: e.target.value })}
+                      placeholder="ghp_xxxxxxxxxxxx"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
+                    />
+                    <p className="text-[10px] text-slate-400">
+                      Create one at <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer" className="text-indigo-600 underline">GitHub Settings</a> with 'repo' scope.
+                    </p>
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
-                    <Database size={14} />
-                    Repository (user/repo)
-                  </label>
-                  <input
-                    type="text"
-                    value={ghConfig.repo}
-                    onChange={(e) => setGhConfig({ ...ghConfig, repo: e.target.value })}
-                    placeholder="username/my-notes-data"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
-                  />
-                </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                      <Database size={14} />
+                      Repository (user/repo)
+                    </label>
+                    <input
+                      type="text"
+                      value={ghConfig.repo}
+                      onChange={(e) => setGhConfig({ ...ghConfig, repo: e.target.value })}
+                      placeholder="username/my-notes-data"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
-                    <FileText size={14} />
-                    Data Path
-                  </label>
-                  <input
-                    type="text"
-                    value={ghConfig.path}
-                    onChange={(e) => setGhConfig({ ...ghConfig, path: e.target.value })}
-                    placeholder="notes.json"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
-                  />
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase flex items-center gap-2">
+                      <FileText size={14} />
+                      Data Path
+                    </label>
+                    <input
+                      type="text"
+                      value={ghConfig.path}
+                      onChange={(e) => setGhConfig({ ...ghConfig, path: e.target.value })}
+                      placeholder="notes.json"
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none transition-all text-sm font-mono"
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="p-6 bg-slate-50 flex items-center justify-end gap-3">
-              <button 
-                onClick={() => setIsSettingsOpen(false)}
-                className="px-6 py-2.5 font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
-              >
-                Close
-              </button>
-              <button 
-                onClick={() => {
-                  setIsSettingsOpen(false);
-                  syncWithGithub();
-                }}
-                className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2"
-              >
-                <RefreshCw size={18} />
-                Save & Sync
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="p-6 bg-slate-50 flex items-center justify-end gap-3">
+                <button 
+                  onClick={() => setIsSettingsOpen(false)}
+                  className="px-6 py-2.5 font-bold text-slate-600 hover:bg-slate-200 rounded-xl transition-colors"
+                >
+                  Close
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsSettingsOpen(false);
+                    syncWithGithub();
+                  }}
+                  className="px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center gap-2"
+                >
+                  <RefreshCw size={18} />
+                  Save & Sync
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

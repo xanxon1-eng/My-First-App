@@ -12,11 +12,23 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
+      // Force unregister all service workers to fix blank page issues caused by potential caching conflicts
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          for (const registration of registrations) {
+            registration.unregister();
+            console.log('ServiceWorker unregistered');
+          }
+          if (registrations.length > 0) window.location.reload();
+        });
+      }
+    </script>
+    <!-- <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js');
         });
       }
-    </script>
+    </script> -->
   </body>
 </html>
