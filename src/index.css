@@ -4,8 +4,12 @@
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Outfit", sans-serif;
+  
+  --color-king-blue: #0088cc;
+  --color-king-orange: #ff6600;
+  --color-king-white: #ffffff;
 }
 
 body {
-  @apply bg-sky-50 text-slate-900 font-sans antialiased;
+  @apply bg-white text-slate-900 font-sans antialiased;
 }

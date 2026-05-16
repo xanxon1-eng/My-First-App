@@ -1,6 +1,6 @@
 {
-  "name": "Kingfisher App",
-  "description": "A vibrant note-taking app inspired by the swift and colorful Kingfisher. Sync your thoughts with GitHub for permanent storage.",
+  "name": "Kingfisher Notes",
+  "description": "A swift and vibrant note-taking app optimized for Android. Features Kingfisher-inspired design and secure GitHub synchronization.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
