@@ -1,5 +1,5 @@
 {
-  "id": "base-hub-pwa",
+  "id": "/",
   "name": "Base Hub",
   "short_name": "Base Hub",
   "start_url": "./",
