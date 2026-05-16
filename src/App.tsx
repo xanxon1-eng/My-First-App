@@ -74,26 +74,43 @@ export default function App() {
 
   // Update Check Logic
   useEffect(() => {
+    // Solution 1: Fail-safe timeout to ensure app always starts, even if SW crashes
+    const failSafe = setTimeout(() => {
+      setIsCheckingForUpdate(false);
+    }, 1500);
+
     const handleUpdateCheck = async () => {
       if ('serviceWorker' in navigator) {
         try {
-          const registration = await navigator.serviceWorker.getRegistration();
+          // Solution 3: Add timeout to SW operations to prevent hanging and loops
+          const registrationPromise = navigator.serviceWorker.getRegistration();
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject('SW timeout'), 1000));
+          
+          const registration = await Promise.race([registrationPromise, timeoutPromise]) as ServiceWorkerRegistration | undefined;
+          
           if (registration) {
             await registration.update();
             if (registration.waiting) {
-              registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-              window.location.reload();
-              return;
+              // Only reload if we haven't tried in this session to prevent loops
+              if (!sessionStorage.getItem('kingfisher_update_attempted')) {
+                sessionStorage.setItem('kingfisher_update_attempted', 'true');
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                window.location.reload();
+                return;
+              }
             }
           }
         } catch (e) {
-          console.error('Update check failed', e);
+          console.error('Update check failed or timed out', e);
         }
       }
-      // Brief delay to ensure consistency if requested
-      setTimeout(() => setIsCheckingForUpdate(false), 800);
+      
+      clearTimeout(failSafe);
+      setIsCheckingForUpdate(false);
     };
+
     handleUpdateCheck();
+    return () => clearTimeout(failSafe);
   }, []);
 
   // PWA Detection and Installation
