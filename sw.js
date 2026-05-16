@@ -1,4 +1,4 @@
-// Purge Worker v1.0.1
+// Purge Worker v1.0.2
 self.addEventListener('install', () => {
   self.skipWaiting();
 });

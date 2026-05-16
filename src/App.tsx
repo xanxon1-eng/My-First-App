@@ -41,6 +41,8 @@ const STORAGE_KEYS = {
   GH_CONFIG: 'kingfisher_gh_config_v1'
 };
 
+const INTERFACE_ID = (window as any).INITIAL_ID || 'NEST-INIT';
+
 function Footer() {
   return (
     <div className="fixed bottom-1 left-0 right-0 flex justify-center items-center gap-4 text-[8px] font-mono opacity-20 pointer-events-none select-none z-[9999]">
@@ -279,7 +281,7 @@ export default function App() {
   };
 
   return (
-    <div className="flex h-screen bg-king-blue/5 overflow-hidden font-sans relative">
+    <div className="flex h-screen bg-king-deep-blue overflow-hidden font-sans relative text-white">
       {/* Sidebar Overlay for Mobile */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -288,7 +290,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsSidebarOpen(false)}
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-20 lg:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-20 lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -301,26 +303,26 @@ export default function App() {
           opacity: isSidebarOpen ? 1 : 0
         }}
         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-        className="fixed lg:relative w-80 flex-shrink-0 bg-white border-r border-slate-100 flex flex-col h-full shadow-2xl lg:shadow-king-blue/5 z-30"
+        className="fixed lg:relative w-80 flex-shrink-0 bg-king-deep-blue/50 backdrop-blur-2xl border-r border-white/5 flex flex-col h-full z-30"
       >
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between bg-white">
+        <div className="p-5 border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-king-blue rounded-xl text-white shadow-md shadow-king-blue/20">
+            <div className="p-2 bg-king-orange rounded-xl text-white shadow-lg shadow-king-orange/20">
               <Bird size={24} className="transform -rotate-12" />
             </div>
-            <h1 className="font-display font-bold text-slate-950 tracking-tight text-xl">Kingfisher</h1>
+            <h1 className="font-display font-bold text-white tracking-tight text-xl">Kingfisher</h1>
           </div>
           <div className="flex items-center gap-1">
             <button 
               onClick={() => setIsSettingsOpen(true)}
-              className="p-2 text-slate-400 hover:bg-slate-50 hover:text-king-blue rounded-xl transition-all"
+              className="p-2 text-white/40 hover:bg-white/5 hover:text-king-orange rounded-xl transition-all"
               title="Settings"
             >
               <Settings size={20} />
             </button>
             <button 
               onClick={createNote}
-              className="p-2 bg-king-orange text-white hover:bg-orange-600 rounded-xl transition-all shadow-md shadow-king-orange/20"
+              className="p-2 bg-king-orange text-white hover:bg-orange-600 rounded-xl transition-all shadow-lg shadow-king-orange/20"
               title="New Note"
             >
               <Plus size={20} />
@@ -329,16 +331,16 @@ export default function App() {
         </div>
 
         {/* Sync Status Bar */}
-        <div className="px-4 py-2 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between text-[10px] uppercase tracking-wider font-bold">
+        <div className="px-4 py-2 bg-black/20 border-b border-white/5 flex items-center justify-between text-[10px] uppercase tracking-wider font-bold">
           <div className="flex items-center gap-2">
-            {syncStatus.type === 'loading' && <RefreshCw size={12} className="animate-spin text-king-blue" />}
-            {syncStatus.type === 'success' && <CircleCheck size={12} className="text-emerald-500" />}
+            {syncStatus.type === 'loading' && <RefreshCw size={12} className="animate-spin text-king-orange" />}
+            {syncStatus.type === 'success' && <CircleCheck size={12} className="text-emerald-400" />}
             {syncStatus.type === 'error' && <CircleX size={12} className="text-king-orange" />}
-            {syncStatus.type === 'idle' && <Waves size={12} className="text-slate-300" />}
+            {syncStatus.type === 'idle' && <Waves size={12} className="text-white/20" />}
             <span className={
               syncStatus.type === 'error' ? 'text-king-orange' : 
-              syncStatus.type === 'success' ? 'text-emerald-600' : 
-              'text-slate-600'
+              syncStatus.type === 'success' ? 'text-emerald-400' : 
+              'text-white/40'
             }>
               {syncStatus.message || (ghConfig.token ? 'River Stream Clear' : 'Unconnected')}
             </span>
@@ -346,7 +348,7 @@ export default function App() {
           {syncStatus.type !== 'loading' && (
             <button 
               onClick={syncWithGithub}
-              className="text-king-blue hover:text-slate-800 transition-colors"
+              className="text-king-orange hover:text-white transition-colors"
             >
               Dive
             </button>
@@ -356,10 +358,10 @@ export default function App() {
         <div className="flex-1 overflow-y-auto p-3 space-y-2 pb-24">
           {notes.length === 0 ? (
             <div className="text-center py-16 px-4">
-              <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-slate-100">
+              <div className="w-16 h-16 bg-white/5 text-white/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-white/5">
                 <Bird size={32} />
               </div>
-              <p className="text-sm text-slate-400 font-medium">No notes in the nest.</p>
+              <p className="text-sm text-white/30 font-medium">No notes in the nest.</p>
             </div>
           ) : (
             notes.map(note => (
@@ -368,17 +370,17 @@ export default function App() {
                 onClick={() => selectNote(note.id)}
                 className={`w-full text-left p-4 rounded-2xl transition-all group relative overflow-hidden ${
                   activeNoteId === note.id 
-                    ? 'bg-king-blue text-white shadow-lg shadow-king-blue/20' 
-                    : 'hover:bg-slate-50 text-slate-700 bg-transparent'
+                    ? 'bg-king-orange text-white shadow-lg shadow-king-orange/20' 
+                    : 'hover:bg-white/5 text-white/70 bg-transparent'
                 }`}
               >
-                <div className={`font-bold line-clamp-1 ${activeNoteId === note.id ? 'text-white' : 'text-slate-900'}`}>
+                <div className={`font-bold line-clamp-1 ${activeNoteId === note.id ? 'text-white' : 'text-white'}`}>
                   {note.title || 'Untitled Note'}
                 </div>
-                <div className={`text-xs mt-1 line-clamp-2 ${activeNoteId === note.id ? 'text-king-blue/10' : 'text-slate-500'}`}>
+                <div className={`text-xs mt-1 line-clamp-2 ${activeNoteId === note.id ? 'text-white/80' : 'text-white/40'}`}>
                   {note.content || 'Start a new thought...'}
                 </div>
-                <div className={`text-[10px] mt-3 font-medium ${activeNoteId === note.id ? 'text-white/60' : 'text-slate-300'}`}>
+                <div className={`text-[10px] mt-3 font-medium ${activeNoteId === note.id ? 'text-white/60' : 'text-white/20'}`}>
                   {new Date(note.updatedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                 </div>
               </button>
@@ -387,101 +389,101 @@ export default function App() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-slate-50 bg-white">
+        <div className="p-4 border-t border-white/5 bg-black/20">
           {!isStandalone && (
             <button 
               onClick={handleInstallClick}
-              className="w-full py-3 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-colors flex items-center justify-center gap-2 mb-3"
+              className="w-full py-3 bg-white/5 text-white/40 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-white/10 transition-colors flex items-center justify-center gap-2 mb-3"
             >
               <Download size={12} />
               Install App
             </button>
           )}
-          <div className="flex items-center justify-center opacity-30 text-[8px] font-mono">
+          <div className="flex items-center justify-center opacity-20 text-[8px] font-mono">
             <span>KINGFISHER v{APP_VERSION}</span>
           </div>
         </div>
       </motion.div>
 
       {/* Editor component */}
-      <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
+      <div className="flex-1 flex flex-col bg-king-deep-blue overflow-hidden relative">
         {/* Mobile Header */}
-        <div className="lg:hidden p-4 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md z-10 sticky top-0">
+        <div className="lg:hidden p-4 border-b border-white/5 flex items-center justify-between bg-king-deep-blue/80 backdrop-blur-md z-10 sticky top-0">
           <button 
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 text-slate-500 hover:bg-slate-50 rounded-xl"
+            className="p-2 text-white/60 hover:bg-white/5 rounded-xl"
           >
             <Menu size={24} />
           </button>
           <div className="flex items-center gap-2">
-            <Bird size={20} className="text-king-blue" />
-            <span className="font-display font-bold text-slate-900">Kingfisher</span>
+            <Bird size={20} className="text-king-orange" />
+            <span className="font-display font-bold text-white">Kingfisher</span>
           </div>
           <button 
             onClick={createNote}
-            className="p-2 text-king-orange hover:bg-orange-50 rounded-xl"
+            className="p-2 text-king-orange hover:bg-white/5 rounded-xl"
           >
             <Plus size={24} />
           </button>
         </div>
 
-        <div className="absolute top-0 right-0 p-8 opacity-[0.02] pointer-events-none hidden lg:block">
-          <Bird size={400} className="text-slate-900" />
+        <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none hidden lg:block">
+          <Bird size={400} className="text-white" />
         </div>
         
         {activeNote ? (
           <>
-            <div className="p-6 border-b border-slate-50 flex items-center justify-between bg-white/80 backdrop-blur-md z-10">
+            <div className="p-6 border-b border-white/5 flex items-center justify-between bg-king-deep-blue/40 backdrop-blur-md z-10">
               <input
                 type="text"
                 value={activeNote.title}
                 onChange={(e) => updateNote(activeNote.id, { title: e.target.value })}
-                className="text-xl lg:text-2xl font-display font-bold text-slate-950 bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder:text-slate-200"
+                className="text-xl lg:text-2xl font-display font-bold text-white bg-transparent border-none focus:outline-none focus:ring-0 w-full placeholder:text-white/10"
                 placeholder="Name your thought..."
               />
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => deleteNote(activeNote.id)}
-                  className="p-2.5 text-king-orange hover:bg-orange-50 rounded-xl transition-all"
+                  className="p-2.5 text-king-orange hover:bg-king-orange/10 rounded-xl transition-all"
                   title="Delete Note"
                 >
                   <Trash2 size={22} />
                 </button>
-                <div className="h-8 w-px bg-slate-50 mx-1 hidden sm:block"></div>
+                <div className="h-8 w-px bg-white/5 mx-1 hidden sm:block"></div>
                 <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-[10px] font-bold text-king-blue uppercase tracking-widest flex items-center gap-1">
+                  <span className="text-[10px] font-bold text-king-orange uppercase tracking-widest flex items-center gap-1">
                     <Save size={12} />
                     Nest Sync
                   </span>
-                  <span className="text-[9px] text-slate-300 font-medium">Autosaved locally</span>
+                  <span className="text-[9px] text-white/20 font-medium">Autosaved locally</span>
                 </div>
               </div>
             </div>
             <textarea
               value={activeNote.content}
               onChange={(e) => updateNote(activeNote.id, { content: e.target.value })}
-              className="flex-1 p-6 lg:p-10 text-base lg:text-lg text-slate-700 bg-transparent resize-none focus:outline-none focus:ring-0 leading-relaxed font-sans placeholder:text-slate-200 z-10"
+              className="flex-1 p-6 lg:p-10 text-base lg:text-lg text-white/80 bg-transparent resize-none focus:outline-none focus:ring-0 leading-relaxed font-sans placeholder:text-white/10 z-10"
               placeholder="Capture the moment..."
             />
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden bg-gradient-to-br from-slate-50 to-white">
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center relative overflow-hidden">
             <motion.div 
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.5 }}
               className="relative z-10"
             >
-              <div className="w-24 h-24 bg-white text-king-blue rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-king-blue/10 border border-slate-100 mx-auto">
+              <div className="w-24 h-24 bg-white/5 text-king-orange rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-king-orange/10 border border-white/5 mx-auto">
                 <Bird size={48} className="transform -rotate-12" />
               </div>
-              <h2 className="text-2xl lg:text-3xl font-display font-bold text-slate-900 mb-4 tracking-tight">Welcome to the Nest</h2>
-              <p className="max-w-xs text-slate-500 font-medium leading-relaxed mx-auto">
+              <h2 className="text-2xl lg:text-3xl font-display font-bold text-white mb-4 tracking-tight">Welcome to the Nest</h2>
+              <p className="max-w-xs text-white/40 font-medium leading-relaxed mx-auto">
                 Your thoughts are swift as a Kingfisher. Catch them before they fly away!
               </p>
               <button 
                 onClick={createNote}
-                className="mt-10 px-8 py-3 bg-king-blue text-white font-bold rounded-2xl hover:bg-teal-700 transition-all shadow-xl shadow-king-blue/20 flex items-center gap-2 mx-auto"
+                className="mt-10 px-8 py-3 bg-king-orange text-white font-bold rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-king-orange/20 flex items-center gap-2 mx-auto"
               >
                 <Plus size={20} />
                 Create New Note
@@ -498,47 +500,47 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ y: 50, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-slate-50 p-8 text-center"
+              className="bg-king-deep-blue rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-white/5 p-8 text-center"
             >
-              <div className="w-16 h-16 bg-king-blue text-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-king-blue/20">
+              <div className="w-16 h-16 bg-king-orange text-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-king-orange/20">
                 <Bird size={32} className="transform -rotate-12" />
               </div>
               
-              <h2 className="text-2xl font-display font-bold text-slate-950 mb-3">Install Kingfisher</h2>
-              <p className="text-slate-500 font-medium text-sm mb-8 leading-relaxed">
+              <h2 className="text-2xl font-display font-bold text-white mb-3">Install Kingfisher</h2>
+              <p className="text-white/40 font-medium text-sm mb-8 leading-relaxed">
                 Add Kingfisher to your home screen for the best experience.
               </p>
 
               <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-4 text-left p-4 bg-slate-50 rounded-2xl">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Share size={16} className="text-king-blue" />
+                <div className="flex items-center gap-4 text-left p-4 bg-white/5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-full bg-king-deep-blue flex items-center justify-center shrink-0 shadow-sm">
+                    <Share size={16} className="text-king-orange" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step 1</div>
-                    <div className="text-xs font-semibold text-slate-900">Tap the Share/Menu button in your browser</div>
+                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-wider">Step 1</div>
+                    <div className="text-xs font-semibold text-white/80">Tap the Share/Menu button in your browser</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-left p-4 bg-slate-50 rounded-2xl">
-                  <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 shadow-sm">
-                    <Plus size={16} className="text-king-blue" />
+                <div className="flex items-center gap-4 text-left p-4 bg-white/5 rounded-2xl">
+                  <div className="w-8 h-8 rounded-full bg-king-deep-blue flex items-center justify-center shrink-0 shadow-sm">
+                    <Plus size={16} className="text-king-orange" />
                   </div>
                   <div>
-                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Step 2</div>
-                    <div className="text-xs font-semibold text-slate-900">Select "Add to Home Screen"</div>
+                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-wider">Step 2</div>
+                    <div className="text-xs font-semibold text-white/80">Select "Add to Home Screen"</div>
                   </div>
                 </div>
               </div>
 
               <button 
                 onClick={() => setIsInstallModalOpen(false)}
-                className="w-full py-4 bg-king-blue text-white font-bold rounded-2xl hover:bg-teal-700 transition-all shadow-xl shadow-king-blue/20"
+                className="w-full py-4 bg-king-orange text-white font-bold rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-king-orange/20"
               >
                 Got it
               </button>
@@ -554,37 +556,37 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
           >
             <motion.div 
               initial={{ y: 50, opacity: 0, scale: 0.95 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: 50, opacity: 0, scale: 0.95 }}
-              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-slate-50"
+              className="bg-king-deep-blue rounded-[2rem] shadow-2xl w-full max-w-md overflow-hidden border border-white/10"
             >
-              <div className="p-8 border-b border-slate-50 flex items-center justify-between">
+              <div className="p-8 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-slate-900 text-white rounded-2xl shadow-lg">
+                  <div className="p-3 bg-king-orange text-white rounded-2xl shadow-lg">
                     <Cloud size={24} />
                   </div>
-                  <h2 className="text-xl font-display font-bold text-slate-900">GitHub Dive Sync</h2>
+                  <h2 className="text-xl font-display font-bold text-white">GitHub Dive Sync</h2>
                 </div>
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
-                  className="p-2 text-slate-300 hover:bg-slate-50 hover:text-king-orange rounded-full transition-all"
+                  className="p-2 text-white/20 hover:bg-white/5 hover:text-king-orange rounded-full transition-all"
                 >
                   <X size={28} />
                 </button>
               </div>
               
               <div className="p-8 space-y-6">
-                <p className="text-sm text-slate-500 leading-relaxed font-medium">
+                <p className="text-sm text-white/40 leading-relaxed font-medium">
                   Store your notes in the great river of GitHub. They'll be safe and accessible across all your devices.
                 </p>
 
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] flex items-center gap-2">
                       <Key size={14} />
                       River Access Token
                     </label>
@@ -593,15 +595,15 @@ export default function App() {
                       value={ghConfig.token}
                       onChange={(e) => setGhConfig({ ...ghConfig, token: e.target.value })}
                       placeholder="ghp_xxxxxxxxxxxx"
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-king-blue/10 focus:border-king-blue/30 outline-none transition-all text-sm font-mono placeholder:text-slate-200"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-king-orange/10 focus:border-king-orange/30 outline-none transition-all text-sm font-mono text-white placeholder:text-white/10"
                     />
-                    <p className="text-[10px] text-slate-400 font-medium pl-1">
-                      Create at <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer" className="text-king-blue hover:underline">GitHub</a> with 'repo' scope.
+                    <p className="text-[10px] text-white/20 font-medium pl-1">
+                      Create at <a href="https://github.com/settings/tokens" target="_blank" rel="noreferrer" className="text-king-orange hover:underline">GitHub</a> with 'repo' scope.
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] flex items-center gap-2">
                       <Database size={14} />
                       Nest Branch (user/repo)
                     </label>
@@ -610,12 +612,12 @@ export default function App() {
                       value={ghConfig.repo}
                       onChange={(e) => setGhConfig({ ...ghConfig, repo: e.target.value })}
                       placeholder="username/notes-nest"
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-king-blue/10 focus:border-king-blue/30 outline-none transition-all text-sm font-mono placeholder:text-slate-200"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-king-orange/10 focus:border-king-orange/30 outline-none transition-all text-sm font-mono text-white placeholder:text-white/10"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <label className="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] flex items-center gap-2">
                       <FileText size={14} />
                       Current Stream
                     </label>
@@ -624,16 +626,16 @@ export default function App() {
                       value={ghConfig.path}
                       onChange={(e) => setGhConfig({ ...ghConfig, path: e.target.value })}
                       placeholder="thoughts.json"
-                      className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-4 focus:ring-king-blue/10 focus:border-king-blue/30 outline-none transition-all text-sm font-mono placeholder:text-slate-200"
+                      className="w-full px-5 py-4 bg-white/5 border border-white/10 rounded-2xl focus:ring-4 focus:ring-king-orange/10 focus:border-king-orange/30 outline-none transition-all text-sm font-mono text-white placeholder:text-white/10"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="p-8 bg-slate-50/50 flex items-center justify-end gap-4">
+              <div className="p-8 bg-black/20 flex items-center justify-end gap-4">
                 <button 
                   onClick={() => setIsSettingsOpen(false)}
-                  className="px-6 py-3 font-bold text-slate-400 hover:text-slate-600 transition-colors"
+                  className="px-6 py-3 font-bold text-white/20 hover:text-white transition-colors"
                 >
                   Cancel
                 </button>
@@ -642,7 +644,7 @@ export default function App() {
                     setIsSettingsOpen(false);
                     syncWithGithub();
                   }}
-                  className="px-8 py-3 bg-king-blue text-white font-bold rounded-2xl hover:bg-teal-700 transition-all shadow-xl shadow-king-blue/20 flex items-center gap-2"
+                  className="px-8 py-3 bg-king-orange text-white font-bold rounded-2xl hover:bg-orange-600 transition-all shadow-xl shadow-king-orange/20 flex items-center gap-2"
                 >
                   <Sparkles size={18} />
                   Start Diving
