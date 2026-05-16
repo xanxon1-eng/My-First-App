@@ -1,13 +1,13 @@
 {
   "id": "/",
-  "name": "Uhu Club",
-  "short_name": "Uhu Club",
+  "name": "Kingfisher App",
+  "short_name": "Kingfisher",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
-  "description": "A clean, minimal starting point with PWA installation support.",
+  "background_color": "#f0f9ff",
+  "theme_color": "#0ea5e9",
+  "description": "A vibrant note-taking app inspired by the swift and colorful Kingfisher.",
   "icons": [
     {
       "src": "app_icon_192.png",

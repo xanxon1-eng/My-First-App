@@ -1,6 +1,6 @@
 {
-  "name": "Uhu Notes",
-  "description": "A minimal note-taking app that can sync with your own GitHub repository for permanent storage.",
+  "name": "Kingfisher App",
+  "description": "A vibrant note-taking app inspired by the swift and colorful Kingfisher. Sync your thoughts with GitHub for permanent storage.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
