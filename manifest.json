@@ -1,13 +1,13 @@
 {
-  "id": "/",
-  "name": "Base Hub Uhua",
-  "short_name": "Base Hub 123",
+  "id": "base-hub-pwa",
+  "name": "Base Hub",
+  "short_name": "Base Hub",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
-  "description": "Minimal PWA starting point.",
+  "description": "A clean, minimal starting point with PWA installation support.",
   "icons": [
     {
       "src": "./app_icon_192.png",

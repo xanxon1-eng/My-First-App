@@ -1,7 +1,8 @@
-const CACHE_NAME = "base-hub-v1.0.1";
+const CACHE_NAME = "base-hub-v1.0.2";
 const ASSETS = [
   "./",
   "./index.html",
+  "./manifest.json",
   "./app_icon_192.png",
   "./app_icon_512.png"
 ];
