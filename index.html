@@ -17,24 +17,24 @@
           <div id="loading-status" style="font-size: 0.75rem; opacity: 0.6;">Loading Nest...</div>
         </div>
         <div style="position: absolute; bottom: 1rem; font-size: 0.6rem; opacity: 0.3; font-family: monospace; display: flex; gap: 1rem;">
-          <span>v1.0.2</span>
-          <span id="init-id">BOOTING...</span>
+          <span>v1.0.4</span>
+          <span id="init-id">READYING...</span>
         </div>
       </div>
     </div>
     <script>
       // Early ID generation for the loader
-      const initId = 'BOOT-' + Math.random().toString(36).substring(2, 7).toUpperCase();
+      const initId = 'WING-' + Math.random().toString(36).substring(2, 7).toUpperCase();
       document.getElementById('init-id').innerText = initId;
       window.INITIAL_ID = initId;
 
       // Troubleshooting timeout
       setTimeout(() => {
         const status = document.getElementById('loading-status');
-        if (status && status.innerText === 'Loading Nest...') {
-          status.innerHTML = 'Still loading? <button onclick="location.reload()" style="background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; padding:0; font:inherit;">Try Refreshing</button>';
+        if (status && (status.innerText === 'Loading Nest...' || status.innerText === 'Still loading? Try Refreshing')) {
+          status.innerHTML = 'Still stuck? <button onclick="localStorage.clear(); sessionStorage.clear(); location.reload()" style="background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer; padding:0; font:inherit;">Clear App Cache & Reload</button>';
         }
-      }, 5000);
+      }, 8000);
     </script>
     <script type="module" src="/src/main.tsx"></script>
     <script>

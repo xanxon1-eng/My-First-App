@@ -19,7 +19,7 @@ import {
   Share,
   ArrowUp
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { APP_VERSION, INTERFACE_ID } from './constants';
 
 interface Note {
@@ -56,6 +56,7 @@ export default function App() {
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isInstallModalOpen, setIsInstallModalOpen] = useState(false);
   const [ghConfig, setGhConfig] = useState<GithubConfig>({
     token: '',
     repo: 'XanXon1/kingfisher-notes', // Example default
@@ -115,16 +116,15 @@ export default function App() {
   }, []);
 
   const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      // If no prompt, maybe it's iOS or already installed but not detected
-      alert('To install Kingfisher:\n\n1. Tap the Share button below\n2. Scroll down and tap "Add to Home Screen"');
-      return;
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      setDeferredPrompt(null);
+    } else {
+      // Show manual instructions
+      setIsInstallModalOpen(true);
     }
-    
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
-    setDeferredPrompt(null);
   };
 
   // Load from LocalStorage on mount
@@ -360,13 +360,13 @@ export default function App() {
 
         {/* Sidebar Footer with PWA status */}
         <div className="p-4 border-t border-sky-50 bg-sky-50/20">
-          {!isStandalone && deferredPrompt && (
+          {!isStandalone && (
             <button 
               onClick={handleInstallClick}
-              className="w-full py-2 bg-sky-100 text-sky-700 text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-sky-200 transition-colors flex items-center justify-center gap-2 mb-3"
+              className="w-full py-2 bg-sky-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-lg hover:bg-sky-700 transition-colors shadow-md shadow-sky-100 flex items-center justify-center gap-2 mb-3"
             >
               <Download size={12} />
-              Install Native App
+              Install Kingfisher
             </button>
           )}
           <div className="flex items-center justify-between opacity-30 text-[8px] font-mono">
@@ -442,6 +442,62 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {/* Install Modal */}
+      <AnimatePresence>
+        {isInstallModalOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-sky-950/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div 
+              initial={{ y: 50, opacity: 0, scale: 0.95 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              exit={{ y: 50, opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-[2rem] shadow-2xl w-full max-w-sm overflow-hidden border border-sky-50 p-8 text-center"
+            >
+              <div className="w-16 h-16 bg-sky-500 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-sky-200">
+                <Bird size={32} className="transform -rotate-12" />
+              </div>
+              
+              <h2 className="text-2xl font-display font-bold text-sky-950 mb-3">Install Kingfisher</h2>
+              <p className="text-sky-800/60 font-medium text-sm mb-8 leading-relaxed">
+                Add Kingfisher to your home screen for the best experience.
+              </p>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-center gap-4 text-left p-4 bg-sky-50/50 rounded-2xl">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
+                    <Share size={16} className="text-sky-600" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">Step 1</div>
+                    <div className="text-xs font-semibold text-sky-900">Tap the Share button in your browser</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-4 text-left p-4 bg-sky-50/50 rounded-2xl">
+                  <div className="w-8 h-8 rounded-full bg-sky-100 flex items-center justify-center shrink-0">
+                    <Plus size={16} className="text-sky-600" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-sky-400 uppercase tracking-wider">Step 2</div>
+                    <div className="text-xs font-semibold text-sky-900">Select "Add to Home Screen"</div>
+                  </div>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setIsInstallModalOpen(false)}
+                className="w-full py-4 bg-sky-600 text-white font-bold rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-200"
+              >
+                Got it
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Settings Modal */}
       <AnimatePresence>
