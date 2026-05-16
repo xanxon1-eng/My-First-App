@@ -14,7 +14,10 @@ import {
   X,
   Bird,
   Waves,
-  Sparkles
+  Sparkles,
+  Download,
+  Share,
+  ArrowUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -37,6 +40,9 @@ const STORAGE_KEYS = {
 };
 
 export default function App() {
+  const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
   const [notes, setNotes] = useState<Note[]>([]);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -49,6 +55,51 @@ export default function App() {
     type: 'idle' | 'loading' | 'success' | 'error';
     message?: string;
   }>({ type: 'idle' });
+
+  // PWA Detection and Installation
+  useEffect(() => {
+    const checkStandalone = () => {
+      const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
+                             (window.navigator as any).standalone === true ||
+                             document.referrer.includes('android-app://');
+      setIsStandalone(isStandaloneMode);
+    };
+
+    checkStandalone();
+
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    
+    // Watch for display-mode changes
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+    const listener = (e: MediaQueryListEvent) => {
+      setIsStandalone(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', listener);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handler);
+      mediaQuery.removeEventListener('change', listener);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      // If no prompt, maybe it's iOS or already installed but not detected
+      alert('To install Kingfisher:\n\n1. Tap the Share button below\n2. Scroll down and tap "Add to Home Screen"');
+      return;
+    }
+    
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    setDeferredPrompt(null);
+  };
 
   // Load from LocalStorage on mount
   useEffect(() => {
@@ -188,6 +239,76 @@ export default function App() {
     }
   };
 
+  // Only show the gate if we know we are NOT standalone.
+  // While we are checking, we show a neutral loading state.
+  if (isStandalone === null) {
+    return (
+      <div className="h-screen bg-sky-50 flex items-center justify-center">
+        <div className="animate-spin text-sky-500">
+          <RefreshCw size={32} />
+        </div>
+      </div>
+    );
+  }
+
+  // INSTALL GATE
+  if (!isStandalone) {
+    return (
+      <div className="h-screen bg-sky-50 flex flex-col items-center justify-center p-8 text-center font-sans">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white p-12 rounded-[3rem] shadow-2xl shadow-sky-200 border border-sky-100 max-w-sm w-full relative overflow-hidden"
+        >
+          <div className="absolute -top-10 -right-10 opacity-5">
+            <Bird size={200} />
+          </div>
+          
+          <div className="w-20 h-20 bg-sky-500 text-white rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-xl shadow-sky-200">
+            <Bird size={40} className="transform -rotate-12" />
+          </div>
+          
+          <h1 className="text-3xl font-display font-bold text-sky-950 mb-3 tracking-tight">Kingfisher</h1>
+          <p className="text-sky-800/60 font-medium mb-12 leading-relaxed">
+            Swift thoughts, captured instantly. <br/>Install the app to begin.
+          </p>
+          
+          <button 
+            onClick={handleInstallClick}
+            className="w-full py-4 bg-sky-600 text-white font-bold rounded-2xl hover:bg-sky-700 transition-all shadow-xl shadow-sky-200 flex items-center justify-center gap-3 active:scale-95"
+          >
+            <Download size={20} />
+            Install Kingfisher
+          </button>
+          
+          {/* iOS specific hint */}
+          <div className="mt-8 pt-8 border-t border-sky-50">
+            <p className="text-[10px] text-sky-300 font-bold uppercase tracking-[0.2em] mb-4 flex items-center justify-center gap-2">
+              <Share size={12} />
+              iOS Instructions
+            </p>
+            <div className="flex items-center justify-center gap-4 text-sky-400">
+              <div className="flex flex-col items-center gap-1">
+                <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
+                  <Share size={14} />
+                </div>
+                <span className="text-[8px] font-bold">1. Share</span>
+              </div>
+              <div className="w-4 h-px bg-sky-100" />
+              <div className="flex flex-col items-center gap-1">
+                <div className="w-8 h-8 rounded-lg bg-sky-50 flex items-center justify-center">
+                  <ArrowUp size={14} />
+                </div>
+                <span className="text-[8px] font-bold">2. Add to Home</span>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // FULL APP (STANDALONE ONLY)
   return (
     <div className="flex h-screen bg-sky-50/30 overflow-hidden font-sans">
       {/* Sidebar */}
