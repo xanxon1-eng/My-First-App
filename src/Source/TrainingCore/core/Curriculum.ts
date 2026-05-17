@@ -741,5 +741,375 @@ Create a \`UGameInstanceSubsystem\` named \`UQuestManager\`.
         }
       }
     ]
+  },
+  {
+    id: 'task_21',
+    title: '21. Blueprint Function Exposure',
+    category: 'Stage 6: Integrating with Blueprints',
+    objective: `# Exposing C++ to Blueprints
+Because designers work in Blueprints, you need to expose your C++ mechanics.
+Using the \`UFUNCTION\` macro, we can expose functions to Blueprint nodes.
+
+- \`BlueprintCallable\`: Can be executed as a regular execution node.
+- \`BlueprintPure\`: A "getter" node with no execution pins.
+
+### Your Task
+Declare a public function \`float GetCurrentHealth() const\` and make it a pure blueprint node.
+Also declare \`void AddHealth(float Amount)\` and make it a callable blueprint node.
+`,
+    starterCode: {
+      'Source.h': 'class APlayer : public ACharacter {\npublic:\n    // TODO: Declare GetCurrentHealth as BlueprintPure\n    \n    // TODO: Declare AddHealth as BlueprintCallable\n    \n};\n'
+    },
+    hiddenTests: ['BlueprintPure', 'BlueprintCallable'],
+    successCriteria: [
+      'Use UFUNCTION(BlueprintPure) for GetCurrentHealth',
+      'Use UFUNCTION(BlueprintCallable) for AddHealth'
+    ],
+    rules: [
+      {
+        id: 'rule_task_21',
+        type: 'exercise',
+        description: 'UFUNCTION specifiers correct.',
+        evaluate: (code) => {
+          if (!code.includes('UFUNCTION(BlueprintPure)')) return { passed: false, error: 'Missing BlueprintPure UFUNCTION.', fix: 'UFUNCTION(BlueprintPure)' };
+          if (!code.includes('UFUNCTION(BlueprintCallable)')) return { passed: false, error: 'Missing BlueprintCallable UFUNCTION.', fix: 'UFUNCTION(BlueprintCallable)' };
+          if (!/float\s+GetCurrentHealth/.test(code)) return { passed: false, error: 'Missing GetCurrentHealth float function.' };
+          if (!/void\s+AddHealth/.test(code)) return { passed: false, error: 'Missing AddHealth void function.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_22',
+    title: '22. Unreal Structs (USTRUCT)',
+    category: 'Stage 6: Integrating with Blueprints',
+    objective: `# Structs
+When you have grouped data, like an item's durability, name, and weight, you should use a struct.
+In Unreal, structs need the \`USTRUCT(BlueprintType)\` macro so they can be exposed to Blueprints.
+Unlike \`UCLASS\`, a \`USTRUCT\` does not use the garbage collector, so it is just plain data!
+
+We prefix structs with \`F\` (for Float, standard Unreal convention).
+A struct must include \`GENERATED_BODY()\` at the very top.
+
+### Your Task
+Create a struct named \`FItemData\`.
+Decorate it with \`USTRUCT(BlueprintType)\`.
+Include the \`GENERATED_BODY()\` macro inside.
+`,
+    starterCode: {
+      'Source.h': '// TODO: Declare FItemData struct with USTRUCT(BlueprintType)\n\n'
+    },
+    hiddenTests: ['USTRUCT(BlueprintType)', 'struct FItemData', 'GENERATED_BODY()'],
+    successCriteria: [
+      'Create FItemData struct',
+      'Use USTRUCT(BlueprintType)',
+      'Include GENERATED_BODY()'
+    ],
+    rules: [
+      {
+        id: 'rule_task_22',
+        type: 'exercise',
+        description: 'USTRUCT implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('USTRUCT(BlueprintType)')) return { passed: false, error: 'Missing USTRUCT(BlueprintType).' };
+          if (!code.includes('struct FItemData')) return { passed: false, error: 'Declare struct FItemData.' };
+          if (!code.includes('GENERATED_BODY()')) return { passed: false, error: 'Struct must contain GENERATED_BODY() at the top.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_23',
+    title: '23. Debugging (Assertions)',
+    category: 'Stage 7: Production Standards',
+    objective: `# Assertions
+Assertions are ways to test code logic in development. If an assumption fails, what happens?
+
+- \`check(condition)\`: Stops the engine instantly (fatal crash). Use when continuing would corrupt data.
+- \`ensure(condition)\`: Throws a bright red error in the log, but allows the engine to keep running.
+
+### Your Task
+You are writing a function that expects \`Health\` to be greater than 0.
+Write an \`ensure(Health > 0);\` check before continuing.
+`,
+    starterCode: {
+      'Source.cpp': 'void APlayer::Heal() {\n    // TODO: Ensure Health is greater than 0\n    \n}\n'
+    },
+    hiddenTests: ['ensure', 'Health > 0'],
+    successCriteria: [
+      'Write an ensure statement checking if Health > 0'
+    ],
+    rules: [
+      {
+        id: 'rule_task_23',
+        type: 'exercise',
+        description: 'Ensure statement used.',
+        evaluate: (code) => {
+          if (!code.includes('ensure(Health > 0)') && !code.includes('ensure( Health > 0 )')) return { passed: false, error: 'Use ensure(Health > 0);' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_24',
+    title: '24. Safe Casting',
+    category: 'Stage 7: Production Standards',
+    objective: `# Type Casting
+In C++, casting lets you treat a variable of one type as another type.
+But standard C++ \`dynamic_cast\` is disabled in Unreal Engine for performance!
+
+Unreal provides its own casting template: \`Cast<TargetType>(ObjectToCast)\`.
+If the cast fails (the object wasn't actually that type), it returns \`nullptr\`.
+
+### Your Task
+You are given a generic \`AActor* HitActor\`.
+Use \`Cast<AMonster>(HitActor)\` and assign it to a new pointer variable named \`MonsterTarget\`.
+`,
+    starterCode: {
+      'Source.cpp': 'void OnHit(AActor* HitActor) {\n    // TODO: Cast HitActor to AMonster* and store it in MonsterTarget\n    \n}\n'
+    },
+    hiddenTests: ['AMonster*', 'Cast<AMonster>', 'HitActor'],
+    successCriteria: [
+      'Call Cast<AMonster>(HitActor)',
+      'Assign it to a pointer named MonsterTarget'
+    ],
+    rules: [
+      {
+        id: 'rule_task_24',
+        type: 'exercise',
+        description: 'Correctly casted.',
+        evaluate: (code) => {
+          if (!code.includes('Cast<AMonster>')) return { passed: false, error: 'You must use Cast<AMonster>' };
+          if (!code.includes('MonsterTarget')) return { passed: false, error: 'Name the variable MonsterTarget' };
+          if (!/AMonster\s*\*\s*MonsterTarget/.test(code) && !/auto\s*MonsterTarget/.test(code)) return { passed: false, error: 'Declare MonsterTarget as an AMonster pointer.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_25',
+    title: '25. UE_LOG Logging',
+    category: 'Stage 7: Production Standards',
+    objective: `# Logging
+Printing to the screen with \`std::cout\` doesn't work in Unreal Engine because there is no terminal attached to the final game!
+You must use Unreal's built-in macro: \`UE_LOG\`.
+
+Syntax: \`UE_LOG(LogCategory, Verbosity, TEXT("Your message here"));\`
+A common default category is \`LogTemp\`, and common verbosity is \`Warning\`.
+
+### Your Task
+Write a log statement using \`UE_LOG\` on category \`LogTemp\` with verbosity \`Warning\`.
+Make the message \`TEXT("Booting Sequence Initiated")\`.
+`,
+    starterCode: {
+      'Source.cpp': 'void Practice() {\n    // TODO: Write a UE_LOG statement\n    \n}\n'
+    },
+    hiddenTests: ['UE_LOG', 'LogTemp', 'Warning', 'TEXT("Booting Sequence Initiated")'],
+    successCriteria: [
+      'Use the UE_LOG macro',
+      'Category: LogTemp',
+      'Verbosity: Warning',
+      'Message: TEXT("Booting Sequence Initiated")'
+    ],
+    rules: [
+      {
+        id: 'rule_task_25',
+        type: 'exercise',
+        description: 'UE_LOG used correctly.',
+        evaluate: (code) => {
+          if (!code.includes('UE_LOG(')) return { passed: false, error: 'Use the UE_LOG macro.' };
+          if (!code.includes('LogTemp')) return { passed: false, error: 'Category should be LogTemp.' };
+          if (!code.includes('Warning')) return { passed: false, error: 'Verbosity should be Warning.' };
+          if (!code.includes('TEXT("Booting Sequence Initiated")')) return { passed: false, error: 'Check string format (needs TEXT macro).' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_26',
+    title: '26. Naming Conventions',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# Naming Conventions
+Unreal Header Tool requires strict naming conventions for classes and variables. If you break them, your code won't compile!
+
+- \`A\`: Actors (e.g. APlayer)
+- \`U\`: Objects/Components (e.g. UInventoryComponent)
+- \`F\`: Structs / plain data (e.g. FVector)
+- \`E\`: Enums (e.g. EGameState)
+- \`b\`: Booleans (e.g. bIsDead)
+- \`T\`: Templates (e.g. TArray)
+
+### Your Task
+Declare a boolean variable for if the player is jumping. It MUST be named following Unreal conventions (start with 'b', so \`bIsJumping\`). Initialize it to false.
+`,
+    starterCode: {
+      'Source.h': 'class APlayer : public ACharacter {\n    // TODO: Declare a boolean with the correct prefix for "is jumping"\n    \n};\n'
+    },
+    hiddenTests: ['bIsJumping = false', 'bool '],
+    successCriteria: [
+      'Declare a boolean',
+      'Name it bIsJumping',
+      'Set it to false'
+    ],
+    rules: [
+      {
+        id: 'rule_task_26',
+        type: 'exercise',
+        description: 'Checked for boolean prefix.',
+        evaluate: (code) => {
+          if (!code.includes('bool bIsJumping')) return { passed: false, error: 'Declare bool bIsJumping.', fix: 'bool bIsJumping = false;' };
+          if (!code.includes('false')) return { passed: false, error: 'Must be set to false.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_27',
+    title: '27. String Types (FName vs FText)',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# Strings in Unreal
+\`FString\` is the standard string, but Unreal uses two other strings heavily:
+- \`FName\`: A super-lightweight string for identification (like Hash Maps or Tag names). They are case-insensitive and cannot be modified.
+- \`FText\`: Used FOR VISUAL TEXT ONLY! If the user sees it (UI, Subtitles), it MUST be \`FText\` so the engine can localize it for different languages.
+
+### Your Task
+1. Declare an \`FName\` called \`PlayerTag\` and set it to \`"Player"\`.
+2. Declare an \`FText\` called \`Greeting\` and set it to \`FText::FromString("Hello")\`. (In real games, we use \`NSLOCTEXT\`).
+`,
+    starterCode: {
+      'Source.cpp': 'void SetupStrings() {\n    // TODO: Declare FName PlayerTag\n    \n    // TODO: Declare FText Greeting\n    \n}\n'
+    },
+    hiddenTests: ['FName PlayerTag', 'FText Greeting'],
+    successCriteria: [
+      'Create FName PlayerTag set to "Player"',
+      'Create FText Greeting set to FText::FromString("Hello")'
+    ],
+    rules: [
+      {
+        id: 'rule_task_27',
+        type: 'exercise',
+        description: 'FName and FText implementation.',
+        evaluate: (code) => {
+          if (!code.includes('FName PlayerTag')) return { passed: false, error: 'Missing FName PlayerTag.' };
+          if (!code.includes('"Player"')) return { passed: false, error: 'Set PlayerTag to "Player".' };
+          if (!code.includes('FText Greeting')) return { passed: false, error: 'Missing FText Greeting.' };
+          if (!code.includes('FText::FromString("Hello")')) return { passed: false, error: 'Set Greeting using FText::FromString("Hello").' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_28',
+    title: '28. Dictionaries (TMap)',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# Hash Maps
+When you need to look up data instantly via a Key rather than an Index, you use a Map.
+Standard C++ uses \`std::map\` or \`std::unordered_map\`. Unreal uses \`TMap\`.
+
+Example: \`TMap<FString, int32> Inventory;\`
+This maps an Item Name to a Quantity.
+
+### Your Task
+Declare a \`TMap\` that links an \`FName\` (Key) to a \`float\` (Value). Name the variable \`PlayerScores\`.
+Add the \`UPROPERTY()\` macro above it to protect it with garbage collection.
+`,
+    starterCode: {
+      'Source.h': 'class AGameState : public AInfo {\n    // TODO: Declare TMap PlayerScores\n    \n};\n'
+    },
+    hiddenTests: ['TMap<FName, float>', 'PlayerScores', 'UPROPERTY()'],
+    successCriteria: [
+      'Declare TMap<FName, float> PlayerScores',
+      'Add UPROPERTY()'
+    ],
+    rules: [
+      {
+        id: 'rule_task_28',
+        type: 'exercise',
+        description: 'TMap implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('UPROPERTY()') && !code.includes('UPROPERTY(')) return { passed: false, error: 'Missing UPROPERTY.' };
+          if (!code.includes('TMap<FName, float>') && !code.includes('TMap<FName,float>')) return { passed: false, error: 'Must use TMap<FName, float>.' };
+          if (!code.includes('PlayerScores')) return { passed: false, error: 'Name it PlayerScores.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_29',
+    title: '29. Hard vs Soft References',
+    category: 'Stage 9: Enterprise Architecture',
+    objective: `# Asset Loading
+If your Player class has a hard pointer to a \`UTexture2D* PlayerIcon\`, then the MOMENT the player class is loaded, the texture is loaded into RAM.
+If you have an array of 500 enemies, and each has hard references to their meshes, your game will freeze on startup while 2GB of assets load instantly.
+
+Instead, use **Soft References**. A Soft Reference only stores the *String Path* to the asset, and you load it manually when needed!
+
+### Your Task
+Declare a soft object pointer to a Texture2D called \`IconRef\`.
+Syntax: \`TSoftObjectPtr<UTexture2D> IconRef;\`
+`,
+    starterCode: {
+      'Source.h': 'class UInventoryItem : public UObject {\n    // TODO: Declare soft object reference to a UTexture2D\n    \n};\n'
+    },
+    hiddenTests: ['TSoftObjectPtr<UTexture2D>', 'IconRef'],
+    successCriteria: [
+      'Declare TSoftObjectPtr<UTexture2D>',
+      'Name it IconRef'
+    ],
+    rules: [
+      {
+        id: 'rule_task_29',
+        type: 'exercise',
+        description: 'TSoftObjectPtr implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('TSoftObjectPtr<UTexture2D>')) return { passed: false, error: 'Missing TSoftObjectPtr<UTexture2D>.' };
+          if (!code.includes('IconRef')) return { passed: false, error: 'Name it IconRef.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_30',
+    title: '30. Smart Pointers (Unreal C++)',
+    category: 'Stage 9: Enterprise Architecture',
+    objective: `# Smart Pointers
+When writing standard C++ code (outside of UObject classes that have Garbage Collection), raw pointers cause memory leaks.
+You must manually \`delete\` them.
+
+Using Smart Pointers (\`TSharedPtr\`, \`TUniquePtr\`, \`TWeakPtr\`), the pointer automatically zeroes its own memory when it goes out of scope!
+
+### Your Task
+Declare a Shared Pointer to a standard generic struct \`FMyData\`.
+Syntax: \`TSharedPtr<FMyData> DataPtr;\`
+`,
+    starterCode: {
+      'Source.h': 'struct FMyData { int Value; };\n\nclass FDataManager {\n    // TODO: Declare TSharedPtr to FMyData\n    \n};\n'
+    },
+    hiddenTests: ['TSharedPtr<FMyData>', 'DataPtr'],
+    successCriteria: [
+      'Declare TSharedPtr<FMyData>',
+      'Name it DataPtr'
+    ],
+    rules: [
+      {
+        id: 'rule_task_30',
+        type: 'exercise',
+        description: 'TSharedPtr implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('TSharedPtr<FMyData>')) return { passed: false, error: 'Missing TSharedPtr<FMyData>.' };
+          if (!code.includes('DataPtr')) return { passed: false, error: 'Name it DataPtr.' };
+          return { passed: true };
+        }
+      }
+    ]
   }
 ];
