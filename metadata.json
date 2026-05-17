@@ -1,6 +1,6 @@
 {
-  "name": "Kingfisher App",
-  "description": "A comprehensive development sandbox for engineering complex 3D RPG systems, including branching narratives, deep itemization, and scalable skill frameworks.",
+  "name": "RPG Architect Lab",
+  "description": "An interactive technical sandbox for designing complex RPG systems including Path of Exile style passive trees, branching quests, and deep itemization for Unreal Engine 5.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
