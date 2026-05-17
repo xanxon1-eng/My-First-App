@@ -78,45 +78,16 @@ export default function App() {
     }
   };
 
-  if (isAndroidFirefox && !isStandalone) {
-    return (
-      <div className="flex flex-col items-center justify-between h-full w-full bg-kingfisher-dark text-white p-8 text-center font-sans overflow-hidden">
-        <div className="mt-auto flex flex-col items-center">
-          <div className="w-16 h-16 md:w-20 md:h-20 bg-kingfisher-deep rounded-2xl flex items-center justify-center text-white shadow-2xl mb-8">
-            <Bird className="w-10 md:w-12 h-10 md:h-12" />
-          </div>
-          <h2 className="text-2xl md:text-3xl font-bold mb-4 tracking-tight">Install Kingfisher App</h2>
-          <p className="text-kingfisher-muted mb-10 max-w-xs leading-relaxed text-sm md:text-base">
-            To access the full experience on Android Firefox, please install the application to your home screen.
-          </p>
-          
-          <button 
-            onClick={handleInstallClick}
-            className="flex items-center justify-center gap-3 w-full max-w-xs py-4 md:py-5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-bold shadow-xl transition-all active:scale-95 group"
-          >
-            <Download className="w-6 h-6 group-hover:translate-y-0.5 transition-transform" />
-            <span className="text-lg">Install App</span>
-          </button>
-          
-          <div className="mt-8 md:mt-12 p-4 bg-kingfisher-panel rounded-xl border border-kingfisher-border max-w-xs">
-            <h4 className="text-[10px] font-semibold text-kingfisher-warm uppercase tracking-wider mb-2">How to install</h4>
-            <p className="text-xs text-kingfisher-muted leading-tight">
-              Tap the <span className="text-white font-bold">three dots</span> in the browser menu and select <span className="text-white font-bold">"Install"</span>.
-            </p>
-          </div>
-        </div>
-        
-        <p className="mt-auto pt-10 text-[10px] text-kingfisher-muted opacity-50 uppercase tracking-[0.2em] shrink-0">
-          {__APP_VERSION__}
-        </p>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full w-full bg-kingfisher-dark overflow-hidden">
       {currentView === 'menu' && (
-        <MainMenu onSelectView={setCurrentView} />
+        <MainMenu 
+          onSelectView={setCurrentView} 
+          isAndroidFirefox={isAndroidFirefox}
+          isStandalone={isStandalone}
+          showInstallButton={showInstallButton}
+          onInstallClick={handleInstallClick}
+        />
       )}
       
       {currentView === 'timer' && (
