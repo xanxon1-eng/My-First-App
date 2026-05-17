@@ -60,7 +60,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onSelectView }) => {
         transition={{ delay: 1 }}
         className="mt-auto py-8 text-[10px] text-kingfisher-muted uppercase tracking-[0.2em]"
       >
-        Kingfisher Training Core
+        {__APP_VERSION__}
       </motion.p>
     </div>
   );

@@ -274,7 +274,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             exit={{ opacity: 0, y: -10 }}
             className="mt-8 text-kingfisher-muted font-medium text-sm text-center"
           >
-            {seconds === 0 ? "Session Complete!" : isActive ? "Stay focused. Deep breaths." : ""}
+            {seconds === 0 ? "Session Complete!" : isActive ? "" : ""}
           </motion.p>
         </AnimatePresence>
       </div>

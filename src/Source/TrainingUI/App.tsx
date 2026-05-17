@@ -10,20 +10,33 @@ export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('menu');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
-  const [isAndroidFirefox, setIsAndroidFirefox] = useState(false);
+  
+  // Robust initial detection to prevent flash of content on first render
+  const [isStandalone, setIsStandalone] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(display-mode: standalone)').matches || 
+           window.matchMedia('(display-mode: fullscreen)').matches ||
+           window.matchMedia('(display-mode: minimal-ui)').matches ||
+           (navigator as any).standalone === true;
+  });
+
+  const [isAndroidFirefox] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    const ua = navigator.userAgent;
+    return /Android/i.test(ua) && /Firefox/i.test(ua);
+  });
 
   useEffect(() => {
     const checkStandalone = () => {
-      const standalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+      const standalone = window.matchMedia('(display-mode: standalone)').matches || 
+                         window.matchMedia('(display-mode: fullscreen)').matches ||
+                         window.matchMedia('(display-mode: minimal-ui)').matches ||
+                         (navigator as any).standalone === true;
       setIsStandalone(standalone);
       return standalone;
     };
 
     const ua = navigator.userAgent;
-    const isAf = /Android/i.test(ua) && /Firefox/i.test(ua);
-    setIsAndroidFirefox(isAf);
-
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -93,7 +106,7 @@ export default function App() {
         </div>
         
         <p className="mt-auto text-[10px] text-kingfisher-muted opacity-50 uppercase tracking-[0.2em]">
-          Kingfisher Training Core
+          {__APP_VERSION__}
         </p>
       </div>
     );
