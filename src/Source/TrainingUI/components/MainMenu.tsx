@@ -18,6 +18,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   onInstallClick
 }) => {
   const isBlockedView = isAndroidFirefox && !isStandalone;
+  const showSmallInstall = showInstallButton && !isStandalone && !isAndroidFirefox;
 
   return (
     <div className="flex flex-col items-center justify-between h-full w-full bg-kingfisher-dark p-6 overflow-hidden">
@@ -78,7 +79,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               <h2 className="text-xl md:text-2xl font-bold text-white">C++ School</h2>
             </motion.button>
             
-            {showInstallButton && (
+            {showSmallInstall && (
               <motion.button
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
