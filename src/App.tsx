@@ -1,116 +1,86 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Bird, 
-  Download,
-  RefreshCw,
-} from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import React, { useState } from 'react';
+import { Play, RotateCcw, CheckCircle, Database } from 'lucide-react';
+import { CodeEditorWidget } from './components/CodeEditorWidget';
+import { DiagnosticsPanelWidget } from './components/DiagnosticsPanelWidget';
+import { TaskBrowserWidget } from './components/TaskBrowserWidget';
+import { ConsoleOutputWidget } from './components/ConsoleOutputWidget';
+import { ProgressWidget } from './components/ProgressWidget';
+import { useTrainingCore } from './core/TrainingCore';
 
 export default function App() {
-  console.log("App component initializing...");
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallBtn, setShowInstallBtn] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  useEffect(() => {
-    // Handle PWA Install Prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowInstallBtn(true);
-    });
-
-    window.addEventListener('appinstalled', () => {
-      setShowInstallBtn(false);
-      setDeferredPrompt(null);
-    });
-
-    // Service Worker logic is disabled in preview to avoid blank screen issues
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setShowInstallBtn(false);
-    }
-    setDeferredPrompt(null);
-  };
-
-  const handleUpdate = () => {
-    setIsUpdating(true);
-    // Force reload to get new version
-    setTimeout(() => {
-      window.location.reload();
-    }, 1500);
-  };
+  const [activeBottomPanel, setActiveBottomPanel] = useState<'console' | 'diagnostics'>('diagnostics');
+  const { currentTask, isCompiling, isTesting, compileAndTest, resetTask } = useTrainingCore();
 
   return (
-    <div className="h-screen bg-kingfisher-dark text-kingfisher-surface flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
-      {/* Background Orbs */}
-      <div className="absolute top-0 right-0 p-8 h-64 w-64 bg-kingfisher-warm/10 blur-[100px] pointer-events-none rounded-full"></div>
-      <div className="absolute bottom-0 left-0 p-8 h-96 w-96 bg-kingfisher-blue/10 blur-[120px] pointer-events-none rounded-full"></div>
-
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative z-10 flex flex-col items-center text-center gap-8 max-w-md w-full"
-      >
-        {/* App Icon / Logo */}
-        <div className="w-24 h-24 bg-kingfisher-deep rounded-3xl flex items-center justify-center shadow-2xl shadow-kingfisher-deep/30 text-white relative group overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
-          <div className="relative z-10">
-            <Bird className="w-14 h-14" />
+    <div className="flex flex-col h-full w-full bg-unreal-dark text-unreal-text font-sans overflow-hidden">
+      {/* Top Header */}
+      <header className="h-12 border-b border-unreal-border bg-unreal-panel flex items-center justify-between px-4 shrink-0">
+        <div className="flex items-center gap-3">
+          <Database className="w-5 h-5 text-unreal-blue" />
+          <h1 className="font-semibold tracking-wide text-sm">Unreal Engine C++ Training Shell</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <ProgressWidget />
+          <div className="flex items-center gap-2 border-l border-unreal-border pl-4">
+            <button 
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-unreal-border hover:bg-unreal-border/80 rounded"
+              onClick={resetTask}
+              disabled={isCompiling || isTesting}
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Reset
+            </button>
+            <button 
+              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-unreal-blue text-white rounded hover:bg-unreal-blue/90 disabled:opacity-50"
+              onClick={compileAndTest}
+              disabled={isCompiling || isTesting}
+            >
+              <Play className="w-3.5 h-3.5" fill="currentColor" /> 
+              {isCompiling ? 'Compiling...' : isTesting ? 'Running Tests...' : 'Compile & Run'}
+            </button>
           </div>
         </div>
+      </header>
 
-        {/* Name */}
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-kingfisher-surface">
-            Kingfisher <span className="text-kingfisher-warm font-black">App</span>
-          </h1>
-          <p className="text-kingfisher-muted font-medium">Simple. Powerful. Refined.</p>
-        </div>
+      {/* Main Workspace Layout */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Left Sidebar: Task Browser */}
+        <aside className="w-72 border-r border-unreal-border bg-unreal-panel flex flex-col shrink-0">
+          <TaskBrowserWidget />
+        </aside>
 
-        {/* Buttons Section */}
-        <div className="w-full space-y-4">
-          <AnimatePresence>
-            {showInstallBtn && (
-              <motion.button
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                onClick={handleInstallClick}
-                className="w-full flex items-center justify-center gap-3 bg-kingfisher-blue hover:bg-kingfisher-blue/90 text-white font-bold py-4 px-8 rounded-2xl shadow-xl shadow-kingfisher-blue/20 transition-all active:scale-[0.98]"
+        {/* Center: Editor & Bottom Panels */}
+        <main className="flex-1 flex flex-col min-w-0 bg-[#1e1e1e]">
+          {/* Top Center: Code Editor */}
+          <div className="flex-1 flex flex-col border-b border-unreal-border min-h-0">
+            <CodeEditorWidget />
+          </div>
+
+          {/* Bottom Center: Tools Panel */}
+          <div className="h-64 flex flex-col bg-unreal-panel shrink-0">
+            {/* Panel Tabs */}
+            <div className="flex items-center border-b border-unreal-border px-2">
+              <button 
+                className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${activeBottomPanel === 'diagnostics' ? 'border-unreal-blue text-white' : 'border-transparent text-unreal-muted hover:text-white'}`}
+                onClick={() => setActiveBottomPanel('diagnostics')}
               >
-                <Download className="w-5 h-5" />
-                Install Kingfisher
-              </motion.button>
-            )}
-          </AnimatePresence>
-
-          <button
-            onClick={handleUpdate}
-            disabled={isUpdating}
-            className="w-full flex items-center justify-center gap-3 bg-kingfisher-dark/50 border border-kingfisher-blue/20 hover:border-kingfisher-blue/40 text-kingfisher-surface font-semibold py-4 px-8 rounded-2xl transition-all disabled:opacity-50"
-          >
-            <RefreshCw className={cn("w-5 h-5", isUpdating && "animate-spin")} />
-            {isUpdating ? "Updating..." : "Check for Updates"}
-          </button>
-        </div>
-
-        {/* Version */}
-        <p className="text-[10px] text-kingfisher-muted font-black tracking-widest uppercase mt-4">
-          Version 1.1.0 • Stable
-        </p>
-      </motion.div>
+                Diagnostics Panel
+              </button>
+              <button 
+                className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${activeBottomPanel === 'console' ? 'border-unreal-blue text-white' : 'border-transparent text-unreal-muted hover:text-white'}`}
+                onClick={() => setActiveBottomPanel('console')}
+              >
+                Output Console
+              </button>
+            </div>
+            
+            {/* Panel Content */}
+            <div className="flex-1 overflow-hidden relative">
+              {activeBottomPanel === 'diagnostics' && <DiagnosticsPanelWidget />}
+              {activeBottomPanel === 'console' && <ConsoleOutputWidget />}
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

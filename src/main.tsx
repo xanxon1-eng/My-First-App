@@ -3,7 +3,20 @@ import React, { Component, ReactNode } from 'react';
 import App from './App';
 import './index.css';
 
-// Simple Error Boundary to catch runtime errors that cause WSoD
+// Solution 2: Global window fallback to prevent invisible crashes rendering a blank white/black screen
+window.addEventListener('error', (e) => {
+  const root = document.getElementById('root');
+  if (root && root.innerHTML === '') {
+    root.innerHTML = `<div style="padding: 20px; color: #ff5555; font-family: monospace;">Fatal Error before React mount: ${e.message}</div>`;
+  }
+});
+
+// Solution 3: Catch unhandled promises and prevent infinite reload loops
+window.addEventListener('unhandledrejection', (e) => {
+  console.error("Unhandled Promise Rejection:", e.reason);
+  // Do NOT location.reload() here, just log to prevent loops
+});
+
 class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; error: Error | null }> {
   constructor(props: { children: ReactNode }) {
     super(props);
@@ -21,14 +34,14 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ padding: '20px', background: '#0c2557', color: 'white', minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', fontFamily: 'sans-serif' }}>
-          <h1 style={{ color: '#e9bb93' }}>Something went wrong.</h1>
-          <p style={{ opacity: 0.8 }}>{this.state.error?.message}</p>
+        <div className="flex flex-col items-center justify-center h-full w-full bg-[#121212] text-white p-8">
+          <h1 className="text-red-500 text-xl font-bold mb-4">Training Shell Crashed</h1>
+          <pre className="text-sm text-gray-400 bg-black p-4 rounded">{this.state.error?.message}</pre>
           <button 
-            onClick={() => window.location.reload()} 
-            style={{ marginTop: '20px', padding: '10px 20px', background: '#787fb2', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer' }}
+            onClick={() => window.location.href = '/'} // Reset gracefully without caching state
+            className="mt-6 px-4 py-2 bg-blue-600 rounded hover:bg-blue-500"
           >
-            Retry Loading
+            Restart Shell
           </button>
         </div>
       );
@@ -46,10 +59,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-console.log("Main processing starting...");
 const container = document.getElementById('root');
 if (container) {
-  console.log("Found root container, rendering...");
   const root = createRoot(container);
   root.render(
     <React.StrictMode>
@@ -58,6 +69,4 @@ if (container) {
       </ErrorBoundary>
     </React.StrictMode>
   );
-} else {
-  console.error("Root container not found!");
 }
