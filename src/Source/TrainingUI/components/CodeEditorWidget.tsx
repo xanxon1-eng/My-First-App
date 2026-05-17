@@ -137,7 +137,7 @@ export function CodeEditorWidget() {
         </div>
 
         {/* Task Objective Context Panel (Desktop) */}
-        <div className="hidden md:block w-72 lg:w-80 border-l border-kingfisher-border bg-kingfisher-panel p-4 overflow-y-auto shrink-0 text-sm">
+        <div className="hidden md:block w-[450px] lg:w-[500px] border-l border-kingfisher-border bg-kingfisher-panel p-4 overflow-y-auto shrink-0 text-sm">
           <h3 className="font-semibold text-white mb-2 pb-2 border-b border-kingfisher-border">Objective</h3>
           <div className="markdown-body mb-6 text-sm">
             <Markdown remarkPlugins={[remarkGfm]}>{currentTask.objective}</Markdown>
