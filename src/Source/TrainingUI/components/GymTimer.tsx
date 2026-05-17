@@ -15,8 +15,6 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   const [manualInput, setManualInput] = useState('2:00');
   
   const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
-  
-  // Solution 2 State: Expose native video for Firefox Android workaround
   const [nativeVideoExposed, setNativeVideoExposed] = useState(false);
 
   const timerRef = useRef<any>(null);
@@ -24,6 +22,15 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const docPipCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  // Refs for the render loop to access current state without restarting the interval
+  const secondsRef = useRef(seconds);
+  const initialSecondsRef = useRef(initialSeconds);
+
+  useEffect(() => {
+    secondsRef.current = seconds;
+    initialSecondsRef.current = initialSeconds;
+  }, [seconds, initialSeconds]);
 
   const showToast = (message: string, type: 'error' | 'success' = 'error') => {
     setToast({ message, type });
@@ -42,7 +49,6 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Solution 3: Wake Lock to keep screen active on mobile
   const requestWakeLock = async () => {
     try {
       if ('wakeLock' in navigator) {
@@ -55,9 +61,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
 
   useEffect(() => {
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible' && nativeVideoExposed) {
-        requestWakeLock();
-      }
+      if (document.visibilityState === 'visible' && nativeVideoExposed) requestWakeLock();
     };
     document.addEventListener('visibilitychange', handleVisibility);
     return () => document.removeEventListener('visibilitychange', handleVisibility);
@@ -65,138 +69,131 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
 
   useEffect(() => {
     if (isActive && seconds > 0) {
-      timerRef.current = setInterval(() => {
-        setSeconds((s) => s - 1);
-      }, 1000);
+      timerRef.current = setInterval(() => setSeconds((s) => s - 1), 1000);
     } else if (seconds === 0) {
       setIsActive(false);
       if (timerRef.current) clearInterval(timerRef.current);
     } else {
       if (timerRef.current) clearInterval(timerRef.current);
     }
-
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [isActive, seconds]);
 
-  // Solution 3: OS Lock Screen Controls
   useEffect(() => {
     if ('mediaSession' in navigator) {
       navigator.mediaSession.metadata = new MediaMetadata({
         title: `Timer: ${formatTime(seconds)}`,
         artist: 'Gym Session',
-        album: 'Workout Timer'
       });
       navigator.mediaSession.setActionHandler('play', () => setIsActive(true));
       navigator.mediaSession.setActionHandler('pause', () => setIsActive(false));
     }
   }, [seconds, isActive]);
 
+  // FIX: Continuous 30 FPS Render Loop. 
+  // Prevents Firefox from starving the stream and freezing the video.
   useEffect(() => {
-    const canvases = [canvasRef.current, docPipCanvasRef.current];
-    
-    canvases.forEach(canvas => {
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
+    const renderLoop = setInterval(() => {
+      const canvases = [canvasRef.current, docPipCanvasRef.current];
+      
+      canvases.forEach(canvas => {
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
 
-      // Premium dark backdrop
-      ctx.fillStyle = COLORS.kingfisher.dark || '#1a1c23'; 
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      const cx = canvas.width / 2;
-      const cy = canvas.height / 2;
-      const r = 110;
-      
-      // Background ring
-      ctx.lineWidth = 12;
-      ctx.strokeStyle = COLORS.kingfisher.border || '#2a2d36';
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, 2 * Math.PI);
-      ctx.stroke();
+        const currentSeconds = secondsRef.current;
+        const currentInitial = initialSecondsRef.current;
 
-      // Progress ring
-      ctx.strokeStyle = COLORS.kingfisher.warm || '#ff6b6b';
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      const progress = isNaN(seconds / initialSeconds) ? 0 : seconds / initialSeconds;
-      const startAngle = -Math.PI / 2;
-      const endAngle = startAngle + (2 * Math.PI * (1 - progress));
-      
-      if (progress < 1) {
-        ctx.arc(cx, cy, r, startAngle, endAngle, false);
+        ctx.fillStyle = COLORS.kingfisher.dark || '#1a1c23'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+        const r = 110;
+        
+        ctx.lineWidth = 12;
+        ctx.strokeStyle = COLORS.kingfisher.border || '#2a2d36';
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
         ctx.stroke();
-      }
-      
-      // Timer text
-      ctx.fillStyle = COLORS.kingfisher.warm || '#ff6b6b'; 
-      ctx.font = 'bold 60px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(formatTime(seconds), cx, cy);
-    });
-  }, [seconds, initialSeconds]);
 
-  // Solution 1: Firefox mozCaptureStream + Silent Audio Track
+        ctx.strokeStyle = COLORS.kingfisher.warm || '#ff6b6b';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        
+        const progress = isNaN(currentSeconds / currentInitial) ? 0 : currentSeconds / currentInitial;
+        const startAngle = -Math.PI / 2;
+        const endAngle = startAngle + (2 * Math.PI * (1 - progress));
+        
+        if (progress < 1) {
+          ctx.arc(cx, cy, r, startAngle, endAngle, false);
+          ctx.stroke();
+        }
+        
+        ctx.fillStyle = COLORS.kingfisher.warm || '#ff6b6b'; 
+        ctx.font = 'bold 60px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(formatTime(currentSeconds), cx, cy);
+      });
+    }, 1000 / 30); // 30 FPS continuous draw
+
+    return () => clearInterval(renderLoop);
+  }, []);
+
   const setupVideoStream = async () => {
     const canvas = canvasRef.current as any;
     const video = videoRef.current;
     if (!canvas || !video) return false;
-    if (video.srcObject) return true;
 
-    let stream;
-    // Explicitly target Firefox's prefixed mozCaptureStream
-    if (canvas.captureStream) {
-      stream = canvas.captureStream(30);
-    } else if (canvas.mozCaptureStream) {
-      stream = canvas.mozCaptureStream(30);
-    } else {
-      return false;
-    }
-
-    // Attach silent oscillator to bypass Mobile PiP restrictions on voiceless streams
     try {
+      let stream;
+      if (canvas.captureStream) stream = canvas.captureStream(30);
+      else if (canvas.mozCaptureStream) stream = canvas.mozCaptureStream(30);
+      else return false;
+
+      // FIX: Create an unmuted but silent audio track to validate media playing to Android OS
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContext) {
         const audioCtx = new AudioContext();
-        const oscillator = audioCtx.createOscillator();
-        const dst = audioCtx.createMediaStreamDestination();
-        oscillator.connect(dst);
-        oscillator.start();
-        const audioTrack = dst.stream.getAudioTracks()[0];
-        if (audioTrack) stream.addTrack(audioTrack);
         
-        if (audioCtx.state === 'suspended') {
-          setTimeout(() => audioCtx.resume(), 100);
+        // Resume MUST happen in the active gesture
+        if (audioCtx.state === 'suspended') await audioCtx.resume();
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0; // Absolute silence
+        
+        const dst = audioCtx.createMediaStreamDestination();
+        oscillator.connect(gainNode);
+        gainNode.connect(dst);
+        oscillator.start();
+        
+        const audioTrack = dst.stream.getAudioTracks()[0];
+        if (audioTrack) {
+          audioTrack.enabled = true;
+          stream.addTrack(audioTrack);
         }
       }
-    } catch (err) {
-      console.warn("Silent audio track attachment failed", err);
-    }
 
-    video.srcObject = stream;
-    try {
+      video.srcObject = stream;
+      // IMPORTANT: Video must NOT be muted, otherwise OS ignores it for PiP. 
+      // It won't make sound because our gainNode is 0.
+      video.muted = false; 
+      
       await video.play();
+      return true;
     } catch (err) {
-      console.warn("Video play failed", err);
+      console.warn("Video stream setup failed:", err);
+      return false;
     }
-    return true;
   };
 
   const toggleTimer = () => setIsActive(!isActive);
-  
-  const resetTimer = () => {
-    setIsActive(false);
-    setSeconds(initialSeconds);
-  };
-
-  const handleSetDuration = (secs: number) => {
-    setIsActive(false);
-    setInitialSeconds(secs);
-    setSeconds(secs);
-    setIsEditing(false);
-  };
+  const resetTimer = () => { setIsActive(false); setSeconds(initialSeconds); };
+  const handleSetDuration = (secs: number) => { setIsActive(false); setInitialSeconds(secs); setSeconds(secs); setIsEditing(false); };
 
   const handleManualSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -218,14 +215,12 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
       try {
         const docPip = (window as any).documentPictureInPicture;
         if (docPip.window) { docPip.window.close(); return; }
-
         const pipWindow = await docPip.requestWindow({ width: 300, height: 300 });
         const newCanvas = pipWindow.document.createElement('canvas');
         newCanvas.width = 300; newCanvas.height = 300;
         newCanvas.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
         pipWindow.document.body.style.cssText = 'margin: 0; background: #1a1c23; display: flex; align-items: center; justify-content: center;';
         pipWindow.document.body.appendChild(newCanvas);
-        
         docPipCanvasRef.current = newCanvas;
         pipWindow.addEventListener('pagehide', () => { docPipCanvasRef.current = null; });
         return; 
@@ -234,29 +229,21 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
 
     if ('requestPictureInPicture' in HTMLVideoElement.prototype && document.pictureInPictureEnabled) {
       try {
-        if (document.pictureInPictureElement) {
-          await document.exitPictureInPicture();
-        } else {
-          await video.requestPictureInPicture();
-        }
+        if (document.pictureInPictureElement) await document.exitPictureInPicture();
+        else await video.requestPictureInPicture();
         return; 
       } catch (err) { console.warn("Standard PiP failed", err); }
     }
 
-    if (video.webkitSupportsPresentationMode && video.webkitSupportsPresentationMode('picture-in-picture')) {
-      try {
-        if (video.webkitPresentationMode === 'picture-in-picture') {
-          video.webkitSetPresentationMode('inline');
-        } else {
-          video.webkitSetPresentationMode('picture-in-picture');
-        }
-        return; 
-      } catch (err) { console.warn("Safari PiP failed", err); }
-    }
-
-    // FIREFOX ANDROID FALLBACK
+    // Android Firefox Fallback Trigger
     setNativeVideoExposed(true);
     requestWakeLock();
+    
+    // Automatically attempt Fullscreen to skip step 1 for the user
+    setTimeout(() => {
+      if (video.requestFullscreen) video.requestFullscreen();
+      else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
+    }, 100);
   };
 
   const progress = seconds / initialSeconds;
@@ -264,10 +251,9 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   return (
     <div className="flex flex-col h-full w-full bg-kingfisher-dark text-white font-sans overflow-hidden relative">
       
-      {/* Hidden Base Canvas Elements */}
       <canvas ref={canvasRef} width={300} height={300} className="fixed -left-[9999px] pointer-events-none" />
 
-      {/* Solution 2: Exposable Video Wrapper (Doesn't unmount to protect stream) */}
+      {/* Exposed Video for Android Fallback */}
       <div className={nativeVideoExposed ? "fixed inset-0 z-50 flex flex-col items-center pt-20 bg-kingfisher-dark/95 backdrop-blur-md px-6" : ""}>
         <AnimatePresence>
           {nativeVideoExposed && (
@@ -277,10 +263,10 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
               </button>
               
               <div className="text-center space-y-2 mb-6">
-                <h2 className="text-xl font-bold text-kingfisher-warm">Mobile Workaround</h2>
+                <h2 className="text-xl font-bold text-kingfisher-warm">Native PiP Active</h2>
                 <div className="bg-kingfisher-panel p-4 rounded-xl border border-kingfisher-border text-left space-y-3 text-sm mt-4 shadow-xl">
-                  <p className="flex items-center gap-3 text-kingfisher-muted"><Maximize className="w-4 h-4 text-kingfisher-warm shrink-0"/> <span>1. Tap the <b>Fullscreen</b> icon on the video player below.</span></p>
-                  <p className="flex items-center gap-3 text-kingfisher-muted"><Smartphone className="w-4 h-4 text-kingfisher-warm shrink-0"/> <span>2. Press your phone's <b>Home</b> button to trigger native PiP.</span></p>
+                  <p className="flex items-center gap-3 text-kingfisher-muted"><Maximize className="w-4 h-4 text-kingfisher-warm shrink-0"/> <span>1. If video isn't fullscreen, tap the Fullscreen icon.</span></p>
+                  <p className="flex items-center gap-3 text-kingfisher-muted"><Smartphone className="w-4 h-4 text-kingfisher-warm shrink-0"/> <span>2. Press your phone's <b>Home</b> button.</span></p>
                   <p className="flex items-center gap-3 text-emerald-400 mt-2 border-t border-kingfisher-border pt-3"><Lock className="w-4 h-4 shrink-0"/> <span>Screen Wake Lock Enabled.</span></p>
                 </div>
               </div>
@@ -290,10 +276,12 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
 
         <video 
           ref={videoRef} 
-          className={nativeVideoExposed ? "w-64 h-64 object-cover rounded-2xl shadow-2xl border-2 border-kingfisher-border bg-black z-50" : "fixed -left-[9999px] pointer-events-none"} 
+          className={nativeVideoExposed ? "w-64 h-64 object-contain rounded-2xl shadow-2xl border-2 border-kingfisher-border bg-black z-50" : "fixed -left-[9999px] pointer-events-none"} 
           controls={nativeVideoExposed} 
           playsInline 
-          muted 
+          // IMPORTANT for OS handling
+          autoPictureInPicture
+          disablePictureInPicture={false}
         />
       </div>
 
