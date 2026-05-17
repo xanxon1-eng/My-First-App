@@ -46,8 +46,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+console.log("Main processing starting...");
 const container = document.getElementById('root');
 if (container) {
+  console.log("Found root container, rendering...");
   const root = createRoot(container);
   root.render(
     <React.StrictMode>
@@ -56,4 +58,6 @@ if (container) {
       </ErrorBoundary>
     </React.StrictMode>
   );
+} else {
+  console.error("Root container not found!");
 }

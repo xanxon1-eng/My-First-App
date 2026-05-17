@@ -13,6 +13,7 @@ function cn(...inputs: ClassValue[]) {
 }
 
 export default function App() {
+  console.log("App component initializing...");
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBtn, setShowInstallBtn] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -52,30 +53,22 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-kingfisher-dark text-kingfisher-surface flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
+    <div className="h-screen bg-kingfisher-dark text-kingfisher-surface flex flex-col items-center justify-center p-6 relative overflow-hidden font-sans">
       {/* Background Orbs */}
       <div className="absolute top-0 right-0 p-8 h-64 w-64 bg-kingfisher-warm/10 blur-[100px] pointer-events-none rounded-full"></div>
       <div className="absolute bottom-0 left-0 p-8 h-96 w-96 bg-kingfisher-blue/10 blur-[120px] pointer-events-none rounded-full"></div>
 
       <motion.div 
+        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 flex flex-col items-center text-center gap-8 max-w-md w-full"
       >
         {/* App Icon / Logo */}
         <div className="w-24 h-24 bg-kingfisher-deep rounded-3xl flex items-center justify-center shadow-2xl shadow-kingfisher-deep/30 text-white relative group overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
-          <motion.div
-            animate={{ 
-              scale: [1, 1.05, 1]
-            }}
-            transition={{ 
-              duration: 4, 
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          >
-            <Bird className="w-14 h-14 relative z-10" />
-          </motion.div>
+          <div className="relative z-10">
+            <Bird className="w-14 h-14" />
+          </div>
         </div>
 
         {/* Name */}
