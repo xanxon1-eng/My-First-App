@@ -254,7 +254,8 @@ void Practice()
     successCriteria: [
       'Use std::cout (not printf or UE_LOG)',
       'Print the exact string "Hello Unreal"',
-      'Flush with std::endl or "\\n"',
+      'Flush with std::endl or "\
+"',
     ],
     rules: [
       {
@@ -444,7 +445,9 @@ void Practice()
           return {
             passed: matches >= 3,
             error: `push_back found ${matches} time(s); need at least 3 (one per value: 100, 200, 300).`,
-            fix: 'Scores.push_back(100);\nScores.push_back(200);\nScores.push_back(300);',
+            fix: `Scores.push_back(100);
+Scores.push_back(200);
+Scores.push_back(300);`,
           };
         },
       },
@@ -601,24 +604,203 @@ FString GetHealthState(int32 Health)
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_7',
-    title: '7. Loops — for, while, range-for',
+    id: 'task_7_1',
+    title: '7.1. Loops — Classic For Loop',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Loops
+    objective: `# Classic For Loop
 
-Three loop forms in C++:
+The standard indexed \`for\` loop is used when you know exactly how many times you want to iterate or need the current index.
 
 \`\`\`cpp
-// Classic indexed loop
-for (int32 i = 0; i < 5; ++i) { ... }
+for (int32 i = 0; i < 5; ++i) 
+{ 
+    // i goes from 0 to 4
+}
+\`\`\`
 
-// While — condition checked before each iteration
+## Your Task
+Write a function \`int32 SumFirstN(int32 N)\` that:
+1. Uses a classic \`for\` loop to iterate from \`1\` up to and including \`N\`.
+2. Accumulates these values into a \`Total\` variable.
+3. Returns \`Total\`.
+(If N is 3, it should return 1 + 2 + 3 = 6).
+`,
+    starterCode: {
+      'Source.cpp': `int32 SumFirstN(int32 N)
+{
+    int32 Total = 0;
+
+    // TODO: use a for loop from 1 to N to accumulate Total
+
+    return Total;
+}
+`,
+    },
+    hiddenTests: ['SumFirstN', 'for', 'Total'],
+    successCriteria: [
+      'Use a for loop containing an initialization, condition, and increment',
+      'Accumulate the index into Total',
+      'Return Total',
+    ],
+    rules: [
+      {
+        id: 'r7_1_loop',
+        type: 'exercise',
+        description: 'A classic for loop is present',
+        evaluate: (code) => {
+          const ok = /for\s*\(\s*int32\s+[a-zA-Z_]\w*\s*=\s*\d+\s*;\s*[a-zA-Z_]\w*\s*[<>=!]+\s*.*?;/.test(code) || /for\s*\(/.test(code);
+          return {
+            passed: ok,
+            error: 'Must use a for loop.',
+            fix: 'for (int32 i = 1; i <= N; ++i) { Total += i; }',
+          };
+        },
+      },
+      {
+        id: 'r7_1_accum',
+        type: 'exercise',
+        description: 'Total is accumulated inside the loop',
+        evaluate: (code) => ({
+          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
+          error: 'Must add each numerical value to Total.',
+          fix: 'Total += i;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_7_1a',
+        title: 'Standard sequential accumulation',
+        explanation: 'We iterate from 1 up to N (inclusive) by checking i <= N.',
+        code: {
+          'Source.cpp': `int32 SumFirstN(int32 N)
+{
+    int32 Total = 0;
+    for (int32 i = 1; i <= N; ++i)
+    {
+        Total += i;
+    }
+    return Total;
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_7_2',
+    title: '7.2. Loops — While Loop',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# While Loop
+
+A \`while\` loop is used when you want to repeat a block of code as long as a condition is true, without necessarily knowing how many times it will run beforehand.
+
+\`\`\`cpp
 int32 i = 0;
-while (i < 5) { ++i; }
+while (i < 5) 
+{ 
+    ++i; 
+}
+\`\`\`
 
-// Range-for (C++11) — iterate over a container
+## Your Task
+Write a function \`int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHealth, int32 HealPerTick)\` that:
+1. Uses a \`while\` loop to keep adding \`HealPerTick\` to \`CurrentHealth\` until \`CurrentHealth\` is greater than or equal to \`MaxHealth\`.
+2. Keeps track of how many "ticks" (iterations) it took.
+3. Returns the number of \`Ticks\`.
+`,
+    starterCode: {
+      'Source.cpp': `int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHealth, int32 HealPerTick)
+{
+    int32 Ticks = 0;
+
+    // TODO: use a while loop until CurrentHealth >= MaxHealth
+
+    return Ticks;
+}
+`,
+    },
+    hiddenTests: ['while', 'Ticks', 'CurrentHealth'],
+    successCriteria: [
+      'Use a while loop checking CurrentHealth against MaxHealth',
+      'Increase CurrentHealth by HealPerTick inside the loop',
+      'Increment Ticks inside the loop',
+      'Return Ticks',
+    ],
+    rules: [
+      {
+        id: 'r7_2_loop',
+        type: 'exercise',
+        description: 'A while loop is used',
+        evaluate: (code) => {
+          const ok = /while\s*\(/.test(code);
+          return {
+            passed: ok,
+            error: 'Must use a while loop.',
+            fix: 'while (CurrentHealth < MaxHealth) { ... }',
+          };
+        },
+      },
+      {
+        id: 'r7_2_heal',
+        type: 'exercise',
+        description: 'CurrentHealth is increased by HealPerTick',
+        evaluate: (code) => ({
+          passed: /CurrentHealth\s*\+=\s*HealPerTick/.test(code) || /CurrentHealth\s*=\s*CurrentHealth\s*\+\s*HealPerTick/.test(code),
+          error: 'Must heal CurrentHealth inside the loop.',
+          fix: 'CurrentHealth += HealPerTick;',
+        }),
+      },
+      {
+        id: 'r7_2_ticks',
+        type: 'exercise',
+        description: 'Ticks is incremented',
+        evaluate: (code) => ({
+          passed: /Ticks\+\+/.test(code) || /\+\+Ticks/.test(code) || /Ticks\s*\+=\s*1/.test(code) || /Ticks\s*=\s*Ticks\s*\+\s*1/.test(code),
+          error: 'Must increment Ticks inside the loop.',
+          fix: '++Ticks;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_7_2a',
+        title: 'Iterative Healing',
+        explanation: 'We iterate as long as health is less than maximum, incrementing the tick counter each cycle.',
+        code: {
+          'Source.cpp': `int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHealth, int32 HealPerTick)
+{
+    int32 Ticks = 0;
+    while (CurrentHealth < MaxHealth)
+    {
+        CurrentHealth += HealPerTick;
+        ++Ticks;
+    }
+    return Ticks;
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_7_3',
+    title: '7.3. Loops — Range-For Loop',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# Range-For Loop
+
+Iterating over dynamic arrays is so common that modern C++ added a special syntax for it: the **range-for** loop (C++11).
+
+\`\`\`cpp
 TArray<int32> Arr = {1, 2, 3};
-for (const int32& Val : Arr) { ... }
+for (const int32& Val : Arr) 
+{ 
+    // Val is 1, then 2, then 3
+}
 \`\`\`
 
 ## Your Task
@@ -646,7 +828,7 @@ In \`SumArray()\`:
     ],
     rules: [
       {
-        id: 'r7_loop',
+        id: 'r7_3_loop',
         type: 'exercise',
         description: 'A for loop body present',
         evaluate: (code) => ({
@@ -656,7 +838,7 @@ In \`SumArray()\`:
         }),
       },
       {
-        id: 'r7_accum',
+        id: 'r7_3_accum',
         type: 'exercise',
         description: 'Total is accumulated inside the loop',
         evaluate: (code) => ({
@@ -668,10 +850,9 @@ In \`SumArray()\`:
     ],
     exampleSolutions: [
       {
-        id: 'sol_7a',
+        id: 'sol_7_3a',
         title: 'Range-for accumulation',
-        explanation:
-          'const int32& Val borrows each element without copying. += accumulates. This pattern is identical for std::vector or TArray.',
+        explanation: 'const int32& Val borrows each element without copying. += accumulates. This pattern is identical for std::vector or TArray.',
         code: {
           'Source.cpp': `int32 SumArray(const TArray<int32>& Numbers)
 {
@@ -681,6 +862,232 @@ In \`SumArray()\`:
         Total += Val;
     }
     return Total;
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_7_4',
+    title: '7.4. Loops — Break and Continue',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# Flow Control inside Loops
+
+You can alter the natural flow of a loop:
+- **\`break;\`** — Exits the loop immediately, continuing with the code after the loop.
+- **\`continue;\`** — Skips the rest of the current iteration and jumps straight to the next iteration.
+
+\`\`\`cpp
+for (int32 i = 0; i < 10; ++i)
+{
+    if (i == 2) continue; // skips 2
+    if (i == 5) break;    // stops entirely when 5 is reached
+}
+\`\`\`
+
+## Your Task
+Write a function \`int32 SumPositiveUntilZero(const TArray<int32>& Numbers)\` that:
+1. Iterates over \`Numbers\`.
+2. If it encounters a zero (\`0\`), it should stop iterating entirely (\`break\`).
+3. If it encounters a negative number (\`< 0\`), it should skip it (\`continue\`).
+4. Otherwise, it adds the positive number to a \`Total\`.
+5. Returns the \`Total\`.
+`,
+    starterCode: {
+      'Source.cpp': `int32 SumPositiveUntilZero(const TArray<int32>& Numbers)
+{
+    int32 Total = 0;
+
+    // TODO: iterate over Numbers
+    // TODO: break on 0
+    // TODO: continue on negative numbers
+    // TODO: accumulate positive numbers
+
+    return Total;
+}
+`,
+    },
+    hiddenTests: ['break', 'continue', 'Total', 'for'],
+    successCriteria: [
+      'Use a for loop over Numbers',
+      'Use a continue statement for negative values',
+      'Use a break statement for zero',
+      'Return the correct Total',
+    ],
+    rules: [
+      {
+        id: 'r7_4_loop',
+        type: 'exercise',
+        description: 'Loop over Numbers exists',
+        evaluate: (code) => ({
+          passed: /for\s*\(/.test(code) || /while\s*\(/.test(code),
+          error: 'Must loop over the array.',
+          fix: 'for (int32 Val : Numbers) { ... }',
+        }),
+      },
+      {
+        id: 'r7_4_break',
+        type: 'exercise',
+        description: 'break statement used',
+        evaluate: (code) => ({
+          passed: /break\s*;/.test(code),
+          error: 'Must break on zero values.',
+          fix: 'if (Val == 0) break;',
+        }),
+      },
+      {
+        id: 'r7_4_continue',
+        type: 'exercise',
+        description: 'continue statement used',
+        evaluate: (code) => ({
+          passed: /continue\s*;/.test(code),
+          error: 'Must use continue for negative values.',
+          fix: 'if (Val < 0) continue;',
+        }),
+      },
+      {
+        id: 'r7_4_accum',
+        type: 'exercise',
+        description: 'Total accumulation inside loop',
+        evaluate: (code) => ({
+          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
+          error: 'Total must accumulate the valid iterations.',
+          fix: 'Total += Val;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_7_4a',
+        title: 'Filtering with break and continue',
+        explanation: 'We skip negative values using continue, and stop the entire loop process hitting 0 using break.',
+        code: {
+          'Source.cpp': `int32 SumPositiveUntilZero(const TArray<int32>& Numbers)
+{
+    int32 Total = 0;
+    for (int32 Val : Numbers)
+    {
+        if (Val == 0)
+        {
+            break;
+        }
+        if (Val < 0)
+        {
+            continue;
+        }
+        Total += Val;
+    }
+    return Total;
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_7_5',
+    title: '7.5. Loops — Nested Loops & 2D Data',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# Nested Loops
+
+Sometimes you need to iterate through data that has multiple dimensions, like a grid of pixels or a map of tiles. You can place one loop inside another.
+
+\`\`\`cpp
+for (int32 y = 0; y < Height; ++y)
+{
+    for (int32 x = 0; x < Width; ++x)
+    {
+        // Executes Width * Height times total
+    }
+}
+\`\`\`
+
+## Your Task
+Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks if the array contains any duplicate values.
+1. Use an outer loop to pick the first number.
+2. Use an inner loop to compare it against the rest of the numbers.
+3. If they match, return \`true\`.
+4. If you finish checking everything with no matches, return \`false\`.
+
+*(Hint: to avoid comparing the element to itself, your inner loop should start at \`i + 1\` if using a classic \`for\` loop).*
+`,
+    starterCode: {
+      'Source.cpp': `bool HasDuplicate(const TArray<int32>& Numbers)
+{
+    // TODO: use nested loops to find if any two numbers are identical
+    
+    return false;
+}
+`,
+    },
+    hiddenTests: ['for', 'Numbers', 'true', 'false'],
+    successCriteria: [
+      'Two nested loops are present',
+      'Compare elements',
+      'Return true when a match is found',
+      'Return false if no matches',
+    ],
+    rules: [
+      {
+        id: 'r7_5_nested',
+        type: 'exercise',
+        description: 'Nested loops used (for inside another for)',
+        evaluate: (code) => {
+           // Basic heuristic: check if two generic 'for (' fragments exist
+           const matches = code.match(/for\s*\(/g);
+           return {
+               passed: matches !== null && matches.length >= 2,
+               error: 'You need an inner loop inside the outer loop.',
+               fix: 'for(...) { for(...) { ... } }'
+           };
+        },
+      },
+      {
+        id: 'r7_5_compare',
+        type: 'exercise',
+        description: 'Comparison between two elements',
+        evaluate: (code) => ({
+          passed: /==/.test(code) && code.includes('Numbers'),
+          error: 'Must compare two elements of the array.',
+          fix: 'if (Numbers[i] == Numbers[j]) return true;',
+        }),
+      },
+      {
+        id: 'r7_5_return_true',
+        type: 'exercise',
+        description: 'Returns true on match',
+        evaluate: (code) => ({
+          passed: /return\s+true\s*;/.test(code),
+          error: 'Return true when a duplicate is matched.',
+          fix: 'return true;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_7_5a',
+        title: 'Classic nested index matching (O(N^2))',
+        explanation: 'We test each element against every subsequent element. If a match is found, we immediately exit the function with true.',
+        code: {
+          'Source.cpp': `bool HasDuplicate(const TArray<int32>& Numbers)
+{
+    int32 Count = Numbers.Num();
+    for (int32 i = 0; i < Count; ++i)
+    {
+        for (int32 j = i + 1; j < Count; ++j)
+        {
+            if (Numbers[i] == Numbers[j])
+            {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 `,
         },
@@ -2041,14 +2448,158 @@ public:
       },
     ],
   },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_24',
+    title: '24. Async Asset Loading — FStreamableManager',
+    category: 'Stage 5: UE5 Pro Features',
+    objective: `# Async Asset Loading
+
+Soft references prevent assets from loading instantly, avoiding memory bloat and long load times. But how do you actually load them when needed without "hitching" the game?
+
+Using \`FStreamableManager\` allows the engine to load the asset in the background and fire a callback (delegate) when it finishes.
+
+\`\`\`cpp
+UAssetManager::GetStreamableManager().RequestAsyncLoad(
+    IconRef.ToSoftObjectPath(),
+    FStreamableDelegate::CreateUObject(this, &UMyUI::OnIconLoaded)
+);
+\`\`\`
+
+## Your Task
+Write a function \`LoadIconAsync()\` that uses \`RequestAsyncLoad\` on \`IconRef\`, binding the callback to \`UMyUI::OnIconLoaded\`.
+`,
+    starterCode: {
+      'Source.cpp': `void UMyUI::LoadIconAsync()
+{
+    // TODO: Call RequestAsyncLoad on UAssetManager::GetStreamableManager()
+    // Pass IconRef.ToSoftObjectPath() and a delegate bound to OnIconLoaded
+}
+`,
+    },
+    hiddenTests: ['GetStreamableManager', 'RequestAsyncLoad', 'IconRef.ToSoftObjectPath()', 'OnIconLoaded'],
+    successCriteria: [
+      'Access StreamableManager from UAssetManager',
+      'Call RequestAsyncLoad with IconRef path',
+      'Bind delegate to OnIconLoaded',
+    ],
+    rules: [
+      {
+        id: 'r_new_5_1_manager',
+        type: 'unreal',
+        description: 'GetStreamableManager() called',
+        evaluate: (code) => ({
+          passed: code.includes('GetStreamableManager') && code.includes('RequestAsyncLoad'),
+          error: 'Must use UAssetManager::GetStreamableManager().RequestAsyncLoad(...)',
+          fix: 'UAssetManager::GetStreamableManager().RequestAsyncLoad(...);',
+        }),
+      },
+      {
+        id: 'r_new_5_1_path',
+        type: 'unreal',
+        description: 'IconRef path passed',
+        evaluate: (code) => ({
+          passed: code.includes('IconRef.ToSoftObjectPath()'),
+          error: 'Must supply the soft object path via IconRef.ToSoftObjectPath()',
+          fix: 'IconRef.ToSoftObjectPath(),',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_new_5_1',
+        title: 'Async load with UObject delegate',
+        code: {
+          'Source.cpp': `void UMyUI::LoadIconAsync()
+{
+    UAssetManager::GetStreamableManager().RequestAsyncLoad(
+        IconRef.ToSoftObjectPath(),
+        FStreamableDelegate::CreateUObject(this, &UMyUI::OnIconLoaded)
+    );
+}
+
+void UMyUI::OnIconLoaded()
+{
+    UTexture2D* LoadedTex = IconRef.Get(); // Now it's safely loaded
+}`,
+        },
+        explanation: 'Background loading ensures the frame rate doesn\'t drop. FStreamableDelegate can bind to UObjects, raw C++ pointers, or lambdas.',
+      },
+    ],
+  },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_25',
+    title: '25. Data Assets — UPrimaryDataAsset',
+    category: 'Stage 5: UE5 Pro Features',
+    objective: `# UDataAsset — Data-Driven Design
+
+Instead of hardcoding stats (Damage=10, Speed=50) entirely into Blueprints or C++, you can define a \`UPrimaryDataAsset\`. Designers then create instances of this asset in the editor to define items, weapons, or enemy classes.
+
+\`\`\`cpp
+UCLASS()
+class UWeaponData : public UPrimaryDataAsset
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditDefaultsOnly)
+    float Damage;
+};
+\`\`\`
+Players can then simply store a \`TObjectPtr<UWeaponData>\`.
+
+## Your Task
+Declare a \`UWeaponData\` class inheriting from \`UPrimaryDataAsset\`. Add a \`Damage\` float property.
+`,
+    starterCode: {
+      'Source.h': `// TODO: Declare UWeaponData inheriting from UPrimaryDataAsset with a Damage property
+`,
+    },
+    hiddenTests: ['UWeaponData', 'UPrimaryDataAsset', 'float Damage'],
+    successCriteria: [
+      'Inherit from UPrimaryDataAsset',
+      'Declare float Damage',
+    ],
+    rules: [
+      {
+        id: 'r_new_5_2_class',
+        type: 'unreal',
+        description: 'UPrimaryDataAsset subclass',
+        evaluate: (code) => ({
+          passed: code.includes('class UWeaponData : public UPrimaryDataAsset'),
+          error: 'Must declare class UWeaponData : public UPrimaryDataAsset',
+          fix: 'class UWeaponData : public UPrimaryDataAsset',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_new_5_2',
+        title: 'Minimal Data Asset',
+        code: {
+          'Source.h': `UCLASS()
+class UWeaponData : public UPrimaryDataAsset
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, BlueprintReadOnly)
+    float Damage = 10.0f;
+};
+`,
+        },
+        explanation: 'Data assets keep project architecture clean by decoupling logic (Actors) from configuration (Data Assets).',
+      },
+    ],
+  },
+
 
   // =========================================================================
   // STAGE 6 — BLUEPRINT INTEGRATION
   // =========================================================================
 
   {
-    id: 'task_24',
-    title: '24. UFUNCTION Blueprint Specifiers',
+    id: 'task_26',
+    title: '26. UFUNCTION Blueprint Specifiers',
     category: 'Stage 6: Blueprint Integration',
     objective: `# UFUNCTION — Exposing C++ Functions to Blueprint
 
@@ -2096,7 +2647,8 @@ public:
         evaluate: (code) => ({
           passed: code.includes('BlueprintPure') && code.includes('GetCurrentHealth'),
           error: 'Declare GetCurrentHealth with UFUNCTION(BlueprintPure).',
-          fix: 'UFUNCTION(BlueprintPure)\nfloat GetCurrentHealth() const;',
+          fix: `UFUNCTION(BlueprintPure)
+float GetCurrentHealth() const;`,
         }),
       },
       {
@@ -2106,7 +2658,8 @@ public:
         evaluate: (code) => ({
           passed: code.includes('BlueprintCallable') && code.includes('AddHealth'),
           error: 'Declare AddHealth with UFUNCTION(BlueprintCallable).',
-          fix: 'UFUNCTION(BlueprintCallable)\nvoid AddHealth(float Amount);',
+          fix: `UFUNCTION(BlueprintCallable)
+void AddHealth(float Amount);`,
         }),
       },
     ],
@@ -2137,8 +2690,8 @@ private:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_25',
-    title: '25. USTRUCT — Blueprint Data Containers',
+    id: 'task_27',
+    title: '27. USTRUCT — Blueprint Data Containers',
     category: 'Stage 6: Blueprint Integration',
     objective: `# USTRUCT — Plain Data for Blueprint
 
@@ -2233,8 +2786,8 @@ struct FItemData
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_26',
-    title: '26. BlueprintImplementableEvent',
+    id: 'task_28',
+    title: '28. BlueprintImplementableEvent',
     category: 'Stage 6: Blueprint Integration',
     objective: `# BlueprintImplementableEvent
 
@@ -2274,7 +2827,8 @@ public:
         evaluate: (code) => ({
           passed: code.includes('BlueprintImplementableEvent'),
           error: 'Missing BlueprintImplementableEvent specifier.',
-          fix: 'UFUNCTION(BlueprintImplementableEvent)\nvoid OnTakeDamage();',
+          fix: `UFUNCTION(BlueprintImplementableEvent)
+void OnTakeDamage();`,
         }),
       },
       {
@@ -2307,14 +2861,101 @@ public:
       },
     ],
   },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_29',
+    title: '29. BlueprintNativeEvent',
+    category: 'Stage 6: Blueprint Integration',
+    objective: `# BlueprintNativeEvent — The Fallback Pattern
+
+If you want a function to have a default C++ behavior, but allow Blueprint to completely override it if needed, use \`BlueprintNativeEvent\`.
+
+In the Header:
+\`\`\`cpp
+UFUNCTION(BlueprintNativeEvent)
+void Interact();
+\`\`\`
+
+In the CPP, you implement the \`_Implementation\` suffixed version:
+\`\`\`cpp
+void ADoor::Interact_Implementation()
+{
+    // Default C++ logic here
+}
+\`\`\`
+Do NOT manually write the non-suffixed \`Interact()\` body; UHT generates it to route the call to Blueprint first, then fallback to your \`_Implementation\`.
+
+## Your Task
+Declare \`void Interact();\` as a \`BlueprintNativeEvent\`. Then, write the \`void AMyActor::Interact_Implementation()\` definition in the C++ file.
+`,
+    starterCode: {
+      'Source.h': `class AMyActor : public AActor
+{
+    // TODO: Declare Interact() with BlueprintNativeEvent
+};
+`,
+      'Source.cpp': `// TODO: Implement AMyActor::Interact_Implementation()
+
+`,
+    },
+    hiddenTests: ['BlueprintNativeEvent', 'Interact_Implementation'],
+    successCriteria: [
+      'Header has UFUNCTION(BlueprintNativeEvent) void Interact();',
+      'CPP has void AMyActor::Interact_Implementation()',
+    ],
+    rules: [
+      {
+        id: 'r_new_6_1_macro',
+        type: 'unreal',
+        description: 'BlueprintNativeEvent used',
+        evaluate: (code) => ({
+          passed: code.includes('BlueprintNativeEvent') && code.includes('void Interact()'),
+          error: 'Must declare void Interact(); with BlueprintNativeEvent.',
+          fix: `UFUNCTION(BlueprintNativeEvent)
+void Interact();`,
+        }),
+      },
+      {
+        id: 'r_new_6_1_impl',
+        type: 'unreal',
+        description: 'Interact_Implementation defined',
+        evaluate: (code) => ({
+          passed: code.includes('Interact_Implementation'),
+          error: 'Must define void AMyActor::Interact_Implementation() in CPP.',
+          fix: 'void AMyActor::Interact_Implementation() {}',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_new_6_1',
+        title: 'Native Event Implementation',
+        code: {
+          'Source.h': `class AMyActor : public AActor
+{
+    GENERATED_BODY()
+public:
+    UFUNCTION(BlueprintNativeEvent, Category = "Interaction")
+    void Interact();
+};`,
+          'Source.cpp': `void AMyActor::Interact_Implementation()
+{
+    UE_LOG(LogTemp, Log, TEXT("Default C++ Interaction"));
+}`,
+        },
+        explanation: 'When calling Interact() from C++, Unreal checks if Blueprint has overridden it. If so, BP runs. If not, Interact_Implementation() runs.',
+      },
+    ],
+  },
+
 
   // =========================================================================
   // STAGE 7 — PRODUCTION STANDARDS
   // =========================================================================
 
   {
-    id: 'task_27',
-    title: '27. Assertions — check, ensure, verify',
+    id: 'task_30',
+    title: '30. Assertions — check, ensure, verify',
     category: 'Stage 7: Production Standards',
     objective: `# Assertions in Unreal Engine
 
@@ -2382,8 +3023,8 @@ Inside \`APlayer::Heal()\`, add \`ensure(Health > 0);\` **before** any healing l
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_28',
-    title: '28. Safe Casting — Cast<T>',
+    id: 'task_31',
+    title: '31. Safe Casting — Cast<T>',
     category: 'Stage 7: Production Standards',
     objective: `# Safe Casting with Cast<T>
 
@@ -2473,8 +3114,8 @@ In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it 
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_29',
-    title: '29. UE_LOG — Structured Logging',
+    id: 'task_32',
+    title: '32. UE_LOG — Structured Logging',
     category: 'Stage 7: Production Standards',
     objective: `# UE_LOG — Structured Game Logging
 
@@ -2578,8 +3219,8 @@ Write a \`UE_LOG\` call with:
   // =========================================================================
 
   {
-    id: 'task_30',
-    title: '30. Naming Conventions — Hungarian Prefixes',
+    id: 'task_33',
+    title: '33. Naming Conventions — Hungarian Prefixes',
     category: 'Stage 8: Unreal Workflows',
     objective: `# Naming Conventions in Unreal Engine
 
@@ -2657,8 +3298,8 @@ public:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_31',
-    title: '31. FName vs FText — String Types',
+    id: 'task_34',
+    title: '34. FName vs FText — String Types',
     category: 'Stage 8: Unreal Workflows',
     objective: `# Choosing the Right String Type
 
@@ -2739,8 +3380,8 @@ Declare:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_32',
-    title: '32. TMap — Hash-Map Lookups',
+    id: 'task_35',
+    title: '35. TMap — Hash-Map Lookups',
     category: 'Stage 8: Unreal Workflows',
     objective: `# TMap — O(1) Key→Value Lookup
 
@@ -2822,8 +3463,8 @@ public:
   // =========================================================================
 
   {
-    id: 'task_33',
-    title: '33. Smart Pointers — TSharedPtr & TUniquePtr',
+    id: 'task_36',
+    title: '36. Smart Pointers — TSharedPtr & TUniquePtr',
     category: 'Stage 9: Enterprise Architecture',
     objective: `# Smart Pointers for Non-UObject Code
 
@@ -2902,14 +3543,186 @@ public:
       },
     ],
   },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_37',
+    title: '37. TWeakPtr — Breaking Reference Cycles',
+    category: 'Stage 9: Enterprise Architecture',
+    objective: `# TWeakPtr — Safety Without Ownership
+
+Memory leaks in shared pointer architectures usually stem from **cyclic references** (A points to B, and B points to A). Because their reference counts can never hit 0, neither gets deleted.
+
+\`TWeakPtr<T>\` solves this. It observes a \`TSharedPtr\` but does *not* increment its reference count.
+
+\`\`\`cpp
+TSharedPtr<FNode> NodeA = MakeShared<FNode>();
+TWeakPtr<FNode>   SafeRef = NodeA; // Ref count stays 1
+
+if (TSharedPtr<FNode> PinnedNode = SafeRef.Pin())
+{
+    // Object still exists, safe to use PinnedNode
+}
+\`\`\`
+
+## Your Task
+Inside \`FObserver\`, declare a \`TWeakPtr<FData>\` named \`DataRef\`. Then in \`PrintData()\`, try to \`.Pin()\` it and verify it's valid before using.
+`,
+    starterCode: {
+      'Source.cpp': `class FObserver
+{
+    // TODO 1: Declare TWeakPtr<FData> DataRef;
+public:
+    void PrintData()
+    {
+        // TODO 2: Call Pin() on DataRef, check if valid, then use
+    }
+};
+`,
+    },
+    hiddenTests: ['TWeakPtr<FData>', 'DataRef.Pin()'],
+    successCriteria: [
+      'Declare TWeakPtr<FData> DataRef',
+      'Pin it before accessing it via if (...)',
+    ],
+    rules: [
+      {
+        id: 'r_new_9_1_weak',
+        type: 'exercise',
+        description: 'TWeakPtr declared',
+        evaluate: (code) => ({
+          passed: /TWeakPtr\s*<\s*FData\s*>/.test(code),
+          error: 'Must declare TWeakPtr<FData> DataRef.',
+          fix: 'TWeakPtr<FData> DataRef;',
+        }),
+      },
+      {
+        id: 'r_new_9_1_pin',
+        type: 'exercise',
+        description: 'Pin() used properly',
+        evaluate: (code) => ({
+          passed: code.includes('Pin()'),
+          error: 'You must lock/pin a weak pointer to elevate it to a temporary shared pointer before accessing.',
+          fix: 'if (TSharedPtr<FData> Pinned = DataRef.Pin()) { /* do stuff */ }',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_new_9_1',
+        title: 'Proper Pinning Pattern',
+        code: {
+          'Source.cpp': `class FObserver
+{
+    TWeakPtr<FData> DataRef;
+
+public:
+    void PrintData()
+    {
+        if (TSharedPtr<FData> Pinned = DataRef.Pin())
+        {
+            // Pinned guarantees FData stays alive during this block
+            // Pinned->DoSomething();
+        }
+    }
+};`,
+        },
+        explanation: 'Pin() atomically checks if the object is alive and temporarily increments the reference count. If the object was already deleted, Pin() returns nullptr.',
+      },
+    ],
+  },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_38',
+    title: '38. Async Tasks — GameThread Offloading',
+    category: 'Stage 9: Enterprise Architecture',
+    objective: `# AsyncTasks — Running Work in the Background
+
+Heavy computations (pathfinding, chunk generation) cause the game to freeze if run on the main \`GameThread\`. Unreal provides \`AsyncTask\` to easily push work to background threads.
+
+\`\`\`cpp
+AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []()
+{
+    // Heavy work here...
+    
+    // Hop back to GameThread if you need to spawn actors or update UI
+    AsyncTask(ENamedThreads::GameThread, []()
+    {
+        // Safe to modify UObjects here
+    });
+});
+\`\`\`
+
+## Your Task
+Use \`AsyncTask\` to run a background lambda (\`ENamedThreads::AnyBackgroundThreadNormalTask\`). Inside the lambda, write a nested \`AsyncTask\` that hops back to \`ENamedThreads::GameThread\`.
+`,
+    starterCode: {
+      'Source.cpp': `void PerformHeavyWork()
+{
+    // TODO: Write an AsyncTask targeting AnyBackgroundThreadNormalTask
+    // TODO: Inside it, write another AsyncTask targeting GameThread
+}
+`,
+    },
+    hiddenTests: ['AsyncTask(', 'AnyBackgroundThreadNormalTask', 'GameThread'],
+    successCriteria: [
+      'Launch AsyncTask on AnyBackgroundThreadNormalTask',
+      'Nested AsyncTask on GameThread',
+    ],
+    rules: [
+      {
+        id: 'r_new_9_2_bg',
+        type: 'unreal',
+        description: 'Background Thread AsyncTask',
+        evaluate: (code) => ({
+          passed: code.includes('AsyncTask(') && code.includes('AnyBackgroundThreadNormalTask'),
+          error: 'Must dispatch to AnyBackgroundThreadNormalTask.',
+          fix: 'AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []() { ... });',
+        }),
+      },
+      {
+        id: 'r_new_9_2_game',
+        type: 'unreal',
+        description: 'GameThread Hop',
+        evaluate: (code) => ({
+          passed: code.includes('GameThread'),
+          error: 'Must hop back to ENamedThreads::GameThread for UI/UObject updates.',
+          fix: 'AsyncTask(ENamedThreads::GameThread, []() { ... });',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_new_9_2',
+        title: 'Task dispatch & GameThread resume',
+        code: {
+          'Source.cpp': `void PerformHeavyWork()
+{
+    AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []()
+    {
+        // 1. Heavy computation (doesn't block game)
+        FPlatformProcess::Sleep(2.0f);
+        
+        // 2. Dispatch back to main thread to apply results safely
+        AsyncTask(ENamedThreads::GameThread, []()
+        {
+            UE_LOG(LogTemp, Log, TEXT("Work finished!"));
+        });
+    });
+}`,
+        },
+        explanation: 'UObjects, Actors, and UMG UI elements can GENERALLY ONLY be manipulated on the GameThread. Doing background work requires this hop-back pattern.',
+      },
+    ],
+  },
+
 
   // =========================================================================
   // STAGE 10 — MODERN C++ FEATURES
   // =========================================================================
 
   {
-    id: 'task_34',
-    title: '34. The auto Keyword',
+    id: 'task_39',
+    title: '39. The auto Keyword',
     category: 'Stage 10: Modern C++ Features',
     objective: `# auto — Type Deduction
 
@@ -2989,8 +3802,8 @@ Declare a variable named \`MyAutoVar\` using \`auto\` and set it to \`100.5f\`.
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_35',
-    title: '35. Lambda Expressions',
+    id: 'task_40',
+    title: '40. Lambda Expressions',
     category: 'Stage 10: Modern C++ Features',
     objective: `# Lambda Expressions — Inline Anonymous Functions
 
@@ -3092,8 +3905,8 @@ Declare \`auto MyLambda\` as a lambda that:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_36',
-    title: '36. Templates — Generic Programming',
+    id: 'task_41',
+    title: '41. Templates — Generic Programming',
     category: 'Stage 10: Modern C++ Features',
     objective: `# C++ Templates
 
@@ -3171,8 +3984,8 @@ T GetMax(T A, T B)
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_37',
-    title: '37. Move Semantics — MoveTemp',
+    id: 'task_42',
+    title: '42. Move Semantics — MoveTemp',
     category: 'Stage 10: Modern C++ Features',
     objective: `# Move Semantics — Steal, Don't Copy
 
@@ -3252,8 +4065,8 @@ Given \`FString SourceInfo\`, declare \`FString TargetInfo\` and initialise it b
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_38',
-    title: '38. Virtual Destructors',
+    id: 'task_43',
+    title: '43. Virtual Destructors',
     category: 'Stage 10: Modern C++ Features',
     objective: `# Virtual Destructors — Safe Polymorphic Cleanup
 
@@ -3319,8 +4132,8 @@ public:
   // =========================================================================
 
   {
-    id: 'task_39',
-    title: '39. GameMode Architecture',
+    id: 'task_44',
+    title: '44. GameMode Architecture',
     category: 'Stage 11: Framework Architecture',
     objective: `# GameMode — The Rules of the Match
 
@@ -3414,8 +4227,8 @@ public:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_40',
-    title: '40. Math Data Types — FVector & FRotator',
+    id: 'task_45',
+    title: '45. Math Data Types — FVector & FRotator',
     category: 'Stage 11: Framework Architecture',
     objective: `# 3D Math Types
 
@@ -3497,8 +4310,8 @@ public:
 
   // -------------------------------------------------------------------------
   {
-    id: 'task_41',
-    title: '41. Gameplay Timers — SetTimer',
+    id: 'task_46',
+    title: '46. Gameplay Timers — SetTimer',
     category: 'Stage 11: Framework Architecture',
     objective: `# Gameplay Timers — Scheduled Callbacks
 
