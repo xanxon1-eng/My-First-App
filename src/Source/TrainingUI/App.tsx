@@ -11,27 +11,24 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
   
-  // Robust initial detection to prevent flash of content on first render
+  // Robust initial detection - stick to standalone only to avoid false positives in mobile browsers
   const [isStandalone, setIsStandalone] = useState(() => {
     if (typeof window === 'undefined') return false;
     return window.matchMedia('(display-mode: standalone)').matches || 
-           window.matchMedia('(display-mode: fullscreen)').matches ||
-           window.matchMedia('(display-mode: minimal-ui)').matches ||
            (navigator as any).standalone === true;
   });
 
   const [isAndroidFirefox] = useState(() => {
     if (typeof window === 'undefined') return false;
     const ua = navigator.userAgent;
-    // Expanded regex to be more inclusive of Firefox versions on Android
-    return /Android/i.test(ua) && (/Firefox/i.test(ua) || /FxiOS/i.test(ua) || /Focus/i.test(ua));
+    const isAndroid = /Android/i.test(ua);
+    const isFirefox = /Firefox|FxiOS|Focus/i.test(ua) || (/Gecko/i.test(ua) && !/Chrome/i.test(ua));
+    return isAndroid && isFirefox;
   });
 
   useEffect(() => {
     const checkStandalone = () => {
       const standalone = window.matchMedia('(display-mode: standalone)').matches || 
-                         window.matchMedia('(display-mode: fullscreen)').matches ||
-                         window.matchMedia('(display-mode: minimal-ui)').matches ||
                          (navigator as any).standalone === true;
       setIsStandalone(standalone);
       return standalone;

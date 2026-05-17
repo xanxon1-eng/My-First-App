@@ -21,8 +21,11 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   // Android Firefox Logic (Website/Browser): Hide gym timer and school, show install button.
   // Installed App Experience: Show all content, hide install button.
   const isFirefoxWebsite = isAndroidFirefox && !isStandalone;
-  const showMainContent = !isFirefoxWebsite;
-  const showInstallInMenu = !isStandalone && (isFirefoxWebsite || showInstallButton);
+  
+  // Decisions based on flags
+  const showContentButtons = !isFirefoxWebsite;
+  const showBigInstallButton = isFirefoxWebsite;
+  const showSmallInstallButton = !isStandalone && !isAndroidFirefox && showInstallButton;
 
   return (
     <div className="flex flex-col items-center justify-between h-full w-full bg-kingfisher-dark p-6 overflow-hidden">
@@ -45,7 +48,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       </motion.div>
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-2xl px-2 mb-auto">
-        {showMainContent && (
+        {showContentButtons && (
           <>
             <motion.button
               whileHover={{ scale: 1.02, backgroundColor: 'rgba(233, 187, 147, 0.1)' }}
@@ -73,21 +76,31 @@ export const MainMenu: React.FC<MainMenuProps> = ({
           </>
         )}
 
-        {showInstallInMenu && (
+        {showBigInstallButton && (
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onInstallClick}
-            className={`flex items-center justify-center gap-3 p-6 rounded-3xl font-bold shadow-2xl transition-all group ${
-              isFirefoxWebsite 
-                ? "w-full bg-emerald-600 hover:bg-emerald-500 text-white" 
-                : "md:hidden bg-kingfisher-panel border border-emerald-900/50 text-emerald-400"
-            }`}
+            className="w-full flex items-center justify-center gap-3 p-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-bold shadow-2xl transition-all group"
           >
-            <Download className={`w-8 h-8 group-hover:translate-y-0.5 transition-transform ${isFirefoxWebsite ? "" : "w-5 h-5"}`} />
-            <span className={isFirefoxWebsite ? "text-xl" : "text-base"}>Install App</span>
+            <Download className="w-8 h-8 group-hover:translate-y-0.5 transition-transform" />
+            <span className="text-xl">Install App</span>
+          </motion.button>
+        )}
+
+        {showSmallInstallButton && (
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onInstallClick}
+            className="md:hidden flex items-center justify-center gap-3 p-4 bg-kingfisher-panel border border-emerald-900/50 rounded-2xl transition-all text-emerald-400 font-semibold"
+          >
+            <Download className="w-5 h-5" />
+            <span>Install App</span>
           </motion.button>
         )}
       </div>
