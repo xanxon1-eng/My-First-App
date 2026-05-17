@@ -10,16 +10,16 @@ export function ConsoleOutputWidget() {
   }, [consoleOutput]);
 
   return (
-    <div className="h-full bg-[#121212] font-mono text-sm p-4 overflow-y-auto">
+    <div className="h-full bg-kingfisher-dark shadow-inner font-mono text-sm p-4 overflow-y-auto">
       {consoleOutput.length === 0 ? (
-        <span className="text-gray-600">Console ready...</span>
+        <span className="text-kingfisher-muted">Console ready...</span>
       ) : (
         consoleOutput.map((line, idx) => {
-          let textColor = 'text-gray-300';
+          let textColor = 'text-kingfisher-surface';
           if (line.includes('Failed') || line.includes('Error')) textColor = 'text-red-400';
           else if (line.includes('Success')) textColor = 'text-green-400';
-          else if (line.includes('[Build Worker]')) textColor = 'text-cyan-400';
-          else if (line.includes('[Evaluator]')) textColor = 'text-purple-400';
+          else if (line.includes('[Build Worker]')) textColor = 'text-kingfisher-blue';
+          else if (line.includes('[Evaluator]')) textColor = 'text-kingfisher-warm';
 
           return (
             <div key={idx} className={`leading-relaxed ${textColor}`}>

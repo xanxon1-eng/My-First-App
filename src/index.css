@@ -2,28 +2,27 @@
 @import "tailwindcss";
 
 @theme {
+  --color-kingfisher-dark: #0c2557;
+  --color-kingfisher-blue: #787fb2;
+  --color-kingfisher-muted: #adbfc7;
+  --color-kingfisher-surface: #d1d0cd;
+  --color-kingfisher-warm: #e9bb93;
+  --color-kingfisher-deep: #b56c2a;
+  --color-kingfisher-panel: rgba(0, 0, 0, 0.2);
+  --color-kingfisher-border: rgba(120, 127, 178, 0.3);
+
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-  
-  --color-unreal-dark: #121212;
-  --color-unreal-panel: #1e1e1e;
-  --color-unreal-border: #2a2a2a;
-  --color-unreal-blue: #0070d2;
-  --color-unreal-text: #e0e0e0;
-  --color-unreal-muted: #888888;
-  --color-unreal-error: #e53935;
-  --color-unreal-warning: #fb8c00;
-  --color-unreal-success: #43a047;
 }
 
 html, body {
   margin: 0;
   padding: 0;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--color-unreal-dark);
-  color: var(--color-unreal-text);
+  background-color: var(--color-kingfisher-dark);
+  color: var(--color-kingfisher-surface);
 }
 
 #root {
@@ -34,20 +33,19 @@ html, body {
 
 /* Custom scrollbar for panels */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-unreal-dark); 
+  background: rgba(0, 0, 0, 0.1); 
 }
  
 ::-webkit-scrollbar-thumb {
-  background: var(--color-unreal-border); 
-  border: 2px solid var(--color-unreal-dark);
-  border-radius: 5px;
+  background: var(--color-kingfisher-blue); 
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444; 
+  background: var(--color-kingfisher-warm); 
 }

@@ -6,12 +6,12 @@ export function DiagnosticsPanelWidget() {
   const { diagnostics, currentTask } = useTrainingCore();
 
   if (!currentTask) {
-    return <div className="p-4 text-gray-500 text-sm">No task running.</div>;
+    return <div className="p-4 text-kingfisher-muted text-sm">No task running.</div>;
   }
 
   if (diagnostics.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full text-gray-500">
+      <div className="flex flex-col items-center justify-center h-full text-kingfisher-muted">
         <TerminalSquare className="w-8 h-8 mb-2 opacity-50" />
         <p className="text-sm">No compilation errors or rule violations.</p>
       </div>
@@ -19,9 +19,9 @@ export function DiagnosticsPanelWidget() {
   }
 
   return (
-    <div className="h-full overflow-y-auto p-4 space-y-4">
+    <div className="h-full overflow-y-auto p-4 space-y-4 bg-kingfisher-panel shadow-inner">
       {diagnostics.map(diag => (
-        <div key={diag.id} className="bg-[#241315] border border-red-900/50 rounded-md p-4">
+        <div key={diag.id} className="bg-red-950/40 border border-red-900/50 rounded-md p-4">
           <div className="flex gap-3">
             <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
             <div className="space-y-2 w-full">
@@ -38,7 +38,7 @@ export function DiagnosticsPanelWidget() {
                 </p>
               )}
               {diag.suggestedFix && (
-                <div className="bg-red-950/30 border border-red-900/30 px-3 py-2 rounded text-sm text-gray-300">
+                <div className="bg-green-950/20 border border-green-900/30 px-3 py-2 rounded text-sm text-gray-300">
                   <span className="text-green-500 mr-2">👉</span>
                   {diag.suggestedFix}
                 </div>
