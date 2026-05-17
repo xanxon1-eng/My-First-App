@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Hammer, Boxes, Sparkles, Zap, Shield, Swords, Gem, Plus } from 'lucide-react';
 
 interface Modifier {

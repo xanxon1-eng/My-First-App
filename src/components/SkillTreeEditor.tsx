@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { GitBranch, Plus, Trash2, Link as LinkIcon, Settings2, Hexagon, Circle, Gem, Zap } from 'lucide-react';
-import * as d3 from 'd3';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
