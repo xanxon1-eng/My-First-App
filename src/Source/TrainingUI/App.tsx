@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Play, RotateCcw, CheckCircle, Database, Bird, Menu, X, LayoutDashboard, Keyboard } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Play, RotateCcw, CheckCircle, Database, Bird, Menu, X, LayoutDashboard, Keyboard, Download } from 'lucide-react';
 import { CodeEditorWidget } from './components/CodeEditorWidget';
 import { DiagnosticsPanelWidget } from './components/DiagnosticsPanelWidget';
 import { TaskBrowserWidget } from './components/TaskBrowserWidget';
@@ -12,6 +12,56 @@ export default function App() {
   const [activeBottomPanel, setActiveBottomPanel] = useState<'console' | 'diagnostics'>('diagnostics');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const checkStandalone = () => {
+      return window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone === true;
+    };
+
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      if (!checkStandalone()) {
+        setShowInstallButton(true);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      setShowInstallButton(false);
+      setDeferredPrompt(null);
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    
+    // On mobile, if not installed, show the button even if beforeinstallprompt hasn't fired
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    if (isMobile && !checkStandalone()) {
+      setShowInstallButton(true);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        setDeferredPrompt(null);
+        setShowInstallButton(false);
+      }
+    } else {
+      // Fallback for browsers that don't support beforeinstallprompt (like some Firefox versions)
+      alert("To install: Open browser menu (three dots) and select 'Install' or 'Add to Home screen'");
+    }
+  };
+
   const { currentTask, isCompiling, isTesting, compileAndTest, resetTask } = useTrainingCore();
 
   return (
@@ -28,6 +78,16 @@ export default function App() {
           <h1 className="font-semibold tracking-wide text-sm text-white">Kingfisher <span style={{ color: '#e9bb93' }}>App</span></h1>
         </div>
         <div className="flex items-center gap-4">
+          {showInstallButton && (
+            <button 
+              onClick={handleInstallClick}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-all shadow-sm active:scale-95"
+              title="Install as App"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Install App</span>
+            </button>
+          )}
           <div className="hidden sm:flex items-center gap-4">
             <button 
               onClick={() => setIsShortcutsOpen(true)}
