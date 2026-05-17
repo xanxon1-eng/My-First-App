@@ -4,7 +4,7 @@ import {
   Download,
   RefreshCw,
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -30,24 +30,7 @@ export default function App() {
       setDeferredPrompt(null);
     });
 
-    // Automated Update Logic
-    // In a real PWA context, we'd check the service worker.
-    // For "automated update upon opening", we can check if a new SW is waiting.
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New update available, auto-apply it
-                handleUpdate();
-              }
-            });
-          }
-        });
-      });
-    }
+    // Service Worker logic is disabled in preview to avoid blank screen issues
   }, []);
 
   const handleInstallClick = async () => {
@@ -75,16 +58,14 @@ export default function App() {
       <div className="absolute bottom-0 left-0 p-8 h-96 w-96 bg-kingfisher-blue/10 blur-[120px] pointer-events-none rounded-full"></div>
 
       <motion.div 
-        initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="relative z-10 flex flex-col items-center text-center gap-8 max-w-md w-full"
       >
         {/* App Icon / Logo */}
-        <div className="w-24 h-24 bg-kingfisher-deep rounded-3xl flex items-center justify-center shadow-2xl shadow-kingfisher-deep/30 text-white rotate-3 relative group overflow-hidden">
+        <div className="w-24 h-24 bg-kingfisher-deep rounded-3xl flex items-center justify-center shadow-2xl shadow-kingfisher-deep/30 text-white relative group overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-white/30 to-transparent"></div>
           <motion.div
             animate={{ 
-              rotate: [0, 5, 0],
               scale: [1, 1.05, 1]
             }}
             transition={{ 
