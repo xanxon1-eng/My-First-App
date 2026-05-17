@@ -118,7 +118,7 @@ export class UClangdBridgeSubsystem {
   static analyzeAST(code: string): FSemanticSnapshot {
     // Extract actual symbols from the source code
     const parsedSymbols = Array.from(new Set(
-      (code.match(/\b([A-Z][a-zA-Z0-9_]*|[a-z_][a-zA-Z0-9_]*)\b/g) || [])
+      ((code.match(/\b([A-Z][a-zA-Z0-9_]*|[a-z_][a-zA-Z0-9_]*)\b/g) || []) as string[])
         .filter(s => s.length > 3 && !['void', 'class', 'public', 'private', 'protected', 'virtual', 'override', 'include'].includes(s))
     )).slice(0, 15);
 
