@@ -1,31 +1,49 @@
-// Purge Worker v1.0.2
-self.addEventListener('install', () => {
+const CACHE_NAME = "uhu-club-v1.0.5";
+const ASSETS = [
+  "./",
+  "./index.html",
+  "app_icon_192.png",
+  "app_icon_512.png"
+];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+  );
   self.skipWaiting();
 });
 
-self.addEventListener('activate', (event) => {
+self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((names) => {
-      return Promise.all(names.map(name => caches.delete(name)));
-    }).then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(
+        keys.map((key) => (key !== CACHE_NAME ? caches.delete(key) : undefined))
+      );
+      await clients.claim();
+    })()
   );
 });
 
-self.addEventListener('fetch', (event) => {
-  // Pass through for now, as we're more focused on stability than offline support right now
-  // A simple fetch handler is enough for "installability"
-  if (event.request.mode === 'navigate') {
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+
+  // Network-only for manifest with no-cache flag to force update detection
+  if (url.pathname.includes("manifest.json")) {
     event.respondWith(
-      fetch(event.request).catch(() => {
-        return caches.match(event.request);
-      })
+      fetch(event.request, { cache: 'no-store' }).catch(() => caches.match(event.request))
     );
     return;
   }
-  
+
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => caches.match("/index.html"))
+    );
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
+    caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
 });

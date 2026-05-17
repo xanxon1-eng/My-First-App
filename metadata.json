@@ -1,6 +1,6 @@
 {
-  "name": "Kingfisher Notes",
-  "description": "A swift and vibrant note-taking app optimized for Android. Features Kingfisher-inspired design and secure GitHub synchronization.",
+  "name": "Uhu Club",
+  "description": "A clean, minimal starting point with PWA installation support.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

@@ -1,25 +1,9 @@
 {
   "name": "base-app",
-  "type": "module",
   "private": true,
-  "description": "A notebook app that can sync with GitHub.",
+  "description": ".",
   "scripts": {
-    "dev": "vite --port 3000 --host",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
-  },
-  "dependencies": {
-    "@tailwindcss/postcss": "^4.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.20",
-    "framer-motion": "^12.38.0",
-    "lucide-react": "^0.473.0",
-    "motion": "^12.38.0",
-    "postcss": "^8.4.45",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "tailwindcss": "^4.0.0",
-    "vite": "^6.0.0"
+    "dev": "npx -y serve -p 3000 .",
+    "build": "mkdir -p dist && cp index.html manifest.json app_icon_192.png app_icon_512.png dist/ 2>/dev/null && sed \"s/const CACHE_NAME = .*/const CACHE_NAME = \\\"uhu-club-$(date +%s)\\\";/\" sw.js > dist/sw.js"
   }
 }
