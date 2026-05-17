@@ -23,7 +23,6 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   const docPipCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
-  // Refs for the render loop to access current state without restarting the interval
   const secondsRef = useRef(seconds);
   const initialSecondsRef = useRef(initialSeconds);
 
@@ -92,8 +91,6 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
     }
   }, [seconds, isActive]);
 
-  // FIX: Continuous 30 FPS Render Loop. 
-  // Prevents Firefox from starving the stream and freezing the video.
   useEffect(() => {
     const renderLoop = setInterval(() => {
       const canvases = [canvasRef.current, docPipCanvasRef.current];
@@ -138,7 +135,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
         ctx.textBaseline = 'middle';
         ctx.fillText(formatTime(currentSeconds), cx, cy);
       });
-    }, 1000 / 30); // 30 FPS continuous draw
+    }, 1000 / 30); 
 
     return () => clearInterval(renderLoop);
   }, []);
@@ -154,17 +151,14 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
       else if (canvas.mozCaptureStream) stream = canvas.mozCaptureStream(30);
       else return false;
 
-      // FIX: Create an unmuted but silent audio track to validate media playing to Android OS
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (AudioContext) {
         const audioCtx = new AudioContext();
-        
-        // Resume MUST happen in the active gesture
         if (audioCtx.state === 'suspended') await audioCtx.resume();
         
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0; // Absolute silence
+        gainNode.gain.value = 0; 
         
         const dst = audioCtx.createMediaStreamDestination();
         oscillator.connect(gainNode);
@@ -179,9 +173,11 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
       }
 
       video.srcObject = stream;
-      // IMPORTANT: Video must NOT be muted, otherwise OS ignores it for PiP. 
-      // It won't make sound because our gainNode is 0.
       video.muted = false; 
+
+      // FIX: Apply experimental properties programmatically to avoid React TS errors
+      (video as any).autoPictureInPicture = true;
+      (video as any).disablePictureInPicture = false;
       
       await video.play();
       return true;
@@ -235,11 +231,9 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
       } catch (err) { console.warn("Standard PiP failed", err); }
     }
 
-    // Android Firefox Fallback Trigger
     setNativeVideoExposed(true);
     requestWakeLock();
     
-    // Automatically attempt Fullscreen to skip step 1 for the user
     setTimeout(() => {
       if (video.requestFullscreen) video.requestFullscreen();
       else if (video.webkitRequestFullscreen) video.webkitRequestFullscreen();
@@ -253,7 +247,6 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
       
       <canvas ref={canvasRef} width={300} height={300} className="fixed -left-[9999px] pointer-events-none" />
 
-      {/* Exposed Video for Android Fallback */}
       <div className={nativeVideoExposed ? "fixed inset-0 z-50 flex flex-col items-center pt-20 bg-kingfisher-dark/95 backdrop-blur-md px-6" : ""}>
         <AnimatePresence>
           {nativeVideoExposed && (
@@ -279,9 +272,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
           className={nativeVideoExposed ? "w-64 h-64 object-contain rounded-2xl shadow-2xl border-2 border-kingfisher-border bg-black z-50" : "fixed -left-[9999px] pointer-events-none"} 
           controls={nativeVideoExposed} 
           playsInline 
-          // IMPORTANT for OS handling
-          autoPictureInPicture
-          disablePictureInPicture={false}
+          // Removed TS-breaking attributes here; they are now set via ref in setupVideoStream
         />
       </div>
 
