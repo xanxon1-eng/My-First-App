@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { Play, RotateCcw, CheckCircle, Database, Bird, Menu, X, LayoutDashboard } from 'lucide-react';
+import { Play, RotateCcw, CheckCircle, Database, Bird, Menu, X, LayoutDashboard, Keyboard } from 'lucide-react';
 import { CodeEditorWidget } from './components/CodeEditorWidget';
 import { DiagnosticsPanelWidget } from './components/DiagnosticsPanelWidget';
 import { TaskBrowserWidget } from './components/TaskBrowserWidget';
 import { ConsoleOutputWidget } from './components/ConsoleOutputWidget';
 import { ProgressWidget } from './components/ProgressWidget';
+import { UnrealShortcutsModal } from './components/UnrealShortcutsModal';
 import { useTrainingCore } from '../TrainingCore/core/TrainingCore';
 
 export default function App() {
   const [activeBottomPanel, setActiveBottomPanel] = useState<'console' | 'diagnostics'>('diagnostics');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
   const { currentTask, isCompiling, isTesting, compileAndTest, resetTask } = useTrainingCore();
 
   return (
@@ -26,7 +28,15 @@ export default function App() {
           <h1 className="font-semibold tracking-wide text-sm text-white">Kingfisher <span style={{ color: '#e9bb93' }}>App</span></h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden sm:block">
+          <div className="hidden sm:flex items-center gap-4">
+            <button 
+              onClick={() => setIsShortcutsOpen(true)}
+              className="flex items-center gap-1.5 text-xs font-medium text-kingfisher-muted hover:text-white transition-colors"
+              title="Unreal Engine Shortcuts"
+            >
+              <Keyboard className="w-4 h-4" />
+              <span>Shortcuts</span>
+            </button>
             <ProgressWidget />
           </div>
           <div className="flex items-center gap-2 border-l border-kingfisher-border pl-4">
@@ -109,6 +119,11 @@ export default function App() {
           </div>
         </main>
       </div>
+
+      <UnrealShortcutsModal 
+        isOpen={isShortcutsOpen} 
+        onClose={() => setIsShortcutsOpen(false)} 
+      />
     </div>
   );
 }

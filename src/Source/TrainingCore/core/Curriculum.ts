@@ -1285,5 +1285,213 @@ Define a public \`virtual ~FBaseLogic();\` inside \`FBaseLogic\`.
         }
       }
     ]
+  },
+  {
+    id: 'task_36',
+    title: '36. Blueprint Implementable Events',
+    category: 'Stage 11: Blueprint Integration',
+    objective: `# Calling Blueprints from C++
+Sometimes you want designers to implement a graphical effect in Blueprints (like particle effects), but you want to trigger it from C++.
+You can use \`UFUNCTION(BlueprintImplementableEvent)\` to declare a function in C++ that has NO C++ body, guaranteeing it will be implemented entirely in Blueprint!
+
+If you want a C++ base implementation that Blueprints can optionally override, you would use \`BlueprintNativeEvent\`.
+
+### Your Task
+Declare a function named \`void OnTakeDamage();\`. 
+Add the \`UFUNCTION(BlueprintImplementableEvent)\` macro above it. Note: Do not write a body ({}) for this function!
+`,
+    starterCode: {
+      'Source.h': 'class APlayer : public ACharacter {\npublic:\n    // TODO: Declare OnTakeDamage as a BlueprintImplementableEvent\n    \n};\n'
+    },
+    hiddenTests: ['BlueprintImplementableEvent', 'void OnTakeDamage();'],
+    successCriteria: [
+      'Use UFUNCTION(BlueprintImplementableEvent)',
+      'Declare void OnTakeDamage();'
+    ],
+    rules: [
+      {
+        id: 'rule_task_36',
+        type: 'exercise',
+        description: 'BlueprintImplementableEvent correct.',
+        evaluate: (code) => {
+          if (!code.includes('BlueprintImplementableEvent')) return { passed: false, error: 'Missing BlueprintImplementableEvent specifier.' };
+          if (!code.includes('void OnTakeDamage();')) return { passed: false, error: 'Declare void OnTakeDamage(); without a body.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_37',
+    title: '37. UPROPERTY Meta Tags (Units)',
+    category: 'Stage 11: Blueprint Integration',
+    objective: `# UPROPERTY Meta Tags
+The \`meta\` tags allow you to add extra editor functionality to your properties.
+For example, you can specify physical units like Celsius, Kilograms, or Percent to help designers understand what a float represents. 
+Syntax: \`UPROPERTY(EditAnywhere, meta=(Units="Celsius"))\`
+
+### Your Task
+Declare a float named \`Temperature\`. 
+Give it the \`EditAnywhere\` specifier and a \`meta=(Units="Celsius")\` tag inside the \`UPROPERTY\` macro.
+`,
+    starterCode: {
+      'Source.h': 'class AWeatherSystem : public AActor {\n    // TODO: Declare Temperature float with correct UPROPERTY meta tag\n    \n};\n'
+    },
+    hiddenTests: ['meta=(Units="Celsius")', 'float Temperature;'],
+    successCriteria: [
+      'Use UPROPERTY(EditAnywhere, meta=(Units="Celsius"))',
+      'Declare float Temperature;'
+    ],
+    rules: [
+      {
+        id: 'rule_task_37',
+        type: 'exercise',
+        description: 'Meta tag used correctly.',
+        evaluate: (code) => {
+          if (!code.includes('meta=(Units="Celsius")') && !code.includes('meta = (Units = "Celsius")')) return { passed: false, error: 'Include the meta=(Units="Celsius") tag.' };
+          if (!code.includes('float Temperature;')) return { passed: false, error: 'Declare float Temperature;' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_38',
+    title: '38. GameMode Architecture',
+    category: 'Stage 12: Framework Architecture',
+    objective: `# GameMode
+In Unreal's Multiplayer framework, the \`AGameMode\` dictates the rules of the match. It exists ONLY on the server.
+If you need to define conditions like winning a match, managing spawn points, or starting a timer, it goes here.
+The base classes are \`AGameModeBase\` and \`AGameMode\` (which has more multiplayer match features).
+
+### Your Task
+Create a class called \`AMyGameMode\` that inherits publicly from \`AGameModeBase\`.
+`,
+    starterCode: {
+      'Source.h': '// TODO: Create AMyGameMode inheriting from AGameModeBase\n\n'
+    },
+    hiddenTests: ['class AMyGameMode : public AGameModeBase'],
+    successCriteria: [
+      'Class AMyGameMode',
+      'Inherit from AGameModeBase'
+    ],
+    rules: [
+      {
+        id: 'rule_task_38',
+        type: 'exercise',
+        description: 'GameMode inheritance.',
+        evaluate: (code) => {
+          if (!code.includes('class AMyGameMode')) return { passed: false, error: 'Declare class AMyGameMode.' };
+          if (!code.includes(': public AGameModeBase')) return { passed: false, error: 'Inherit publicly from AGameModeBase.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_39',
+    title: '39. Math Data Types (FVector & FRotator)',
+    category: 'Stage 12: Framework Architecture',
+    objective: `# 3D Math Types
+Unreal has customized types for 3D Math that are heavily used across all components. Make sure you memorize these:
+- \`FVector\`: X, Y, Z coordinates.
+- \`FRotator\`: Pitch (Y), Yaw (Z), Roll (X).
+- \`FTransform\`: Combines Location, Rotation, and Scale.
+
+### Your Task
+Declare an \`FVector\` named \`SpawnLocation\`.
+Declare an \`FRotator\` named \`SpawnRotation\`.
+`,
+    starterCode: {
+      'Source.h': 'class ASpawner : public AActor {\n    // TODO: Declare SpawnLocation (FVector) and SpawnRotation (FRotator)\n    \n};\n'
+    },
+    hiddenTests: ['FVector SpawnLocation;', 'FRotator SpawnRotation;'],
+    successCriteria: [
+      'Declare FVector SpawnLocation;',
+      'Declare FRotator SpawnRotation;'
+    ],
+    rules: [
+      {
+        id: 'rule_task_39',
+        type: 'exercise',
+        description: 'Math data types declared.',
+        evaluate: (code) => {
+          if (!code.includes('FVector SpawnLocation;')) return { passed: false, error: 'Declare FVector SpawnLocation;' };
+          if (!code.includes('FRotator SpawnRotation;')) return { passed: false, error: 'Declare FRotator SpawnRotation;' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_40',
+    title: '40. Draw Debug Shapes',
+    category: 'Stage 12: Framework Architecture',
+    objective: `# Draw Debug Helpers
+When prototyping, it is incredibly useful to draw lines, spheres, and boxes in the 3D world to visualize what your code is doing (e.g., drawing a line trace for a gun).
+Unreal provides \`DrawDebugHelpers.h\` for this.
+
+Common functions:
+- \`DrawDebugLine\`
+- \`DrawDebugSphere\`
+- \`DrawDebugBox\`
+
+### Your Task
+Call \`DrawDebugSphere\` passing in \`GetWorld()\`, \`Location\`, \`Radius\`, \`Segments\`, and \`FColor::Red\`.
+`,
+    starterCode: {
+      'Source.cpp': '#include "DrawDebugHelpers.h"\n\nvoid AMyActor::ShowDebugSphere() {\n    FVector Location = FVector(0, 0, 0);\n    float Radius = 100.0f;\n    int32 Segments = 12;\n    \n    // TODO: Call DrawDebugSphere\n    \n}\n'
+    },
+    hiddenTests: ['DrawDebugSphere', 'GetWorld()', 'Location', 'Radius', 'Segments', 'FColor::Red'],
+    successCriteria: [
+      'Call DrawDebugSphere',
+      'Pass GetWorld() as the first parameter',
+      'Pass FColor::Red'
+    ],
+    rules: [
+      {
+        id: 'rule_task_40',
+        type: 'exercise',
+        description: 'DrawDebugSphere implemented.',
+        evaluate: (code) => {
+          if (!code.includes('DrawDebugSphere')) return { passed: false, error: 'Must call DrawDebugSphere.' };
+          if (!code.includes('GetWorld()')) return { passed: false, error: 'Must pass GetWorld().' };
+          if (!code.includes('FColor::Red')) return { passed: false, error: 'Must pass FColor::Red.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_41',
+    title: '41. Gameplay Timers',
+    category: 'Stage 12: Framework Architecture',
+    objective: `# Timers
+Instead of using Tick (which happens every frame and kills performance), if you want something to happen in exactly 2 seconds, you use the Timer Manager!
+
+\`GetWorldTimerManager().SetTimer(...)\` is how you set a timer.
+
+### Your Task
+You have an \`FTimerHandle\` named \`AttackTimer\`.
+Write a comment \`// Timers are better than Tick\` inside the function to show you understand. (We are simplifying setting the actual timer syntax for this exercise).
+`,
+    starterCode: {
+      'Source.cpp': 'void AEnemy::StartAttack() {\n    FTimerHandle AttackTimer;\n    \n    // TODO: Add the comment about timers\n    \n}\n'
+    },
+    hiddenTests: ['Timers are better than Tick'],
+    successCriteria: [
+      'Add the required comment'
+    ],
+    rules: [
+      {
+        id: 'rule_task_41',
+        type: 'exercise',
+        description: 'Understand timers vs tick.',
+        evaluate: (code) => {
+          if (!code.includes('Timers are better than Tick')) return { passed: false, error: 'Must include the comment: // Timers are better than Tick' };
+          return { passed: true };
+        }
+      }
+    ]
   }
 ];
