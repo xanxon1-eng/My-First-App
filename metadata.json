@@ -1,6 +1,6 @@
 {
-  "name": "Uhu Club",
-  "description": "A clean, minimal starting point with PWA installation support.",
+  "name": "Kingfisher App",
+  "description": "A comprehensive development sandbox for engineering complex 3D RPG systems, including branching narratives, deep itemization, and scalable skill frameworks.",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"

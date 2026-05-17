@@ -3,7 +3,27 @@
   "private": true,
   "description": ".",
   "scripts": {
-    "dev": "npx -y serve -p 3000 .",
-    "build": "mkdir -p dist && cp index.html manifest.json app_icon_192.png app_icon_512.png dist/ 2>/dev/null && sed \"s/const CACHE_NAME = .*/const CACHE_NAME = \\\"uhu-club-$(date +%s)\\\";/\" sw.js > dist/sw.js"
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview --port 3000"
+  },
+  "dependencies": {
+    "@tailwindcss/vite": "^4.3.0",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.14",
+    "tailwindcss": "^4.3.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.13"
   }
 }

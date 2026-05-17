@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --color-kingfisher-dark: #0c2557;
+  --color-kingfisher-blue: #787fb2;
+  --color-kingfisher-muted: #adbfc7;
+  --color-kingfisher-surface: #d1d0cd;
+  --color-kingfisher-warm: #e9bb93;
+  --color-kingfisher-deep: #b56c2a;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
+:root {
+  background-color: var(--color-kingfisher-dark);
+}
+
+body {
+  @apply text-kingfisher-surface font-sans antialiased;
+  background-color: var(--color-kingfisher-dark);
+}
+
+/* Custom scrollbar for an RPG feel */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-kingfisher-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-kingfisher-blue);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-kingfisher-warm);
+}
