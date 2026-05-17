@@ -24,7 +24,7 @@ body {
   background-color: var(--color-kingfisher-dark);
 }
 
-/* Custom scrollbar for an RPG feel */
+/* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }

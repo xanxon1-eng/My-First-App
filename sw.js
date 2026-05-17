@@ -1,4 +1,4 @@
-const CACHE_NAME = "uhu-club-v1.0.5";
+const CACHE_NAME = "kingfisher-v1.1.0";
 const ASSETS = [
   "./",
   "./index.html",

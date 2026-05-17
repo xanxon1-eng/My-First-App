@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "Uhu Club",
-  "short_name": "Uhu Club",
+  "name": "Kingfisher App",
+  "short_name": "Kingfisher",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
