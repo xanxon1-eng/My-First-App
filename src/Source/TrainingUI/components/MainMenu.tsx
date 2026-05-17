@@ -20,9 +20,6 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onSelectView }) => {
         <h1 className="text-4xl font-bold text-white tracking-tight">
           Kingfisher <span className="text-kingfisher-warm">Hub</span>
         </h1>
-        <p className="text-kingfisher-muted mt-2 text-center max-w-xs">
-          Select your training module or warm up with the focus timer.
-        </p>
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-2xl">
@@ -37,7 +34,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onSelectView }) => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">Gym Timer</h2>
           <p className="text-sm text-kingfisher-muted text-center">
-            2-minute real-time focus period. No distractions.
+            
           </p>
         </motion.button>
 
@@ -52,7 +49,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({ onSelectView }) => {
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">C++ School</h2>
           <p className="text-sm text-kingfisher-muted text-center">
-            Continue your Unreal Engine C++ training curriculum.
+            
           </p>
         </motion.button>
       </div>

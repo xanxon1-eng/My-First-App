@@ -1,7 +1,7 @@
 {
   "name": "Kingfisher App",
   "description": "A refined mobile application experience with a focus on simplicity and utility.",
-  "requestFramePermissions": [],
+  "requestFramePermissions": ["picture-in-picture"],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
   ]

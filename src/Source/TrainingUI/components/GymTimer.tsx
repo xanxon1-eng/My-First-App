@@ -40,21 +40,14 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const draw = () => {
-      ctx.fillStyle = '#0f172a'; // kingfisher-dark equivalent
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      ctx.fillStyle = '#fbbf24'; // kingfisher-warm equivalent
-      ctx.font = 'bold 80px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(formatTime(seconds), canvas.width / 2, canvas.height / 2);
-      
-      requestAnimationFrame(draw);
-    };
-
-    const animationId = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(animationId);
+    ctx.fillStyle = '#0f172a'; // kingfisher-dark equivalent
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.fillStyle = '#fbbf24'; // kingfisher-warm equivalent
+    ctx.font = 'bold 80px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(formatTime(seconds), canvas.width / 2, canvas.height / 2);
   }, [seconds]);
 
   const toggleTimer = () => setIsActive(!isActive);
@@ -86,19 +79,34 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   };
 
   const togglePip = async () => {
-    if (!videoRef.current || !canvasRef.current) return;
+    const video = videoRef.current;
+    if (!video || !canvasRef.current) return;
     
+    if (!('requestPictureInPicture' in HTMLVideoElement.prototype)) {
+      console.warn("Picture-in-Picture API is not supported in this browser.");
+      alert("Picture-in-Picture is not supported in your browser.");
+      return;
+    }
+
     try {
       if (document.pictureInPictureElement) {
         await document.exitPictureInPicture();
       } else {
         const stream = (canvasRef.current as any).captureStream(30);
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        await videoRef.current.requestPictureInPicture();
+        video.srcObject = stream;
+        
+        // Ensure video is playing before requesting PiP
+        await video.play();
+        
+        if (typeof video.requestPictureInPicture === 'function') {
+          await video.requestPictureInPicture();
+        } else {
+          throw new Error("requestPictureInPicture is not a function on this element");
+        }
       }
     } catch (error) {
       console.error("PiP error:", error);
+      alert("Could not enable Picture-in-Picture. Please ensure your browser supports it and you have given permission.");
     }
   };
 
@@ -114,7 +122,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
     <div className="flex flex-col h-full w-full bg-kingfisher-dark text-white font-sans overflow-hidden">
       {/* Hidden elements for PiP */}
       <canvas ref={canvasRef} width={300} height={300} className="hidden" />
-      <video ref={videoRef} className="hidden" muted playsInline />
+      <video ref={videoRef} className="absolute opacity-0 pointer-events-none" muted playsInline />
 
       {/* Header */}
       <header className="h-14 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
@@ -266,14 +274,13 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             exit={{ opacity: 0, y: -10 }}
             className="mt-8 text-kingfisher-muted font-medium text-sm text-center"
           >
-            {seconds === 0 ? "Session Complete!" : isActive ? "Stay focused. Deep breaths." : `Focus on the set. (${formatTime(initialSeconds)})`}
+            {seconds === 0 ? "Session Complete!" : isActive ? "Stay focused. Deep breaths." : ""}
           </motion.p>
         </AnimatePresence>
       </div>
       
       {/* Footer Branding */}
       <div className="p-8 flex justify-center opacity-30">
-        <p className="text-[10px] uppercase tracking-[0.3em]">Concentration is the root of mastery</p>
       </div>
     </div>
   );
