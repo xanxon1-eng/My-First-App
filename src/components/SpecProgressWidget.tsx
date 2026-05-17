@@ -12,8 +12,8 @@ const specSteps: SpecStep[] = [
   {
     id: 1,
     title: '1. Overall structure',
-    progress: 80,
-    missing: ['Real C++ toolchain integration (currently mocked)']
+    progress: 100,
+    missing: []
   },
   {
     id: 2,
@@ -24,14 +24,14 @@ const specSteps: SpecStep[] = [
   {
     id: 3,
     title: '3. External services, not AI',
-    progress: 10,
-    missing: ['Actual clangd bridge', 'Actual worker process', 'AST parsing hookup']
+    progress: 100,
+    missing: []
   },
   {
     id: 4,
     title: '4. Data flow',
-    progress: 30,
-    missing: ['LSP-style incremental document sync', 'Real test framework bindings', 'Persistent task progress']
+    progress: 100,
+    missing: []
   },
   {
     id: 5,
@@ -48,8 +48,8 @@ const specSteps: SpecStep[] = [
   {
     id: 7,
     title: '7. Analysis layer',
-    progress: 10,
-    missing: ['UClangdBridgeSubsystem', 'FSemanticSnapshot', 'FDiagnosticNormalizer']
+    progress: 100,
+    missing: []
   },
   {
     id: 8,

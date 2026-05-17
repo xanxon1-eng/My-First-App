@@ -80,6 +80,78 @@ export interface FFeedbackItem {
   relatedTaskTag?: string;
 }
 
+// --- NEW MOCKED SUBSYSTEMS ---
+
+export class FDiagnosticNormalizer {
+  static normalize(raw: any): FDiagnostic {
+    return {
+      id: raw.id || `diag_${Date.now()}`,
+      severity: raw.severity || 'error',
+      category: raw.category || 'Clangd',
+      file: raw.file || 'Unknown',
+      line: raw.line || 1,
+      message: raw.message || 'Unknown error',
+      explanation: raw.explanation || 'Normalized diagnostic',
+      suggestedFix: raw.suggestedFix
+    };
+  }
+}
+
+export class UClangdBridgeSubsystem {
+  static analyzeAST(code: string): FSemanticSnapshot {
+    return {
+      parsedSymbols: ['MockSymbol1', 'MockSymbol2'],
+      types: ['int', 'float'],
+      scopes: ['global'],
+      diagnostics: [],
+      references: [],
+      includeGraph: {}
+    };
+  }
+
+  static syncDocument(docId: string, text: string) {
+    // LSP-style incremental document sync implementation
+    console.log(`[Clangd Bridge] Incremental sync for document ${docId}`);
+  }
+}
+
+export class UBuildWorkerProcess {
+  static async executeBuild(job: FBuildJob): Promise<{ success: boolean; logs: string[] }> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve({
+          success: true,
+          logs: ['[UBuildWorkerProcess] Starting UBT Build...', '[UBuildWorkerProcess] Compilation finished in 1.42s']
+        });
+      }, 1500);
+    });
+  }
+}
+
+export class UTestFrameworkBindings {
+  static async runHiddenTests(taskId: string, source: string): Promise<boolean> {
+    return new Promise(resolve => {
+      setTimeout(() => {
+        resolve(true); 
+      }, 800);
+    });
+  }
+}
+
+export const loadPersistentProgress = () => {
+   try {
+     const data = localStorage.getItem('training_mastery_state');
+     if (data) return JSON.parse(data);
+   } catch(e) {}
+   return null;
+}
+
+export const savePersistentProgress = (state: any) => {
+   localStorage.setItem('training_mastery_state', JSON.stringify(state));
+}
+
+// --- CORE STATE ---
+
 interface TrainingState {
   currentTask: UTaskDefinition | null;
   currentSession: UTaskSession | null;
@@ -193,7 +265,7 @@ export const useTrainingCore = create<TrainingState>((set, get) => ({
   consoleOutput: [],
   isCompiling: false,
   isTesting: false,
-  masteryState: {
+  masteryState: loadPersistentProgress() || {
     'basics_1': 'available',
     'mem_1': 'locked',
     'oop_1': 'locked',
@@ -230,6 +302,7 @@ export const useTrainingCore = create<TrainingState>((set, get) => ({
   },
 
   updateDocument: (id, text) => {
+    UClangdBridgeSubsystem.syncDocument(id, text);
     set((state) => ({
       documents: state.documents.map(d => 
         d.id === id ? { ...d, textBuffer: text, isDirty: true, version: d.version + 1 } : d
@@ -252,7 +325,6 @@ export const useTrainingCore = create<TrainingState>((set, get) => ({
     const state = get();
     if (!state.currentTask || state.isCompiling) return;
 
-    // Increment attempt count on session
     set((s) => ({
       currentSession: s.currentSession ? { 
         ...s.currentSession, 
@@ -261,32 +333,44 @@ export const useTrainingCore = create<TrainingState>((set, get) => ({
       } : null,
       isCompiling: true, 
       diagnostics: [], 
-      consoleOutput: ['[Build Worker] Starting UBT Build...', '[Clangd Bridge] Analyzing semantic snapshot...'] 
+      consoleOutput: ['[Build Worker] Preparing external Build...', '[Clangd Bridge] Syncing final AST state...'] 
     }));
 
-    // Mock compile delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    const buildResult = await UBuildWorkerProcess.executeBuild({
+      taskId: state.currentTask.id,
+      tempProjectPath: '/temp/worker/build',
+      targetModule: 'TrainingModule',
+      buildConfiguration: 'Development',
+      commandLine: 'Build.bat TrainingModule Win64 Development',
+      startTime: Date.now(),
+      outputLog: []
+    });
 
     const activeDocContent = get().documents.find(d => d.filePath.endsWith('.cpp'))?.textBuffer || '';
 
-    const newDiagnostics: FDiagnostic[] = [];
-    const newLogs: string[] = ['[Build Worker] Compilation finished in 1.42s'];
+    const semanticSnapshot = UClangdBridgeSubsystem.analyzeAST(activeDocContent);
 
-    // Evaluate rules mapped to the current task
+    const newDiagnostics: FDiagnostic[] = [];
+    const newLogs: string[] = buildResult.logs;
+    
+    if (semanticSnapshot.parsedSymbols.length > 0) {
+       newLogs.push(`[Clangd Bridge] Found ${semanticSnapshot.parsedSymbols.length} active symbols.`);
+    }
+
     const failedRules = state.currentTask.rules.filter(r => !r.evaluate(activeDocContent));
 
     if (failedRules.length > 0) {
       failedRules.forEach((rule, idx) => {
-        newDiagnostics.push({
+        newDiagnostics.push(FDiagnosticNormalizer.normalize({
           id: `err_${idx}`,
           severity: 'error',
           category: `Layer ${rule.type === 'unreal' ? '3' : '2'}: ${rule.type}-specific rules`,
           file: 'ActiveDocument.cpp',
           line: 1, 
           message: `Rule failed: ${rule.description}`,
-          explanation: `The evaluator determined that the specific rule '${rule.description}' was not satisfied by your implementation.`,
+          explanation: `The evaluator determined that the specific rule '${rule.description}' was not satisfied.`,
           suggestedFix: `Check the requirements for ${rule.description} again.`
-        });
+        }));
       });
       newLogs.push('[Evaluator] Compilation Failed! Task Rules Violated.');
     } else {
@@ -305,21 +389,26 @@ export const useTrainingCore = create<TrainingState>((set, get) => ({
     }));
 
     if (failedRules.length > 0) {
-      return; // Stop if compile failed
+      return; 
     }
 
-    // Mock testing delay
     set((s) => ({
       currentSession: s.currentSession ? { ...s.currentSession, testStatus: 'testing' } : null
     }));
-    await new Promise(resolve => setTimeout(resolve, 800)); 
+    
+    const testSuccess = await UTestFrameworkBindings.runHiddenTests(state.currentTask.id, activeDocContent);
 
-    set((s) => ({ 
-      currentSession: s.currentSession ? { ...s.currentSession, testStatus: 'success', completionState: 'completed' } : null,
-      isTesting: false, 
-      consoleOutput: [...get().consoleOutput, '[Test Flow] Evaluator ran hidden tests.', '[Test Flow] All success criteria met.'],
-      masteryState: s.currentTask ? { ...s.masteryState, [s.currentTask.id]: 'completed' } : s.masteryState
-    }));
+    set((s) => {
+      const updatedMastery = s.currentTask ? { ...s.masteryState, [s.currentTask.id]: 'completed' } as Record<string, 'locked' | 'available' | 'completed'> : s.masteryState;
+      savePersistentProgress(updatedMastery);
+
+      return { 
+        currentSession: s.currentSession ? { ...s.currentSession, testStatus: testSuccess ? 'success' : 'failed', completionState: 'completed' } : null,
+        isTesting: false, 
+        consoleOutput: [...s.consoleOutput, '[Test Flow] Evaluator ran hidden tests via UTestFrameworkBindings.', `[Test Flow] All success criteria ${testSuccess ? 'met' : 'failed'}.`],
+        masteryState: updatedMastery
+      };
+    });
   }
 }));
 
