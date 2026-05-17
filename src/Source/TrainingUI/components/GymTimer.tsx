@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, RotateCcw, ArrowLeft, Timer, PictureInPicture, Settings2, X } from 'lucide-react';
+import { COLORS } from '../../../constants/colors';
 
 interface GymTimerProps {
   onBack: () => void;
@@ -56,11 +57,11 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
     if (!ctx) return;
 
     // Premium dark backdrop rendering
-    ctx.fillStyle = '#0f172a'; 
+    ctx.fillStyle = COLORS.kingfisher.dark; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
     // Timer text styling
-    ctx.fillStyle = '#fbbf24'; 
+    ctx.fillStyle = COLORS.kingfisher.warm; 
     ctx.font = 'bold 80px monospace';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -138,9 +139,9 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
         // Ensure canvas has the latest frames drawn
         const ctx = canvas.getContext('2d');
         if (ctx) {
-          ctx.fillStyle = '#0f172a';
+          ctx.fillStyle = COLORS.kingfisher.dark;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
-          ctx.fillStyle = '#fbbf24';
+          ctx.fillStyle = COLORS.kingfisher.warm;
           ctx.font = 'bold 80px monospace';
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
@@ -179,7 +180,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
   const progress = seconds / initialSeconds;
 
   return (
-    <div className="flex flex-col h-full w-full bg-slate-900 text-white font-sans overflow-hidden relative">
+    <div className="flex flex-col h-full w-full bg-kingfisher-dark text-white font-sans overflow-hidden relative">
       
       {/* Hidden elements for PiP - Positioned off-screen instead of hidden to retain canvas rendering tracks */}
       <canvas 
@@ -197,24 +198,24 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
 
       {/* */}
       {/* Header */}
-      <header className="h-14 border-b border-slate-800 bg-slate-950 flex items-center justify-between px-4 shrink-0">
+      <header className="h-14 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
         <button 
           onClick={onBack}
-          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium"
+          className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Back to Menu</span>
         </button>
         <div className="flex items-center gap-2">
-          <Timer className="w-5 h-5 text-amber-500" />
+          <Timer className="w-5 h-5 text-kingfisher-warm" />
           <span className="font-semibold text-sm">Gym Session</span>
         </div>
         <button 
           onClick={togglePip}
-          className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors text-sm font-medium p-2 rounded-lg hover:bg-slate-800"
+          className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium p-2 rounded-lg hover:bg-kingfisher-panel"
           title="Miniature Overlay (PiP)"
         >
-          <PictureInPicture className="w-4 h-4 text-amber-400" />
+          <PictureInPicture className="w-4 h-4 text-kingfisher-warm" />
         </button>
       </header>
 
@@ -227,8 +228,8 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             onClick={() => handleSetDuration(90)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
               initialSeconds === 90 
-                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' 
-                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-amber-500/50'
+                ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg shadow-kingfisher-warm/20' 
+                : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border hover:border-kingfisher-warm/50'
             }`}
           >
             1:30 Min
@@ -237,8 +238,8 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             onClick={() => handleSetDuration(120)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
               initialSeconds === 120 
-                ? 'bg-amber-500 text-slate-950 shadow-lg shadow-amber-500/20' 
-                : 'bg-slate-800 text-slate-400 border border-slate-700 hover:border-amber-500/50'
+                ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg shadow-kingfisher-warm/20' 
+                : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border hover:border-kingfisher-warm/50'
             }`}
           >
             2:00 Min
@@ -246,7 +247,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
           <button 
             onClick={() => setIsEditing(!isEditing)}
             className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${
-              isEditing ? 'bg-amber-500 text-slate-950' : 'bg-slate-800 text-slate-400 border border-slate-700'
+              isEditing ? 'bg-kingfisher-warm text-kingfisher-dark' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'
             }`}
           >
             <Settings2 className="w-3 h-3" />
@@ -262,21 +263,21 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: -10 }}
               onSubmit={handleManualSubmit}
-              className="absolute top-20 z-20 bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-2xl flex flex-col gap-3"
+              className="absolute top-20 z-20 bg-kingfisher-panel border border-kingfisher-border p-4 rounded-xl shadow-2xl flex flex-col gap-3 backdrop-blur-md"
             >
-              <label className="text-xs text-slate-400 font-bold uppercase tracking-wider">Set Duration (M:SS)</label>
+              <label className="text-xs text-kingfisher-muted font-bold uppercase tracking-wider">Set Duration (M:SS)</label>
               <div className="flex gap-2">
                 <input 
                   autoFocus
                   type="text" 
                   value={manualInput}
                   onChange={(e) => setManualInput(e.target.value)}
-                  className="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 w-24 font-mono"
+                  className="bg-kingfisher-dark border border-kingfisher-border rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-kingfisher-warm w-24 font-mono"
                   placeholder="2:00"
                 />
                 <button 
                   type="submit"
-                  className="bg-amber-500 text-slate-950 px-4 py-2 rounded text-sm font-bold hover:bg-amber-400 transition-colors"
+                  className="bg-kingfisher-warm text-kingfisher-dark px-4 py-2 rounded text-sm font-bold hover:bg-kingfisher-warm/80 transition-colors"
                 >
                   Set
                 </button>
@@ -296,7 +297,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
               fill="transparent"
               stroke="currentColor"
               strokeWidth="4"
-              className="text-slate-800"
+              className="text-kingfisher-border"
             />
             {/* Animated Progress Circle */}
             <motion.circle
@@ -310,13 +311,13 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
               initial={{ strokeDashoffset: 0 }}
               animate={{ strokeDashoffset: 282.7 * (1 - (isNaN(progress) ? 0 : progress)) }}
               transition={{ duration: 1, ease: "linear" }}
-              className="text-amber-500"
+              className="text-kingfisher-warm"
               strokeLinecap="round"
             />
           </svg>
 
           {/* Time Display */}
-          <div className="text-6xl md:text-8xl font-mono font-bold tracking-tighter relative z-10 text-amber-500">
+          <div className="text-6xl md:text-8xl font-mono font-bold tracking-tighter relative z-10 text-kingfisher-warm">
             {formatTime(seconds)}
           </div>
         </div>
@@ -327,7 +328,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={resetTimer}
-            className="p-4 bg-slate-850 border border-slate-850 text-slate-400 hover:text-white rounded-full transition-colors hover:bg-slate-800"
+            className="p-4 bg-kingfisher-panel border border-kingfisher-border text-kingfisher-muted hover:text-white rounded-full transition-colors hover:bg-kingfisher-panel/50"
           >
             <RotateCcw className="w-6 h-6" />
           </motion.button>
@@ -339,7 +340,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             className={`w-20 h-20 rounded-full flex items-center justify-center shadow-2xl transition-colors ${
               isActive 
                 ? 'bg-red-500/20 text-red-500 border border-red-500/40 hover:bg-red-500/30' 
-                : 'bg-amber-500 text-slate-950 hover:bg-amber-400'
+                : 'bg-kingfisher-warm text-kingfisher-dark hover:bg-kingfisher-warm/80'
             }`}
           >
             {isActive ? <Pause className="w-8 h-8 fill-current" /> : <Play className="w-8 h-8 fill-current ml-1" />}
@@ -355,7 +356,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="mt-8 text-slate-400 font-medium text-sm text-center min-h-[20px]"
+            className="mt-8 text-kingfisher-muted font-medium text-sm text-center min-h-[20px]"
           >
             {seconds === 0 ? "Session Complete!" : isActive ? "Active Rest Interval" : "Interval Paused"}
           </motion.p>
@@ -379,7 +380,7 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
             <span>{toast.message}</span>
             <button 
               onClick={() => setToast(null)}
-              className="p-1 hover:bg-slate-800/50 rounded transition-colors"
+              className="p-1 hover:bg-kingfisher-panel/50 rounded transition-colors"
             >
               <X className="w-4 h-4" />
             </button>

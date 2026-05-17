@@ -6,6 +6,7 @@ import { TaskBrowserWidget } from './TaskBrowserWidget';
 import { ConsoleOutputWidget } from './ConsoleOutputWidget';
 import { UnrealShortcutsModal } from './UnrealShortcutsModal';
 import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
+import { COLORS } from '../../../constants/colors';
 
 interface CppSchoolProps {
   onBack: () => void;
@@ -41,7 +42,7 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
             <Bird className="w-5 h-5" />
           </div>
           <h1 className="font-semibold tracking-wide text-sm text-white">
-            Kingfisher <span style={{ color: '#e9bb93' }}>School</span>
+            Kingfisher <span style={{ color: COLORS.kingfisher.warm }}>School</span>
           </h1>
         </div>
         <div className="flex items-center gap-4">

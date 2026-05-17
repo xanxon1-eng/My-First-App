@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bird, Timer, GraduationCap, Download } from 'lucide-react';
 import { motion } from 'motion/react';
+import { COLORS } from '../../../constants/colors';
 
 interface MainMenuProps {
   onSelectView: (view: 'school' | 'timer') => void;
@@ -51,7 +52,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         {showContentButtons && (
           <>
             <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: 'rgba(233, 187, 147, 0.1)' }}
+              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.warm}1A` }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('timer')}
               className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-3xl transition-colors group"
@@ -63,7 +64,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: 'rgba(120, 127, 178, 0.1)' }}
+              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.blue}1A` }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('school')}
               className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-3xl transition-colors group"
