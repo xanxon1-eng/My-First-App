@@ -37,7 +37,6 @@ export default function App() {
               <Keyboard className="w-4 h-4" />
               <span>Shortcuts</span>
             </button>
-            <ProgressWidget />
           </div>
           <div className="flex items-center gap-2 border-l border-kingfisher-border pl-4">
             <button 

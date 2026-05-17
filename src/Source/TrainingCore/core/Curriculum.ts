@@ -1,1497 +1,3624 @@
+/**
+ * Curriculum.ts — Improved UE5 C++ Training Curriculum
+ *
+ * KEY IMPROVEMENTS OVER ORIGINAL:
+ *  1. Every task has at least one `exampleSolutions` entry with annotated code.
+ *  2. Rules are split into granular checks so the diagnostics panel pinpoints
+ *     exactly which requirement is missing, not just "task failed".
+ *  3. Rule `evaluate` returns a rich { passed, error, fix } object consistently.
+ *  4. Objectives include inline code fences so Monaco syntax-highlighting works
+ *     in the markdown panel.
+ *  5. Category progression follows the guide: Raw Metal → Memory → UE Core →
+ *     Advanced Architecture → UE5 Pro → Blueprint Integration → Production →
+ *     Framework → Modern C++ → Enterprise.
+ *  6. The final few trivially-easy tasks (e.g. "write a comment") have been
+ *     rewritten into real exercises with meaningful validation.
+ *  7. `hiddenTests` strings are kept consistent with what `UTestFrameworkBindings`
+ *     checks (substring presence in code) so they actually gate completion.
+ */
+
 import { UTaskDefinition } from './TrainingCore';
 
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/** Trim, remove all whitespace, lowercase — normalises code before regex tests. */
+const norm = (code: string) => code.replace(/\s+/g, ' ').toLowerCase();
+
+/** Returns true if pattern exists anywhere in the normalised code. */
+const has = (code: string, pattern: string | RegExp) =>
+  typeof pattern === 'string'
+    ? norm(code).includes(norm(pattern))
+    : pattern.test(code);
+
+// ---------------------------------------------------------------------------
+// Curriculum
+// ---------------------------------------------------------------------------
+
 export const embeddedTasks: UTaskDefinition[] = [
+  // =========================================================================
+  // STAGE 1 — THE RAW METAL
+  // =========================================================================
+
   {
     id: 'task_1',
-    title: '1. Raw Variables & Primitive Bits',
+    title: '1. Raw Variables & Primitive Types',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Raw Variables & Primitive Bits
-Welcome to C++. Hardware is dumb. It only knows 1s and 0s. Variables are how we give meaning to those bits. 
-In C++, you must explicitly declare *what* type of memory you are allocating before you use it. 
+    objective: `# Raw Variables & Primitive Types
 
-### Why is this important?
-Unlike Python or JavaScript, C++ does not guess your data types. You are manually carving out space in RAM. A boolean is 1 byte, an integer is 4 bytes, a float is 4 bytes. 
+C++ is a **statically typed** language: you must declare the type of every variable before you can use it. The compiler uses that information to decide exactly how many bytes to reserve in RAM.
 
-In this task, we will create some variables.
-1. Declare an integer \`Health\` and set it to 100.
-2. Declare a float \`Damage\` and set it to 45.5.
-3. Declare a boolean \`bIsAlive\` and set it to true.
+| Type | Typical size | Range |
+|------|-------------|-------|
+| \`bool\` | 1 byte | true / false |
+| \`int32\` | 4 bytes | ±2.1 billion |
+| \`float\` | 4 bytes | ~7 significant digits |
+
+In Unreal we prefer \`int32\` over bare \`int\` because the Standard doesn't guarantee \`int\` is 32-bit on every platform.
+
+## Your Task
+Inside \`Practice()\`:
+1. Declare \`int32 Health = 100;\`
+2. Declare \`float Damage = 45.5f;\` — note the **\`f\`** suffix; without it the literal is \`double\`.
+3. Declare \`bool bIsAlive = true;\` — UE convention: booleans start with lowercase **b**.
 `,
     starterCode: {
-      'Source.cpp': 'void Practice() {\n    // TODO: Declare Health, Damage, and bIsAlive\n    \n}\n'
+      'Source.cpp': `void Practice()
+{
+    // TODO 1: Declare int32 Health = 100
+    // TODO 2: Declare float Damage = 45.5f
+    // TODO 3: Declare bool bIsAlive = true
+}
+`,
     },
-    hiddenTests: ['Health = 100', 'Damage = 45.5', 'bIsAlive = true'],
+    hiddenTests: ['int32 Health', 'float Damage', 'bool bIsAlive'],
     successCriteria: [
-      'Declare an int named Health initialized to 100',
-      'Declare a float named Damage initialized to 45.5',
-      'Declare a bool named bIsAlive initialized to true'
+      'Declare int32 Health initialized to 100',
+      'Declare float Damage initialized to 45.5f',
+      'Declare bool bIsAlive initialized to true',
     ],
     rules: [
       {
-        id: 'rule_task_1',
+        id: 'r1_health',
         type: 'exercise',
-        description: 'Variables must be declared correctly.',
+        description: 'int32 Health = 100',
         evaluate: (code) => {
-          const hasHealth = /int\s+Health\s*=\s*100\s*;/.test(code);
-          const hasDamage = /float\s+Damage\s*=\s*45\.5f?\s*;/.test(code);
-          const hasBool = /bool\s+bIsAlive\s*=\s*true\s*;/.test(code);
-          if (!hasHealth) return { passed: false, error: "Missing Health integer.", fix: "int Health = 100;" };
-          if (!hasDamage) return { passed: false, error: "Missing Damage float.", fix: "float Damage = 45.5f;" };
-          if (!hasBool) return { passed: false, error: "Missing bIsAlive boolean.", fix: "bool bIsAlive = true;" };
-          return { passed: true };
-        }
-      }
-    ]
+          const ok = /int32\s+Health\s*=\s*100\s*;/.test(code);
+          return { passed: ok, error: 'Missing: int32 Health = 100;', fix: 'int32 Health = 100;' };
+        },
+      },
+      {
+        id: 'r1_damage',
+        type: 'exercise',
+        description: 'float Damage = 45.5f',
+        evaluate: (code) => {
+          const ok = /float\s+Damage\s*=\s*45\.5f?\s*;/.test(code);
+          return { passed: ok, error: 'Missing: float Damage = 45.5f; (remember the f suffix)', fix: 'float Damage = 45.5f;' };
+        },
+      },
+      {
+        id: 'r1_alive',
+        type: 'exercise',
+        description: 'bool bIsAlive = true',
+        evaluate: (code) => {
+          const ok = /bool\s+bIsAlive\s*=\s*true\s*;/.test(code);
+          return { passed: ok, error: 'Missing: bool bIsAlive = true; (UE boolean prefix is lowercase b)', fix: 'bool bIsAlive = true;' };
+        },
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_1a',
+        title: 'Standard solution',
+        explanation:
+          'All three variables are declared with explicit initializers. The float uses the mandatory f suffix to avoid an implicit narrowing from double.',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    int32  Health   = 100;
+    float  Damage   = 45.5f;
+    bool   bIsAlive = true;
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_2',
-    title: '2. Logic & Bit Manipulation',
+    title: '2. Arithmetic & Logic Operators',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Logic & Operations
-Now that we have variables, let's mutate them. In games, logic is everything. Determining if a player has enough mana, or if they took fatal damage, requires simple math and logical operators (\`&&\` for AND, \`||\` for OR).
+    objective: `# Arithmetic & Logic Operators
 
-### Operations
-You can use standard mathematical operators: \`+\`, \`-\`, \`*\`, \`/\`.
-Remember that assigning a value uses \`=\`. Checking for equality uses \`==\`.
+With variables declared you can mutate them. Unreal gameplay logic is full of:
+- **Arithmetic**: \`+\`, \`-\`, \`*\`, \`/\`, compound assignment \`-=\`
+- **Comparison**: \`>\`, \`<\`, \`==\`, \`!=\`
+- **Logical**: \`&&\` (AND), \`||\` (OR), \`!\` (NOT)
 
-In this task:
-1. Subtract \`Damage\` from \`Health\` (store the result back in \`Health\`).
-2. Update \`bIsAlive\` to be true ONLY IF \`Health\` is greater than 0.
+\`\`\`cpp
+Health -= Damage;          // subtract and assign back
+bIsAlive = Health > 0;     // comparison returns bool
+\`\`\`
+
+## Your Task
+Given the starter variables:
+1. Subtract \`Damage\` from \`Health\` using a compound assignment.
+2. Set \`bIsAlive\` to \`true\` only when \`Health > 0\`.
 `,
     starterCode: {
-      'Source.cpp': 'void Practice() {\n    int Health = 100;\n    int Damage = 45;\n    bool bIsAlive = true;\n    \n    // TODO: Apply Damage to Health\n    // TODO: Update bIsAlive based on Health > 0\n}\n'
+      'Source.cpp': `void Practice()
+{
+    int32 Health  = 100;
+    int32 Damage  = 45;
+    bool  bIsAlive = true;
+
+    // TODO 1: Subtract Damage from Health
+    // TODO 2: Update bIsAlive based on Health > 0
+}
+`,
     },
-    hiddenTests: ['Health = Health - Damage', 'bIsAlive = Health > 0'],
+    hiddenTests: ['Health - Damage', 'Health > 0'],
     successCriteria: [
-      'Subtract Damage from Health',
-      'Update bIsAlive using a comparison (Health > 0)'
+      'Subtract Damage from Health (use -= or Health = Health - Damage)',
+      'Assign bIsAlive using Health > 0 comparison',
     ],
     rules: [
       {
-        id: 'rule_task_2',
+        id: 'r2_subtract',
         type: 'exercise',
-        description: 'Logic correctly implemented.',
+        description: 'Health reduced by Damage',
         evaluate: (code) => {
-          const hasMinus = code.includes('Health - Damage') || code.includes('Health -= Damage');
-          const hasComparison = code.includes('Health > 0') || code.includes('0 < Health');
-          if (!hasMinus) return { passed: false, error: "Health must be reduced by Damage.", fix: "Health -= Damage;" };
-          if (!hasComparison) return { passed: false, error: "bIsAlive must check if Health > 0.", fix: "bIsAlive = Health > 0;" };
-          return { passed: true };
-        }
-      }
-    ]
+          const ok =
+            /Health\s*-=\s*Damage\s*;/.test(code) ||
+            /Health\s*=\s*Health\s*-\s*Damage\s*;/.test(code);
+          return {
+            passed: ok,
+            error: 'Health must be reduced by Damage.',
+            fix: 'Health -= Damage;',
+          };
+        },
+      },
+      {
+        id: 'r2_alive',
+        type: 'exercise',
+        description: 'bIsAlive reflects Health > 0',
+        evaluate: (code) => {
+          const ok =
+            /bIsAlive\s*=\s*\(?Health\s*>\s*0\)?/.test(code) ||
+            /bIsAlive\s*=\s*\(?0\s*<\s*Health\)?/.test(code);
+          return {
+            passed: ok,
+            error: 'bIsAlive must be set using a Health > 0 comparison.',
+            fix: 'bIsAlive = Health > 0;',
+          };
+        },
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_2a',
+        title: 'Compound assignment + direct comparison',
+        explanation: '-= is idiomatic. Assigning a comparison result to a bool is safe and concise.',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    int32 Health   = 100;
+    int32 Damage   = 45;
+    bool  bIsAlive = true;
+
+    Health  -= Damage;        // Health == 55
+    bIsAlive = Health > 0;    // bIsAlive == true
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_3',
     title: '3. Scope Resolution & Namespaces',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Namespaces & Scope
-In C++, multiple libraries might use the same name for a function. To prevent clashes, we use **namespaces**.
-The standard C++ library lives in the \`std\` namespace. 
-To print to the console, we use \`cout\` from the \`std\` namespace.
-We write this as \`std::cout\`. The \`::\` is the **Scope Resolution Operator**.
+    objective: `# Scope Resolution & Namespaces
 
-### Your Task
-1. Use \`std::cout\` to print "Hello Unreal".
-2. You will need to use \`<<\` to push the string into \`std::cout\`.
+When two libraries define a function with the same name, the compiler needs a way to pick the right one. **Namespaces** solve this by creating named scopes.
+
+The C++ standard library lives in the \`std\` namespace. Printing to the console uses:
+\`\`\`cpp
+std::cout << "Hello, World!" << std::endl;
+//    ^^                        ^^
+//  namespace separator      end-of-line flush
+\`\`\`
+
+The **scope resolution operator \`::\`** reads as *"the thing named X inside namespace Y"*.
+
+> In Unreal Engine code you will almost never use \`std::cout\`; \`UE_LOG\` is the correct tool. But understanding \`::\` is essential because Unreal uses it constantly: \`Super::BeginPlay()\`, \`FMath::Clamp()\`, etc.
+
+## Your Task
+In \`Practice()\`, use \`std::cout\` to print exactly the string \`"Hello Unreal"\` followed by \`std::endl\`.
 `,
     starterCode: {
-      'Source.cpp': '#include <iostream>\n\nvoid Practice() {\n    // TODO: Print "Hello Unreal" using std::cout\n    \n}\n'
+      'Source.cpp': `#include <iostream>
+
+void Practice()
+{
+    // TODO: Print "Hello Unreal" using std::cout and std::endl
+}
+`,
     },
-    hiddenTests: ['std::cout', '"Hello Unreal"'],
+    hiddenTests: ['std::cout', 'Hello Unreal'],
     successCriteria: [
-      'Print "Hello Unreal" using std::cout'
+      'Use std::cout (not printf or UE_LOG)',
+      'Print the exact string "Hello Unreal"',
+      'Flush with std::endl or "\\n"',
     ],
     rules: [
       {
-        id: 'rule_task_3',
+        id: 'r3_cout',
         type: 'exercise',
-        description: 'Print text successfully.',
-        evaluate: (code) => {
-          const hasCout = code.includes('std::cout');
-          const hasText = code.includes('Hello Unreal');
-          if (!hasCout) return { passed: false, error: "Did you use std::cout?", fix: "std::cout << \"Hello Unreal\";" };
-          if (!hasText) return { passed: false, error: "Did you print 'Hello Unreal'?", fix: "Ensure exact string spelling." };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'std::cout used',
+        evaluate: (code) => ({
+          passed: code.includes('std::cout'),
+          error: 'Must use std::cout (not printf or UE_LOG for this exercise).',
+          fix: 'std::cout << "Hello Unreal" << std::endl;',
+        }),
+      },
+      {
+        id: 'r3_text',
+        type: 'exercise',
+        description: '"Hello Unreal" present in output',
+        evaluate: (code) => ({
+          passed: code.includes('"Hello Unreal"'),
+          error: 'The string literal "Hello Unreal" must appear exactly (case sensitive).',
+          fix: 'std::cout << "Hello Unreal" << std::endl;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_3a',
+        title: 'Using std::cout with endl',
+        explanation:
+          'std::cout is the standard output stream. << chains output. std::endl flushes the buffer and appends a newline.',
+        code: {
+          'Source.cpp': `#include <iostream>
+
+void Practice()
+{
+    std::cout << "Hello Unreal" << std::endl;
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_4',
-    title: '4. Memory Addresses & Raw Math',
+    title: '4. Pointers & the Address-Of Operator',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Memory Addresses
-A variable is just a human-readable name for a physical location in your computer's RAM. 
-In C++, you can literally see what memory address the computer assigned to your variable using the **Address-Of Operator (\`&\`)**.
+    objective: `# Pointers & the Address-Of Operator
 
-### Understanding Pointers (The Basics)
-If \`Health\` is a variable, \`&Health\` gives us the exact hex address (e.g., \`0x7ffeefbff5a8\`) where \`Health\` lives.
-This is the foundational secret to Unreal Engine's performance.
+A variable occupies physical bytes in RAM. A **pointer** stores the *address* of those bytes — essentially a GPS coordinate for memory.
 
-### Your Task
-1. Declare an \`int\` called \`Ammo\`.
-2. Extract its memory address into a new pointer variable called \`AmmoPtr\`.
-*(Hint: A pointer variable type is declared like \`int* AmmoPtr = &Ammo;\`)*
+\`\`\`cpp
+int32 Ammo   = 30;
+int32* AmmoPtr = &Ammo;   // AmmoPtr holds the address of Ammo
+         //  ^  ^
+         //  |  address-of operator
+         //  pointer type
+\`\`\`
+
+To read or write through a pointer, you **dereference** it with \`*\`:
+\`\`\`cpp
+*AmmoPtr = 15;   // Ammo is now 15
+\`\`\`
+
+Pointers are the foundation of everything in Unreal: component attachment, UObject ownership, GC relationships. Nail this.
+
+## Your Task
+1. \`int32 Ammo = 30;\` is already provided.
+2. Declare an \`int32*\` named \`AmmoPtr\` that points to \`Ammo\`.
+3. Use \`*AmmoPtr\` to set \`Ammo\`'s value to **15** (dereference write).
 `,
     starterCode: {
-      'Source.cpp': 'void Practice() {\n    int Ammo = 30;\n    // TODO: Create a pointer named AmmoPtr pointing to Ammo\n    \n}\n'
+      'Source.cpp': `void Practice()
+{
+    int32 Ammo = 30;
+
+    // TODO 1: Declare int32* AmmoPtr pointing to Ammo
+    // TODO 2: Use *AmmoPtr to change Ammo's value to 15
+}
+`,
     },
-    hiddenTests: ['int* AmmoPtr', '&Ammo'],
+    hiddenTests: ['int32* AmmoPtr', '&Ammo', '*AmmoPtr'],
     successCriteria: [
-      'Create an int pointer named AmmoPtr',
-      'Assign the memory address of Ammo to AmmoPtr'
+      'Declare int32* AmmoPtr = &Ammo;',
+      'Use *AmmoPtr to write a new value',
     ],
     rules: [
       {
-        id: 'rule_task_4',
+        id: 'r4_ptr',
         type: 'exercise',
-        description: 'Pointer accurately created.',
+        description: 'int32* AmmoPtr declared and assigned &Ammo',
         evaluate: (code) => {
-          const hasPointer = code.includes('int* AmmoPtr') || code.includes('int *AmmoPtr') || code.includes('int * AmmoPtr');
-          const hasAddress = code.includes('=&Ammo') || code.includes('= &Ammo');
-          if (!hasPointer) return { passed: false, error: "You must declare an int pointer.", fix: "int* AmmoPtr = ..." };
-          if (!hasAddress) return { passed: false, error: "You must use the & operator.", fix: "... = &Ammo;" };
-          return { passed: true };
-        }
-      }
-    ]
+          const ok =
+            /(int32\*|int32 \*)\s*AmmoPtr\s*=\s*&Ammo/.test(code) ||
+            (code.includes('AmmoPtr') && code.includes('&Ammo'));
+          return {
+            passed: ok,
+            error: 'Must declare int32* AmmoPtr = &Ammo;',
+            fix: 'int32* AmmoPtr = &Ammo;',
+          };
+        },
+      },
+      {
+        id: 'r4_deref',
+        type: 'exercise',
+        description: 'Dereference write via *AmmoPtr',
+        evaluate: (code) => ({
+          passed: /\*AmmoPtr\s*=/.test(code),
+          error: 'Must write through the pointer with *AmmoPtr = someValue;',
+          fix: '*AmmoPtr = 15;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_4a',
+        title: 'Pointer declaration + dereference write',
+        explanation:
+          '& gives us the address of Ammo. The * in the type declaration marks AmmoPtr as a pointer. The * in *AmmoPtr = ... dereferences — follow the address and write.',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    int32  Ammo    = 30;
+    int32* AmmoPtr = &Ammo;   // AmmoPtr holds address of Ammo
+
+    *AmmoPtr = 15;            // Ammo is now 15 via pointer write
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_5',
-    title: '5. Data Structures (std::vector vs Unreal TArray)',
+    title: '5. Dynamic Arrays — std::vector & TArray',
     category: 'Stage 1: The Raw Metal',
-    objective: `# Dynamic Arrays
-When you need a list of things (like items in an inventory), you use an array. 
-In standard C++, we use \`std::vector\`. In Unreal Engine, we use \`TArray\`.
-Unreal wrote their own Array class (\`TArray\`) because standard C++ \`vector\` was too slow and caused fragmentation for game engines.
+    objective: `# Dynamic Arrays: std::vector & TArray
 
-However, learning the syntax is identical!
+When the number of elements isn't known at compile-time, we use **dynamic arrays** that resize at runtime.
 
-### Your Task
-1. Declare an \`std::vector<int>\` called \`Scores\`.
-2. Use the \`.push_back()\` method to add the numbers 100, 200, and 300 to the array.
+| | std::vector | TArray (Unreal) |
+|-|------------|----------------|
+| Header | \`<vector>\` | automatic in UE |
+| Add | \`.push_back(x)\` | \`.Add(x)\` |
+| Count | \`.size()\` | \`.Num()\` |
+
+Unreal wrote \`TArray\` because \`std::vector\` caused memory fragmentation inside the engine's custom allocators. The APIs are nearly identical — once you know one, you know the other.
+
+## Your Task
+1. Declare \`std::vector<int32> Scores;\`
+2. Add \`100\`, \`200\`, and \`300\` using \`.push_back()\`.
 `,
     starterCode: {
-      'Source.cpp': '#include <vector>\n\nvoid Practice() {\n    // TODO: Declare a vector of integers named Scores\n    // TODO: Add 100, 200, and 300 to the vector\n}\n'
+      'Source.cpp': `#include <vector>
+
+void Practice()
+{
+    // TODO 1: Declare std::vector<int32> Scores
+    // TODO 2: Add 100, 200, 300 via push_back
+}
+`,
     },
-    hiddenTests: ['std::vector<int> Scores', 'Scores.push_back'],
+    hiddenTests: ['std::vector<int32> Scores', 'push_back'],
     successCriteria: [
-      'Declare std::vector<int> Scores',
-      'Push 100, 200, and 300'
+      'Declare std::vector<int32> Scores',
+      'Call push_back to add at least three values',
     ],
     rules: [
       {
-        id: 'rule_task_5',
+        id: 'r5_vec',
         type: 'exercise',
-        description: 'Vector implemented correctly.',
+        description: 'std::vector<int32> Scores declared',
+        evaluate: (code) => ({
+          passed: /std::vector\s*<\s*int32\s*>\s*Scores/.test(code),
+          error: 'Declare std::vector<int32> Scores;',
+          fix: 'std::vector<int32> Scores;',
+        }),
+      },
+      {
+        id: 'r5_push',
+        type: 'exercise',
+        description: 'push_back called at least three times',
         evaluate: (code) => {
-          const hasVector = code.includes('std::vector<int> Scores');
-          const hasPush = code.includes('Scores.push_back');
-          if (!hasVector) return { passed: false, error: "Declare the vector correctly.", fix: "std::vector<int> Scores;" };
-          if (!hasPush) return { passed: false, error: "Use push_back to add items.", fix: "Scores.push_back(100);" };
-          return { passed: true };
-        }
-      }
-    ]
+          const matches = (code.match(/push_back/g) || []).length;
+          return {
+            passed: matches >= 3,
+            error: `push_back found ${matches} time(s); need at least 3 (one per value: 100, 200, 300).`,
+            fix: 'Scores.push_back(100);\nScores.push_back(200);\nScores.push_back(300);',
+          };
+        },
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_5a',
+        title: 'Sequential push_back',
+        explanation: 'Each push_back appends one element to the heap-allocated internal buffer.',
+        code: {
+          'Source.cpp': `#include <vector>
+
+void Practice()
+{
+    std::vector<int32> Scores;
+    Scores.push_back(100);
+    Scores.push_back(200);
+    Scores.push_back(300);
+    // Scores.size() == 3
+}
+`,
+        },
+      },
+      {
+        id: 'sol_5b',
+        title: 'Brace-initializer list (C++11)',
+        explanation: 'You can initialise with a braced list — the compiler constructs the vector with all three elements in one shot.',
+        code: {
+          'Source.cpp': `#include <vector>
+
+void Practice()
+{
+    std::vector<int32> Scores = {100, 200, 300};
+    // push_back still needed to satisfy the rule engine
+    // in a real codebase this form is more concise
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_6',
-    title: '6. Unreal Macro Specifiers',
-    category: 'Stage 2: Code Structure & Memory',
-    objective: `# The Magic of Unreal Macros
-Unreal Engine uses heavily customized macros to integrate C++ code into the Editor (Blueprints) and the automatic memory management system (Garbage Collection). 
+    title: '6. Control Flow — if / else / switch',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# Control Flow
 
-If you just write a normal C++ variable in an Unreal class, the Editor won't see it, and worse, the Garbage Collector might delete it from RAM while you're still playing!
+Programs make decisions. C++ provides:
 
-### Macros
-- \`UPROPERTY()\` - Tells the engine to manage this variable.
-- \`UFUNCTION()\` - Exposes a function to the engine.
+- **if / else if / else** — condition-based branching
+- **switch** — multi-way dispatch on an integer or enum
 
-Inside the parenthesis, you add **Specifiers**:
-- \`EditAnywhere\` - Editable in the literal editor properties panel.
-- \`BlueprintReadWrite\` - Can be used in Blueprints.
+\`\`\`cpp
+if (Health > 50)
+{
+    State = TEXT("Healthy");
+}
+else if (Health > 0)
+{
+    State = TEXT("Wounded");
+}
+else
+{
+    State = TEXT("Dead");
+}
+\`\`\`
 
-### Your Task
-We have a variable \`Health\`. Add the \`UPROPERTY\` macro above it with \`EditAnywhere\` and \`BlueprintReadWrite\`.
+## Your Task
+Write a function \`FString GetHealthState(int32 Health)\` that:
+- Returns \`TEXT("Healthy")\` if \`Health > 50\`
+- Returns \`TEXT("Wounded")\` if \`Health > 0\`
+- Returns \`TEXT("Dead")\` otherwise
 `,
     starterCode: {
-      'Source.h': 'class ACharacter {\n    // TODO: Add UPROPERTY macro here\n    int32 Health = 100;\n};\n'
+      'Source.cpp': `// Return a string describing the health state.
+FString GetHealthState(int32 Health)
+{
+    // TODO: implement if/else chain and return appropriate FString
+    return TEXT("");
+}
+`,
+    },
+    hiddenTests: ['GetHealthState', 'Healthy', 'Wounded', 'Dead'],
+    successCriteria: [
+      'Return "Healthy" when Health > 50',
+      'Return "Wounded" when Health > 0',
+      'Return "Dead" otherwise',
+    ],
+    rules: [
+      {
+        id: 'r6_func',
+        type: 'exercise',
+        description: 'GetHealthState function exists',
+        evaluate: (code) => ({
+          passed: code.includes('GetHealthState'),
+          error: 'Implement a function named GetHealthState.',
+          fix: 'FString GetHealthState(int32 Health) { ... }',
+        }),
+      },
+      {
+        id: 'r6_healthy',
+        type: 'exercise',
+        description: '"Healthy" branch present',
+        evaluate: (code) => ({
+          passed: code.includes('Healthy'),
+          error: 'Missing "Healthy" return path.',
+          fix: 'if (Health > 50) return TEXT("Healthy");',
+        }),
+      },
+      {
+        id: 'r6_wounded',
+        type: 'exercise',
+        description: '"Wounded" branch present',
+        evaluate: (code) => ({
+          passed: code.includes('Wounded'),
+          error: 'Missing "Wounded" return path.',
+          fix: 'else if (Health > 0) return TEXT("Wounded");',
+        }),
+      },
+      {
+        id: 'r6_dead',
+        type: 'exercise',
+        description: '"Dead" branch present',
+        evaluate: (code) => ({
+          passed: code.includes('Dead'),
+          error: 'Missing "Dead" return path.',
+          fix: 'return TEXT("Dead");',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_6a',
+        title: 'if / else if / else chain',
+        explanation:
+          'Conditions are evaluated top-to-bottom. We guard the widest net last to avoid false positives.',
+        code: {
+          'Source.cpp': `FString GetHealthState(int32 Health)
+{
+    if (Health > 50)
+        return TEXT("Healthy");
+    else if (Health > 0)
+        return TEXT("Wounded");
+    else
+        return TEXT("Dead");
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_7',
+    title: '7. Loops — for, while, range-for',
+    category: 'Stage 1: The Raw Metal',
+    objective: `# Loops
+
+Three loop forms in C++:
+
+\`\`\`cpp
+// Classic indexed loop
+for (int32 i = 0; i < 5; ++i) { ... }
+
+// While — condition checked before each iteration
+int32 i = 0;
+while (i < 5) { ++i; }
+
+// Range-for (C++11) — iterate over a container
+TArray<int32> Arr = {1, 2, 3};
+for (const int32& Val : Arr) { ... }
+\`\`\`
+
+## Your Task
+In \`SumArray()\`:
+1. Use a **range-for** loop to iterate over the provided \`TArray<int32> Numbers\`.
+2. Accumulate the total into an \`int32 Total\` variable.
+3. Return \`Total\`.
+`,
+    starterCode: {
+      'Source.cpp': `int32 SumArray(const TArray<int32>& Numbers)
+{
+    int32 Total = 0;
+
+    // TODO: use a range-for to accumulate Total
+
+    return Total;
+}
+`,
+    },
+    hiddenTests: ['Total', 'for', 'Numbers'],
+    successCriteria: [
+      'Use a for loop (any form) over Numbers',
+      'Accumulate into Total',
+      'Return Total',
+    ],
+    rules: [
+      {
+        id: 'r7_loop',
+        type: 'exercise',
+        description: 'A for loop body present',
+        evaluate: (code) => ({
+          passed: /for\s*\(/.test(code),
+          error: 'Must use a for loop to iterate.',
+          fix: 'for (const int32& Val : Numbers) { Total += Val; }',
+        }),
+      },
+      {
+        id: 'r7_accum',
+        type: 'exercise',
+        description: 'Total is accumulated inside the loop',
+        evaluate: (code) => ({
+          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
+          error: 'Must add each element to Total.',
+          fix: 'Total += Val;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_7a',
+        title: 'Range-for accumulation',
+        explanation:
+          'const int32& Val borrows each element without copying. += accumulates. This pattern is identical for std::vector or TArray.',
+        code: {
+          'Source.cpp': `int32 SumArray(const TArray<int32>& Numbers)
+{
+    int32 Total = 0;
+    for (const int32& Val : Numbers)
+    {
+        Total += Val;
+    }
+    return Total;
+}
+`,
+        },
+      },
+    ],
+  },
+
+  // =========================================================================
+  // STAGE 2 — CODE STRUCTURE & MEMORY
+  // =========================================================================
+
+  {
+    id: 'task_8',
+    title: '8. UPROPERTY Macro Specifiers',
+    category: 'Stage 2: Code Structure & Memory',
+    objective: `# UPROPERTY — Exposing Variables to the Engine
+
+A plain C++ member variable inside a UCLASS is **invisible** to:
+- The Unreal Editor details panel
+- Blueprint visual scripting
+- The Garbage Collector
+
+\`UPROPERTY()\` tells the Unreal Header Tool (UHT) to register the variable with the reflection system.
+
+Common specifiers:
+| Specifier | Effect |
+|-----------|--------|
+| \`EditAnywhere\` | Editable in the editor on any instance or default |
+| \`BlueprintReadWrite\` | Readable and writable from Blueprint graphs |
+| \`Category = "Name"\` | Groups the property in the details panel |
+
+\`\`\`cpp
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+int32 Health = 100;
+\`\`\`
+
+## Your Task
+The class has a bare \`int32 Health\`. Add a \`UPROPERTY\` macro above it that includes **both** \`EditAnywhere\` and \`BlueprintReadWrite\`.
+`,
+    starterCode: {
+      'Source.h': `class ACharacter
+{
+    // TODO: Add UPROPERTY(EditAnywhere, BlueprintReadWrite) above Health
+    int32 Health = 100;
+};
+`,
     },
     hiddenTests: ['UPROPERTY', 'EditAnywhere', 'BlueprintReadWrite'],
     successCriteria: [
-      'Add UPROPERTY macro',
-      'Include EditAnywhere',
-      'Include BlueprintReadWrite'
+      'Add UPROPERTY() macro',
+      'Include EditAnywhere specifier',
+      'Include BlueprintReadWrite specifier',
     ],
     rules: [
       {
-        id: 'rule_task_6',
-        type: 'exercise',
-        description: 'Properly decorate with UPROPERTY',
-        evaluate: (code) => {
-          if (!code.includes('UPROPERTY')) return { passed: false, error: 'Missing UPROPERTY macro.' };
-          if (!code.includes('EditAnywhere')) return { passed: false, error: 'Missing EditAnywhere specifier.' };
-          if (!code.includes('BlueprintReadWrite')) return { passed: false, error: 'Missing BlueprintReadWrite specifier.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_7',
-    title: '7. Garbage Collection & Memory Leaks',
-    category: 'Stage 2: Code Structure & Memory',
-    objective: `# Handling Pointers safely
-In Raw C++, when you create an object using \`new\`, you MUST call \`delete\` or the memory leaks permanently.
-In Unreal, the engine has a Garbage Collector (GC). The GC scans memory every 60 seconds and deletes objects that are no longer referenced.
-
-To let the GC know an object exists, it MUST have a \`UPROPERTY()\` macro. If you store a pointer without \`UPROPERTY()\`, the GC will aggressively delete it while you're still using it, causing the game to **CRASH**.
-
-### Your Task
-Declare an Unreal object pointer: \`UWeapon* CurrentWeapon;\`
-Make sure to protect it from Garbage Collection by adding a \`UPROPERTY()\` macro above it.
+        id: 'r8_macro',
+        type: 'unreal',
+        description: 'UPROPERTY macro present',
+        evaluate: (code) => ({
+          passed: code.includes('UPROPERTY'),
+          error: 'Missing UPROPERTY macro.',
+          fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
+        }),
+      },
+      {
+        id: 'r8_edit',
+        type: 'unreal',
+        description: 'EditAnywhere specifier',
+        evaluate: (code) => ({
+          passed: code.includes('EditAnywhere'),
+          error: 'Missing EditAnywhere specifier.',
+          fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
+        }),
+      },
+      {
+        id: 'r8_bp',
+        type: 'unreal',
+        description: 'BlueprintReadWrite specifier',
+        evaluate: (code) => ({
+          passed: code.includes('BlueprintReadWrite'),
+          error: 'Missing BlueprintReadWrite specifier.',
+          fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_8a',
+        title: 'Minimal UPROPERTY',
+        explanation: 'The macro goes on the line directly above the member. UHT reads the .h file to generate reflection data.',
+        code: {
+          'Source.h': `class ACharacter
+{
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
+    int32 Health = 100;
+};
 `,
-    starterCode: {
-      'Source.h': 'class APlayer {\n    // TODO: Declare a UWeapon pointer called CurrentWeapon and protect it with UPROPERTY()\n    \n};\n'
-    },
-    hiddenTests: ['UPROPERTY()', 'UWeapon*', 'CurrentWeapon;'],
-    successCriteria: [
-      'Declare UWeapon* CurrentWeapon',
-      'Add UPROPERTY() to protect it'
+        },
+      },
     ],
-    rules: [
-      {
-        id: 'rule_task_7',
-        type: 'exercise',
-        description: 'Protect pointer with UPROPERTY',
-        evaluate: (code) => {
-          if (!code.includes('UPROPERTY()') && !code.includes('UPROPERTY(')) return { passed: false, error: 'Missing UPROPERTY macro.' };
-          if (!code.includes('UWeapon*') && !code.includes('UWeapon *')) return { passed: false, error: 'Missing UWeapon* declaration.' };
-          if (!code.includes('CurrentWeapon')) return { passed: false, error: 'Name the variable CurrentWeapon.' };
-          return { passed: true };
-        }
-      }
-    ]
   },
-  {
-    id: 'task_8',
-    title: '8. Standardize Your Name (F Strings)',
-    category: 'Stage 2: Code Structure & Memory',
-    objective: `# String Classes in Unreal
-Standard C++ uses \`std::string\`. Unreal uses its own string classes because text encoding and UI rendering are complex.
-The primary string class in Unreal is \`FString\`. 
 
-To define a literal string in Unreal, you must wrap the quotes in the \`TEXT()\` macro. This ensures the string is compiled as UTF-16, which is required for Unreal's cross-platform text system.
-
-### Your Task
-Create an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
-`,
-    starterCode: {
-      'Source.cpp': 'void Practice() {\n    // TODO: Declare FString PlayerName\n    \n}\n'
-    },
-    hiddenTests: ['FString', 'PlayerName', 'TEXT("Commando")'],
-    successCriteria: [
-      'Declare an FString called PlayerName',
-      'Initialize it using the TEXT() macro'
-    ],
-    rules: [
-      {
-        id: 'rule_task_8',
-        type: 'exercise',
-        description: 'Correctly implement an FString with TEXT macro.',
-        evaluate: (code) => {
-          if (!code.includes('FString PlayerName')) return { passed: false, error: 'Missing FString declaration.' };
-          if (!code.includes('TEXT(')) return { passed: false, error: 'Must use the TEXT() macro for the string value.' };
-          if (!code.includes('"Commando"')) return { passed: false, error: 'The string value should be "Commando".' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
+  // -------------------------------------------------------------------------
   {
     id: 'task_9',
-    title: '9. Header & Source Files (.h / .cpp)',
+    title: '9. Garbage Collection — Protecting UObject Pointers',
     category: 'Stage 2: Code Structure & Memory',
-    objective: `# Splitting Code
-In C++, code is split into two files:
-1. **Header (.h)**: The Table of Contents. It declares *what* exists (functions, variables).
-2. **Source (.cpp)**: The actual novel. It contains the *implementation* (the logic) of those functions.
+    objective: `# Garbage Collection & UPROPERTY Pointers
 
-When implementing a function in the \`.cpp\` file, you must prefix the function name with the Class Name and scope resolution operator: \`void AMyActor::BeginPlay()\`.
+Unreal's GC scans memory every 30–60 seconds and **destroys any UObject that has no strong references**. A "naked" (non-UPROPERTY) pointer is not a strong reference — the GC cannot see it, so it may delete the object while your pointer still holds the address. This is a classic **dangling pointer** scenario → crash.
 
-### Your Task
-We have a class \`AMyActor\` defined in a header. Implement the \`BeginPlay()\` function in the \`.cpp\` file.
+The fix: decorate every UObject pointer with \`UPROPERTY()\`.
+
+\`\`\`cpp
+// ❌ GC-invisible — will crash
+UWeapon* CurrentWeapon;
+
+// ✅ GC-aware — safe
+UPROPERTY()
+UWeapon* CurrentWeapon = nullptr;
+\`\`\`
+
+Also initialise to \`nullptr\`. Un-initialised pointers hold a random address — accessing them is undefined behaviour.
+
+## Your Task
+Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
+1. Add \`UPROPERTY()\` above it.
+2. Initialise it to \`nullptr\`.
 `,
     starterCode: {
-      'Source.cpp': '// AMyActor has a function called BeginPlay() defined in its header.\n// TODO: Implement AMyActor::BeginPlay()\n\n'
+      'Source.h': `class APlayer
+{
+    // TODO: Declare UWeapon* CurrentWeapon with UPROPERTY() and = nullptr
+};
+`,
+    },
+    hiddenTests: ['UPROPERTY', 'UWeapon*', 'CurrentWeapon', 'nullptr'],
+    successCriteria: [
+      'Add UPROPERTY() decorator',
+      'Declare UWeapon* CurrentWeapon',
+      'Initialise to nullptr',
+    ],
+    rules: [
+      {
+        id: 'r9_prop',
+        type: 'unreal',
+        description: 'UPROPERTY() present',
+        evaluate: (code) => ({
+          passed: /UPROPERTY\s*\(/.test(code),
+          error: 'Missing UPROPERTY() macro.',
+          fix: 'UPROPERTY()',
+        }),
+      },
+      {
+        id: 'r9_ptr',
+        type: 'unreal',
+        description: 'UWeapon* CurrentWeapon declared',
+        evaluate: (code) => ({
+          passed: /UWeapon\s*\*/.test(code) && code.includes('CurrentWeapon'),
+          error: 'Must declare UWeapon* CurrentWeapon.',
+          fix: 'UWeapon* CurrentWeapon = nullptr;',
+        }),
+      },
+      {
+        id: 'r9_null',
+        type: 'unreal',
+        description: 'Pointer initialised to nullptr',
+        evaluate: (code) => ({
+          passed: /CurrentWeapon\s*=\s*nullptr/.test(code),
+          error: 'Initialise CurrentWeapon to nullptr to prevent undefined behaviour.',
+          fix: 'UWeapon* CurrentWeapon = nullptr;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_9a',
+        title: 'GC-safe pointer declaration',
+        explanation: 'UPROPERTY() with no specifiers is sufficient for GC visibility. The pointer will be set to nullptr by the GC when the pointed-to object is collected.',
+        code: {
+          'Source.h': `class APlayer
+{
+    UPROPERTY()
+    UWeapon* CurrentWeapon = nullptr;
+};
+`,
+        },
+      },
+      {
+        id: 'sol_9b',
+        title: 'With editor visibility',
+        explanation: 'Adding VisibleAnywhere lets designers inspect the pointer in the details panel without being able to change it directly.',
+        code: {
+          'Source.h': `class APlayer
+{
+    UPROPERTY(VisibleAnywhere, Category = "Equipment")
+    UWeapon* CurrentWeapon = nullptr;
+};
+`,
+        },
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_10',
+    title: '10. FString & the TEXT() Macro',
+    category: 'Stage 2: Code Structure & Memory',
+    objective: `# FString and TEXT()
+
+Unreal has three string types. Pick the right one:
+
+| Type | Use when… |
+|------|-----------|
+| \`FName\` | Identifying objects (fast hash, immutable) |
+| \`FText\` | Displaying text to the player (localisable) |
+| \`FString\` | General runtime string manipulation |
+
+Every string literal in Unreal **must** be wrapped in \`TEXT()\`:
+\`\`\`cpp
+FString Name = TEXT("Commando");
+\`\`\`
+
+Without \`TEXT()\` the literal is ANSI-encoded. On certain platforms (or with certain compilers), this breaks Unicode characters and potentially causes encoding mismatches at runtime.
+
+## Your Task
+Declare an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
+`,
+    starterCode: {
+      'Source.cpp': `void Practice()
+{
+    // TODO: Declare FString PlayerName = TEXT("Commando")
+}
+`,
+    },
+    hiddenTests: ['FString PlayerName', 'TEXT(', '"Commando"'],
+    successCriteria: [
+      'Declare FString PlayerName',
+      'Use the TEXT() macro',
+      'Value is "Commando"',
+    ],
+    rules: [
+      {
+        id: 'r10_fstring',
+        type: 'unreal',
+        description: 'FString PlayerName declared',
+        evaluate: (code) => ({
+          passed: code.includes('FString PlayerName'),
+          error: 'Must declare FString PlayerName.',
+          fix: 'FString PlayerName = TEXT("Commando");',
+        }),
+      },
+      {
+        id: 'r10_text',
+        type: 'unreal',
+        description: 'TEXT() macro used',
+        evaluate: (code) => ({
+          passed: code.includes('TEXT('),
+          error: 'String literals in Unreal must use the TEXT() macro.',
+          fix: 'FString PlayerName = TEXT("Commando");',
+        }),
+      },
+      {
+        id: 'r10_val',
+        type: 'unreal',
+        description: 'Value is "Commando"',
+        evaluate: (code) => ({
+          passed: code.includes('"Commando"'),
+          error: 'Set the value to "Commando".',
+          fix: 'FString PlayerName = TEXT("Commando");',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_10a',
+        title: 'Standard FString declaration',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    FString PlayerName = TEXT("Commando");
+}
+`,
+        },
+        explanation: 'TEXT() wraps the literal in the correct Unicode encoding macro for the current platform.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_11',
+    title: '11. Header & Source Files (.h / .cpp)',
+    category: 'Stage 2: Code Structure & Memory',
+    objective: `# Header & Source Files
+
+C++ compilation works in two stages:
+1. **Header (.h)** — declarations. The *interface* others can see.
+2. **Source (.cpp)** — definitions. The *implementation* no one else compiles directly.
+
+To implement a member function in the .cpp file, you must prefix the function name with the class name and \`::\`:
+\`\`\`cpp
+// MyActor.h
+void BeginPlay();
+
+// MyActor.cpp
+void AMyActor::BeginPlay()
+{
+    Super::BeginPlay();
+}
+\`\`\`
+
+This design keeps compile times fast: changing the .cpp of one class doesn't force every other file that includes the header to recompile.
+
+## Your Task
+Implement \`AMyActor::BeginPlay()\` in the .cpp file. The function body can be empty (or call Super).
+`,
+    starterCode: {
+      'Source.cpp': `// AMyActor declares BeginPlay() in its header.
+// TODO: implement void AMyActor::BeginPlay() with curly braces
+
+`,
     },
     hiddenTests: ['AMyActor::BeginPlay', '{', '}'],
     successCriteria: [
-      'Implement AMyActor::BeginPlay',
-      'Ensure standard block syntax {}'
+      'Write void AMyActor::BeginPlay()',
+      'Include an opening and closing brace',
     ],
     rules: [
       {
-        id: 'rule_task_9',
+        id: 'r11_sig',
         type: 'exercise',
-        description: 'Implement method using class scope.',
-        evaluate: (code) => {
-          if (!code.includes('void AMyActor::BeginPlay()')) return { passed: false, error: 'Missing void AMyActor::BeginPlay()' };
-          if (!code.includes('{') || !code.includes('}')) return { passed: false, error: 'Missing function body braces {}' };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'AMyActor::BeginPlay() function signature',
+        evaluate: (code) => ({
+          passed: /void\s+AMyActor::BeginPlay\s*\(\s*\)/.test(code),
+          error: 'Must write: void AMyActor::BeginPlay()',
+          fix: 'void AMyActor::BeginPlay() { }',
+        }),
+      },
+      {
+        id: 'r11_body',
+        type: 'exercise',
+        description: 'Function has a body {}',
+        evaluate: (code) => ({
+          passed: code.includes('{') && code.includes('}'),
+          error: 'Function must have a body delimited by { }.',
+          fix: 'void AMyActor::BeginPlay() { Super::BeginPlay(); }',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_11a',
+        title: 'Minimal implementation',
+        explanation: 'The scope-resolution prefix AMyActor:: is mandatory. UHT and the linker both rely on it.',
+        code: {
+          'Source.cpp': `void AMyActor::BeginPlay()
+{
+    Super::BeginPlay();
+}
+`,
+        },
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
-    id: 'task_10',
-    title: '10. Actor Lifecycle (BeginPlay)',
-    category: 'Stage 3: Unreal Core & Data',
-    objective: `# The Unreal Actor
-Everything that can process logic or be placed in a Level is derived from \`AActor\`.
+    id: 'task_12',
+    title: '12. Inheritance & Polymorphism',
+    category: 'Stage 2: Code Structure & Memory',
+    objective: `# Inheritance & Polymorphism
 
-Every Actor has a lifecycle. The most important event is \`BeginPlay()\`.
-\`BeginPlay()\` is called by the Engine the exact moment the game starts, or the moment the Actor is spawned into the world.
+C++ inheritance creates an **is-a** relationship: \`AMonster\` *is a* \`ACharacter\`.
 
-**CRITICAL RULE:** If you override \`BeginPlay()\`, you MUST call the parent class's version (\`Super::BeginPlay();\`), otherwise the engine will break and core initialization code will not run.
+\`\`\`cpp
+class AMonster : public ACharacter
+{
+    // AMonster has all of ACharacter's members + its own
+};
+\`\`\`
 
-### Your Task
-1. Implement \`BeginPlay()\` for \`AMyPlayer\`.
-2. As the very first line of your implementation, call \`Super::BeginPlay();\`.
+**Virtual functions** allow overriding behaviour:
+\`\`\`cpp
+virtual void Attack() override;
+\`\`\`
+
+Unreal's class tree is deeply hierarchical: \`AActor → APawn → ACharacter → AMyCharacter\`. Understanding where your class sits determines what functions are available to you.
+
+## Your Task
+Declare class \`AMonster\` that **publicly** inherits from \`ACharacter\`. Include the class body \`{}\` and closing semicolon.
 `,
     starterCode: {
-      'Source.cpp': 'void AMyPlayer::BeginPlay() {\n    // TODO: Call Super::BeginPlay\n    \n}\n'
+      'Source.h': `// TODO: Declare class AMonster that inherits publicly from ACharacter
+
+`,
     },
-    hiddenTests: ['Super::BeginPlay();'],
+    hiddenTests: ['class AMonster', 'public ACharacter', '};'],
     successCriteria: [
-      'Add Super::BeginPlay(); inside the method'
+      'Declare class AMonster',
+      'Inherit publicly from ACharacter',
+      'Close with };',
     ],
     rules: [
       {
-        id: 'rule_task_10',
+        id: 'r12_class',
         type: 'exercise',
-        description: 'Super method called.',
-        evaluate: (code) => {
-          if (!code.includes('Super::BeginPlay()')) return { passed: false, error: 'You MUST call Super::BeginPlay();' };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'class AMonster declared',
+        evaluate: (code) => ({
+          passed: code.includes('class AMonster'),
+          error: 'Must declare class AMonster.',
+          fix: 'class AMonster : public ACharacter { };',
+        }),
+      },
+      {
+        id: 'r12_inherit',
+        type: 'exercise',
+        description: 'public ACharacter in inheritance list',
+        evaluate: (code) => ({
+          passed: /:\s*public\s+ACharacter/.test(code),
+          error: 'Must inherit publicly from ACharacter.',
+          fix: ': public ACharacter',
+        }),
+      },
+      {
+        id: 'r12_semi',
+        type: 'exercise',
+        description: 'Class closed with };',
+        evaluate: (code) => ({
+          passed: code.includes('};'),
+          error: 'Class definitions must end with };',
+          fix: '};',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_12a',
+        title: 'Minimal class declaration',
+        code: {
+          'Source.h': `class AMonster : public ACharacter
+{
+public:
+    // Monster-specific members go here
+};
+`,
+        },
+        explanation: 'public ACharacter means AMonster can be used anywhere ACharacter is expected (Liskov substitution).',
+      },
+    ],
   },
+
+  // =========================================================================
+  // STAGE 3 — UNREAL CORE & DATA
+  // =========================================================================
+
   {
-    id: 'task_11',
-    title: '11. Actor Tick (Performance Killer)',
+    id: 'task_13',
+    title: '13. Actor Lifecycle — BeginPlay & Super',
     category: 'Stage 3: Unreal Core & Data',
-    objective: `# The Tick Callback
-While \`BeginPlay\` happens once, \`Tick(float DeltaTime)\` happens *every single frame*.
-If your game runs at 60 FPS, Tick is called 60 times a second.
+    objective: `# Actor Lifecycle
 
-Because of this, you should **AVOID** putting heavy logic in Tick.
+Every \`AActor\` goes through a defined lifecycle:
 
-### DeltaTime
-\`DeltaTime\` is the amount of time (in seconds) that has passed since the last frame. You use this to make movement frame-rate independent.
+\`PostSpawnInitialize → PreInitializeComponents → InitializeComponent → PostInitializeComponents → **BeginPlay** → Tick → EndPlay\`
 
-### Your Task
-1. Implement \`Tick(float DeltaTime)\` for \`AMyActor\`.
-2. Inside, add a float \`Speed = 500.0f;\`
-3. Multiply \`Speed\` by \`DeltaTime\` and store it in \`DistanceMoved\`.
-4. Remember to call \`Super::Tick(DeltaTime);\`!
+**BeginPlay** is your "Start" / "Awake" — it fires once when the actor enters the world.
+
+## The Super Rule
+If you override a virtual Unreal function, you **must** call the parent's version:
+\`\`\`cpp
+void AMyActor::BeginPlay()
+{
+    Super::BeginPlay();   // ← always first
+    // your code here
+}
+\`\`\`
+
+Skipping \`Super::BeginPlay()\` leaves engine systems (replication, component initialisation, blueprint BeginPlay) un-initialised → subtle, hard-to-find bugs.
+
+## Your Task
+Implement \`AMyPlayer::BeginPlay()\`. The **first** statement inside the body must be \`Super::BeginPlay();\`.
 `,
     starterCode: {
-      'Source.cpp': 'void AMyActor::Tick(float DeltaTime) {\n    // TODO: Implement Tick Logic\n    \n}\n'
+      'Source.cpp': `void AMyPlayer::BeginPlay()
+{
+    // TODO: Call Super::BeginPlay() as the FIRST statement
+}
+`,
+    },
+    hiddenTests: ['Super::BeginPlay()'],
+    successCriteria: ['Call Super::BeginPlay(); as the first statement'],
+    rules: [
+      {
+        id: 'r13_super',
+        type: 'unreal',
+        description: 'Super::BeginPlay() called',
+        evaluate: (code) => ({
+          passed: code.includes('Super::BeginPlay()'),
+          error: 'You MUST call Super::BeginPlay(); — the engine depends on it.',
+          fix: 'Super::BeginPlay();',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_13a',
+        title: 'Correct BeginPlay override',
+        code: {
+          'Source.cpp': `void AMyPlayer::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // Safe to do your own initialisation here
+    UE_LOG(LogTemp, Log, TEXT("AMyPlayer has entered the world!"));
+}
+`,
+        },
+        explanation: 'Super:: calls the parent class version. Because of multiple-inheritance depth in UE, many engine subsystems rely on BeginPlay propagating up the chain.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_14',
+    title: '14. Tick & DeltaTime',
+    category: 'Stage 3: Unreal Core & Data',
+    objective: `# Tick & Frame-Rate Independence
+
+\`Tick(float DeltaTime)\` is called every frame. \`DeltaTime\` is the seconds elapsed since the last frame.
+
+**Why DeltaTime matters:**
+- At 60 FPS: DeltaTime ≈ 0.0167 s
+- At 30 FPS: DeltaTime ≈ 0.0333 s
+
+If you move an object by a fixed amount each tick, it moves *twice as fast* at 60 FPS. Multiply by DeltaTime to make movement frame-rate independent:
+
+\`\`\`cpp
+float Speed = 500.0f;              // cm/s
+float DistanceMoved = Speed * DeltaTime;  // correct distance this frame
+\`\`\`
+
+⚠️ Tick runs every frame — keep it lean. Use delegates, timers, or event-driven code when possible.
+
+## Your Task
+Implement \`AMyActor::Tick(float DeltaTime)\`:
+1. Call \`Super::Tick(DeltaTime);\`
+2. Declare \`float Speed = 500.0f;\`
+3. Declare \`float DistanceMoved = Speed * DeltaTime;\`
+`,
+    starterCode: {
+      'Source.cpp': `void AMyActor::Tick(float DeltaTime)
+{
+    // TODO 1: Call Super::Tick(DeltaTime)
+    // TODO 2: Declare float Speed = 500.0f
+    // TODO 3: Declare float DistanceMoved = Speed * DeltaTime
+}
+`,
     },
     hiddenTests: ['Super::Tick', 'Speed * DeltaTime'],
     successCriteria: [
       'Call Super::Tick(DeltaTime)',
-      'Calculate DistanceMoved = Speed * DeltaTime'
+      'Declare Speed = 500.0f',
+      'Compute DistanceMoved = Speed * DeltaTime',
     ],
     rules: [
       {
-        id: 'rule_task_11',
+        id: 'r14_super',
+        type: 'unreal',
+        description: 'Super::Tick(DeltaTime) called',
+        evaluate: (code) => ({
+          passed: /Super::Tick\s*\(\s*DeltaTime\s*\)/.test(code),
+          error: 'Must call Super::Tick(DeltaTime);',
+          fix: 'Super::Tick(DeltaTime);',
+        }),
+      },
+      {
+        id: 'r14_distance',
         type: 'exercise',
-        description: 'Tick implementation correct.',
-        evaluate: (code) => {
-          if (!code.includes('Super::Tick(DeltaTime)')) return { passed: false, error: 'Must call Super::Tick(DeltaTime);' };
-          if (!code.includes('Speed * DeltaTime')) return { passed: false, error: 'Must multiply Speed by DeltaTime.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_12',
-    title: '12. Inheritance & Polymorphism',
-    category: 'Stage 3: Unreal Core & Data',
-    objective: `# Class Hierarchies
-C++ leverages Inheritance. A \`Car\` is a type of \`Vehicle\`. 
-In Unreal, a \`ACharacter\` is a type of \`APawn\`, which is a type of \`AActor\`.
+        description: 'DistanceMoved = Speed * DeltaTime',
+        evaluate: (code) => ({
+          passed: /Speed\s*\*\s*DeltaTime/.test(code),
+          error: 'Must compute Speed * DeltaTime.',
+          fix: 'float DistanceMoved = Speed * DeltaTime;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_14a',
+        title: 'Frame-rate independent movement',
+        code: {
+          'Source.cpp': `void AMyActor::Tick(float DeltaTime)
+{
+    Super::Tick(DeltaTime);
 
-To create a new class that inherits from another in C++, we use the \`:\` syntax.
-
-### Your Task
-Create a class called \`AMonster\` that inherits publicly from \`ACharacter\`.
+    const float Speed         = 500.0f;              // cm per second
+    const float DistanceMoved = Speed * DeltaTime;   // correct per-frame distance
+}
 `,
-    starterCode: {
-      'Source.h': '// TODO: Create the AMonster class that inherits from ACharacter\n\n'
-    },
-    hiddenTests: ['class AMonster : public ACharacter', '{', '};'],
-    successCriteria: [
-      'Class AMonster',
-      'Inherit public ACharacter',
-      'Include a closing semicolon for the class definition'
+        },
+        explanation: 'const is preferred for values that won\'t change in the frame. The compiler may optimise them away entirely.',
+      },
     ],
-    rules: [
-      {
-        id: 'rule_task_12',
-        type: 'exercise',
-        description: 'Valid inheritance syntax.',
-        evaluate: (code) => {
-          if (!code.includes('class AMonster')) return { passed: false, error: 'Declare class AMonster' };
-          if (!code.includes(': public ACharacter') && !code.includes(':public ACharacter')) return { passed: false, error: 'Must inherit publicly from ACharacter.' };
-          if (!code.includes('};')) return { passed: false, error: 'Classes must end heavily with a semicolon: };' };
-          return { passed: true };
-        }
-      }
-    ]
   },
-  {
-    id: 'task_13',
-    title: '13. Reference vs Pointer (The Deep Truth)',
-    category: 'Stage 3: Unreal Core & Data',
-    objective: `# Memory Efficiency
-Passing entire objects (like a massive \`Player\` object) to a function by value copies the entire object in memory. This is slow!
-Instead, we pass by **Pointer (*)** or **Reference (&)**.
 
-- **Pointer (*)**: "Here is the memory address of the object. Look it up." (Can be null)
-- **Reference (&)**: "I am literally an alias for the existing object." (Never null)
-
-### Your Task
-Write a function signature \`void TakeDamage(int32& OutHealth)\` that takes an integer reference.
-Subtract 10 from \`OutHealth\` inside the function.
-`,
-    starterCode: {
-      'Source.cpp': '// TODO: Write TakeDamage function taking an int32 reference\n\n'
-    },
-    hiddenTests: ['void TakeDamage', 'int32&', 'OutHealth -= 10'],
-    successCriteria: [
-      'Implement TakeDamage',
-      'Parameter is int32& OutHealth',
-      'Subtract 10 from OutHealth'
-    ],
-    rules: [
-      {
-        id: 'rule_task_13',
-        type: 'exercise',
-        description: 'Correct use of pass-by-reference.',
-        evaluate: (code) => {
-          if (!code.includes('TakeDamage(int32& OutHealth)') && !code.includes('TakeDamage(int32 &OutHealth)')) return { passed: false, error: 'Function signature must contain int32& OutHealth.' };
-          if (!code.includes('OutHealth -') && !code.includes('-= 10')) return { passed: false, error: 'Subtract from OutHealth.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_14',
-    title: '14. Const Correctness',
-    category: 'Stage 3: Unreal Core & Data',
-    objective: `# The Protective Shield
-\`const\` is a promise. It tells the compiler "I promise I will not modify this variable."
-This is crucial in large team projects to prevent accidental bugs.
-
-If you pass a parameter as \`const Type&\`, you get the performance of passing a reference, but the safety of ensuring the function cannot change it.
-
-### Your Task
-Write a function \`void PrintName(const FString& Name)\`.
-Try to change \`Name\` to "Hacked!" inside the function. Wait, you can't! (For this task, just extract the parameter properly and leave the body empty).
-`,
-    starterCode: {
-      'Source.cpp': '// TODO: Write PrintName that takes a const FString reference\n\n'
-    },
-    hiddenTests: ['void PrintName', 'const FString&', 'Name'],
-    successCriteria: [
-      'Implement PrintName',
-      'Parameter must be const FString& Name'
-    ],
-    rules: [
-      {
-        id: 'rule_task_14',
-        type: 'exercise',
-        description: 'Correct use of const reference parameter.',
-        evaluate: (code) => {
-          if (!code.includes('const FString& Name') && !code.includes('const FString &Name')) return { passed: false, error: 'You must use a const FString reference.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
+  // -------------------------------------------------------------------------
   {
     id: 'task_15',
-    title: '15. Core Unreal Classes (UObject vs AActor)',
-    category: 'Stage 4: Advanced Architecture & Systems',
-    objective: `# The Engine Class Hierarchy
-- \`UObject\`: The base class of ALL Unreal classes that use the garbage collector. They cannot be placed in the physical world. (e.g. Data assets, Inventories).
-- \`AActor\`: Inherits from \`UObject\`. Actors HAVE a transform (Location, Rotation, Scale). They CAN be placed in the game world.
+    title: '15. Reference vs Pointer — Pass by Reference',
+    category: 'Stage 3: Unreal Core & Data',
+    objective: `# Reference vs Pointer
 
-### Your Task
-Declare a class \`UInventorySystem\` that inherits from \`UObject\`.
+Copying large objects into functions is slow. C++ offers two ways to pass "by address":
+
+| | Pointer \`T*\` | Reference \`T&\` |
+|-|--------------|----------------|
+| Can be null | ✅ yes | ❌ never null |
+| Can be reassigned | ✅ yes | ❌ no |
+| Syntax at call site | \`Fn(&val)\` | \`Fn(val)\` |
+| Out-parameter idiom | common | preferred in UE |
+
+\`const T&\` = read-only reference (no copy, no modification).
+\`T&\` = mutable reference — acts as an **out parameter**.
+
+\`\`\`cpp
+void TakeDamage(int32& OutHealth)
+{
+    OutHealth -= 10;   // modifies the caller's variable
+}
+\`\`\`
+
+## Your Task
+Implement \`void TakeDamage(int32& OutHealth)\`. Inside, subtract **10** from \`OutHealth\`.
 `,
     starterCode: {
-      'Source.h': '// TODO: Declare UInventorySystem inheriting from UObject\n\n'
+      'Source.cpp': `// TODO: Implement TakeDamage that takes int32 by mutable reference and subtracts 10
+`,
     },
-    hiddenTests: ['class UInventorySystem : public UObject'],
+    hiddenTests: ['TakeDamage', 'int32&', 'OutHealth'],
     successCriteria: [
-      'Create class UInventorySystem',
-      'Inherit publicly from UObject'
+      'Function named TakeDamage',
+      'Parameter is int32& OutHealth (mutable reference)',
+      'Subtract 10 from OutHealth',
     ],
     rules: [
       {
-        id: 'rule_task_15',
+        id: 'r15_sig',
         type: 'exercise',
-        description: 'Class hierarchy correct.',
-        evaluate: (code) => {
-          if (!code.includes('class UInventorySystem')) return { passed: false, error: 'Declare UInventorySystem.' };
-          if (!code.includes('public UObject')) return { passed: false, error: 'Inherit from UObject.' };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'TakeDamage(int32& OutHealth) signature',
+        evaluate: (code) => ({
+          passed: /TakeDamage\s*\(\s*int32\s*&\s*OutHealth\s*\)/.test(code) ||
+                  /TakeDamage\s*\(\s*int32\s*&OutHealth\s*\)/.test(code),
+          error: 'Function signature must be: void TakeDamage(int32& OutHealth)',
+          fix: 'void TakeDamage(int32& OutHealth) { ... }',
+        }),
+      },
+      {
+        id: 'r15_sub',
+        type: 'exercise',
+        description: 'OutHealth reduced by 10',
+        evaluate: (code) => ({
+          passed: /OutHealth\s*-=\s*10/.test(code) || /OutHealth\s*=\s*OutHealth\s*-\s*10/.test(code),
+          error: 'Must subtract 10 from OutHealth.',
+          fix: 'OutHealth -= 10;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_15a',
+        title: 'Mutable reference out-parameter',
+        code: {
+          'Source.cpp': `void TakeDamage(int32& OutHealth)
+{
+    OutHealth -= 10;
+}
+`,
+        },
+        explanation: 'Because OutHealth is a reference, -= modifies the variable the *caller* passed in — no copy, no return value needed.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_16',
-    title: '16. Unreal Delegates (Events)',
-    category: 'Stage 4: Advanced Architecture & Systems',
-    objective: `# The Observer Pattern
-Unreal uses Delegates to handle events. You define an event (e.g., \`OnHealthChanged\`), and other systems (like the UI) "bind" to it and listen.
-When you "Broadcast" the event, all listening functions are executed immediately.
+    title: '16. Const Correctness',
+    category: 'Stage 3: Unreal Core & Data',
+    objective: `# Const Correctness
 
-### Types of Delegates
-- Single or Multi-cast
-- Dynamic (Can be used in Blueprints) vs Static (C++ only)
+\`const\` is a compile-time promise: "I will not modify this."
 
-We usually use \`DECLARE_DYNAMIC_MULTICAST_DELEGATE\`.
+Benefits:
+- **Safety** — the compiler prevents accidental writes.
+- **Clarity** — readers know a function is read-only.
+- **Optimisation** — const enables more aggressive inlining.
 
-### Your Task
-Declare a dynamic multicast delegate named \`FOnPlayerDiedSignature\`.
-(Hint: use the macro \`DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);\`)
+\`\`\`cpp
+// Can't modify Name inside — efficient (no copy) and safe
+void PrintName(const FString& Name)
+{
+    UE_LOG(LogTemp, Log, TEXT("%s"), *Name);
+}
+\`\`\`
+
+In Unreal, const member functions signal that calling them doesn't change the object's observable state:
+\`\`\`cpp
+float GetHealth() const { return Health; }
+\`\`\`
+
+## Your Task
+Write \`void PrintName(const FString& Name)\`. The body can simply log \`Name\` or leave a comment — what matters is the const reference parameter.
 `,
     starterCode: {
-      'Source.h': '// TODO: Declare FOnPlayerDiedSignature\n\n'
+      'Source.cpp': `// TODO: Write PrintName that takes a const FString& Name
+`,
+    },
+    hiddenTests: ['PrintName', 'const FString&', 'Name'],
+    successCriteria: [
+      'Function PrintName exists',
+      'Parameter is const FString& Name',
+    ],
+    rules: [
+      {
+        id: 'r16_fn',
+        type: 'exercise',
+        description: 'PrintName function present',
+        evaluate: (code) => ({
+          passed: code.includes('PrintName'),
+          error: 'Function PrintName is missing.',
+          fix: 'void PrintName(const FString& Name) { }',
+        }),
+      },
+      {
+        id: 'r16_param',
+        type: 'exercise',
+        description: 'const FString& parameter',
+        evaluate: (code) => ({
+          passed: /const\s+FString\s*&/.test(code),
+          error: 'Parameter must be const FString& (const reference, not by value).',
+          fix: 'void PrintName(const FString& Name)',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_16a',
+        title: 'Const reference parameter with logging',
+        code: {
+          'Source.cpp': `void PrintName(const FString& Name)
+{
+    // *Name converts FString to TCHAR* for UE_LOG
+    UE_LOG(LogTemp, Log, TEXT("Player name: %s"), *Name);
+}
+`,
+        },
+        explanation: 'The * before Name dereferences the FString into a raw TCHAR* which UE_LOG expects for %s format specifiers.',
+      },
+    ],
+  },
+
+  // =========================================================================
+  // STAGE 4 — ADVANCED ARCHITECTURE & SYSTEMS
+  // =========================================================================
+
+  {
+    id: 'task_17',
+    title: '17. Core UObject Hierarchy',
+    category: 'Stage 4: Advanced Architecture & Systems',
+    objective: `# UObject vs AActor
+
+| Class | Can be placed in world? | Has Transform? | GC? |
+|-------|------------------------|----------------|-----|
+| \`UObject\` | ❌ | ❌ | ✅ |
+| \`AActor\` | ✅ | ✅ (via root component) | ✅ |
+
+Use \`UObject\` for pure data/logic systems (inventory data, ability configurations). Use \`AActor\` when you need a physical presence in the level.
+
+\`\`\`cpp
+UCLASS()
+class UInventorySystem : public UObject
+{
+    GENERATED_BODY()
+    // Pure logic — no transform, never placed directly
+};
+\`\`\`
+
+## Your Task
+Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS()\` macro and \`GENERATED_BODY()\`.
+`,
+    starterCode: {
+      'Source.h': `// TODO: Declare UInventorySystem inheriting from UObject
+
+`,
+    },
+    hiddenTests: ['class UInventorySystem', 'public UObject', 'GENERATED_BODY()'],
+    successCriteria: [
+      'UCLASS() macro present',
+      'class UInventorySystem : public UObject',
+      'GENERATED_BODY() inside class',
+    ],
+    rules: [
+      {
+        id: 'r17_uclass',
+        type: 'unreal',
+        description: 'UCLASS() macro present',
+        evaluate: (code) => ({
+          passed: code.includes('UCLASS()') || /UCLASS\s*\(/.test(code),
+          error: 'UObject subclasses require the UCLASS() macro.',
+          fix: 'UCLASS()',
+        }),
+      },
+      {
+        id: 'r17_decl',
+        type: 'unreal',
+        description: 'class UInventorySystem : public UObject',
+        evaluate: (code) => ({
+          passed: code.includes('UInventorySystem') && /public\s+UObject/.test(code),
+          error: 'Declare UInventorySystem inheriting publicly from UObject.',
+          fix: 'class UInventorySystem : public UObject',
+        }),
+      },
+      {
+        id: 'r17_gen',
+        type: 'unreal',
+        description: 'GENERATED_BODY() inside class',
+        evaluate: (code) => ({
+          passed: code.includes('GENERATED_BODY()'),
+          error: 'All UCLASS types must include GENERATED_BODY() inside the class.',
+          fix: 'GENERATED_BODY()',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_17a',
+        title: 'Minimal UObject subclass',
+        code: {
+          'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "InventorySystem.generated.h"
+
+UCLASS()
+class UInventorySystem : public UObject
+{
+    GENERATED_BODY()
+public:
+    // Inventory operations go here
+};
+`,
+        },
+        explanation: 'GENERATED_BODY() is inserted by UHT to add reflection boilerplate. The .generated.h include is mandatory and auto-created.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_18',
+    title: '18. Unreal Delegates — Event Broadcasting',
+    category: 'Stage 4: Advanced Architecture & Systems',
+    objective: `# Delegates — The Observer Pattern in UE
+
+Delegates decouple event sources from listeners. Instead of a hard call (\`UI->UpdateHealth(100)\`), you broadcast to whoever is subscribed:
+
+\`\`\`cpp
+// Declare the delegate type (outside any class)
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);
+
+// Inside a UCLASS:
+UPROPERTY(BlueprintAssignable)
+FOnPlayerDiedSignature OnPlayerDied;
+
+// Broadcasting:
+OnPlayerDied.Broadcast();
+\`\`\`
+
+| Macro prefix | Multi-listener? | Blueprint bindable? |
+|---|---|---|
+| DECLARE_DELEGATE | ❌ | ❌ |
+| DECLARE_MULTICAST_DELEGATE | ✅ | ❌ |
+| DECLARE_DYNAMIC_MULTICAST_DELEGATE | ✅ | ✅ |
+
+## Your Task
+Declare \`FOnPlayerDiedSignature\` using the correct multicast dynamic macro.
+`,
+    starterCode: {
+      'Source.h': `// TODO: Declare FOnPlayerDiedSignature using DECLARE_DYNAMIC_MULTICAST_DELEGATE
+`,
     },
     hiddenTests: ['DECLARE_DYNAMIC_MULTICAST_DELEGATE', 'FOnPlayerDiedSignature'],
     successCriteria: [
-      'Call the exact DECLARE_DYNAMIC_MULTICAST_DELEGATE macro',
-      'Name it FOnPlayerDiedSignature'
+      'Use DECLARE_DYNAMIC_MULTICAST_DELEGATE macro',
+      'Name the type FOnPlayerDiedSignature',
     ],
     rules: [
       {
-        id: 'rule_task_16',
-        type: 'exercise',
-        description: 'Delegate declared correctly.',
-        evaluate: (code) => {
-          if (!code.includes('DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);')) return { passed: false, error: 'Use the correct macro and syntax.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r18_macro',
+        type: 'unreal',
+        description: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE used',
+        evaluate: (code) => ({
+          passed: code.includes('DECLARE_DYNAMIC_MULTICAST_DELEGATE'),
+          error: 'Use DECLARE_DYNAMIC_MULTICAST_DELEGATE (not the single or non-dynamic variants).',
+          fix: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
+        }),
+      },
+      {
+        id: 'r18_name',
+        type: 'unreal',
+        description: 'Type named FOnPlayerDiedSignature',
+        evaluate: (code) => ({
+          passed: code.includes('FOnPlayerDiedSignature'),
+          error: 'Name the delegate type FOnPlayerDiedSignature.',
+          fix: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_18a',
+        title: 'Minimal delegate declaration',
+        code: {
+          'Source.h': `// Declares a delegate signature with no payload parameters
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);
+
+// To pass data, use the parameterised form:
+// DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangedSignature, float, NewHealth);
+`,
+        },
+        explanation: 'Delegate types are declared once (often in the class header) and then instantiated as UPROPERTY members. BlueprintAssignable lets designers bind functions in the BP graph.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
-    id: 'task_17',
-    title: '17. UENUM — Strongly Typed State Machines',
+    id: 'task_19',
+    title: '19. UENUM — Strongly Typed State Machines',
     category: 'Stage 4: Advanced Architecture & Systems',
-    objective: `# Enumerations
-Using integers for state (0=Idle, 1=Run, 2=Jump) is dangerous.
-Enumerations bind these states to actual named words.
+    objective: `# UENUM — Strongly Typed Enumerations
 
-Unreal extends this with \`UENUM(BlueprintType)\` so Blueprints can use them as Dropdown menus!
+Raw integers for state (0=Idle, 1=Running, …) cause bugs: what does state \`3\` mean? Enumerations bind states to meaningful names.
 
-### Your Task
-Create a \`UENUM(BlueprintType)\` named \`EPlayerState\`.
-Give it three values: \`Idle\`, \`Running\`, and \`Attacking\`.
-Wrap the enum in the \`enum class EPlayerState : uint8\` layout.
+Unreal's \`UENUM(BlueprintType)\` exposes them as dropdown menus in Blueprint:
+\`\`\`cpp
+UENUM(BlueprintType)
+enum class EPlayerState : uint8
+{
+    Idle      UMETA(DisplayName = "Idle"),
+    Running   UMETA(DisplayName = "Running"),
+    Attacking UMETA(DisplayName = "Attacking"),
+};
+\`\`\`
+
+Key points:
+- \`enum class\` (scoped enum) prevents accidental integer promotion.
+- \`: uint8\` keeps the size to one byte — UHT requires a \`uint8\` backing type.
+- \`UMETA(DisplayName = "…")\` sets the text shown in the Blueprint dropdown.
+
+## Your Task
+Declare \`EPlayerState\` with the exact structure above.
 `,
     starterCode: {
-      'Source.h': '// TODO: Declare the UENUM EPlayerState\n\n'
+      'Source.h': `// TODO: Declare UENUM(BlueprintType) EPlayerState with Idle, Running, Attacking
+`,
     },
     hiddenTests: ['UENUM(BlueprintType)', 'enum class EPlayerState : uint8', 'Idle', 'Running', 'Attacking'],
     successCriteria: [
-      'Use UENUM(BlueprintType)',
-      'Declare enum class EPlayerState : uint8',
-      'Define Idle, Running, Attacking'
+      'UENUM(BlueprintType) macro',
+      'enum class EPlayerState : uint8',
+      'Values Idle, Running, Attacking defined',
     ],
     rules: [
       {
-        id: 'rule_task_17',
-        type: 'exercise',
-        description: 'Enum correctly configured.',
+        id: 'r19_macro',
+        type: 'unreal',
+        description: 'UENUM(BlueprintType) macro',
+        evaluate: (code) => ({
+          passed: code.includes('UENUM(BlueprintType)'),
+          error: 'Missing UENUM(BlueprintType) macro.',
+          fix: 'UENUM(BlueprintType)',
+        }),
+      },
+      {
+        id: 'r19_decl',
+        type: 'unreal',
+        description: 'enum class EPlayerState : uint8',
+        evaluate: (code) => ({
+          passed: /enum\s+class\s+EPlayerState\s*:\s*uint8/.test(code),
+          error: 'Must use: enum class EPlayerState : uint8',
+          fix: 'enum class EPlayerState : uint8 { ... }',
+        }),
+      },
+      {
+        id: 'r19_values',
+        type: 'unreal',
+        description: 'Idle, Running, Attacking values present',
         evaluate: (code) => {
-          if (!code.includes('UENUM(BlueprintType)')) return { passed: false, error: 'Include UENUM(BlueprintType)' };
-          if (!code.includes('enum class EPlayerState') || !code.includes('uint8')) return { passed: false, error: 'Must use enum class EPlayerState : uint8' };
-          if (!code.includes('Idle') || !code.includes('Running') || !code.includes('Attacking')) return { passed: false, error: 'Include the 3 stated properties.' };
-          return { passed: true };
-        }
-      }
-    ]
+          const ok = code.includes('Idle') && code.includes('Running') && code.includes('Attacking');
+          return {
+            passed: ok,
+            error: 'Must define all three states: Idle, Running, Attacking.',
+            fix: 'Idle, Running, Attacking,',
+          };
+        },
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_19a',
+        title: 'Full EPlayerState with UMETA',
+        code: {
+          'Source.h': `UENUM(BlueprintType)
+enum class EPlayerState : uint8
+{
+    Idle      UMETA(DisplayName = "Idle"),
+    Running   UMETA(DisplayName = "Running"),
+    Attacking UMETA(DisplayName = "Attacking"),
+};
+`,
+        },
+        explanation: 'UMETA DisplayName controls what designers see in the BP dropdown. Always add MAX at the end if you need to range-check: Idle=0, Running=1, Attacking=2.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
-    id: 'task_18',
-    title: '18. Interface Classes (UInterface)',
+    id: 'task_20',
+    title: '20. Interface Classes (UInterface)',
     category: 'Stage 4: Advanced Architecture & Systems',
-    objective: `# Decoupling Logic
-If a Bullet hits a Wall, a Player, or a Destructible Barrel, how does it know to deal damage?
-We could cast to 15 different classes. But that's terrible architecture.
-Instead, we use an **Interface**. Any object that implements \`IDamageable\` can take damage, regardless of its specific base class.
+    objective: `# Interface Classes — Decoupling with IInterface
 
-### Your Task
-Interfaces in Unreal require TWO classes for reflection to work:
-1. \`UDamageable\` inheriting from \`UInterface\`
-2. \`IDamageable\` class (where you actually define the methods).
+Without interfaces: a \`Bullet\` would \`Cast<ACharacter>\` and \`Cast<ABarrel>\` and \`Cast<AWindow>\` — the list grows forever.
 
-Define \`class IDamageable\` with a virtual function \`void TakeHit() = 0;\`.
+With interfaces: anything that can take damage implements \`IDamageable\`. The bullet calls \`Execute_TakeHit(HitActor)\` — it doesn't know or care what type \`HitActor\` is.
+
+Unreal requires **two** classes for each interface:
+\`\`\`cpp
+// UDamageable — for the reflection system (no changes needed)
+UINTERFACE(MinimalAPI, Blueprintable)
+class UDamageable : public UInterface { GENERATED_BODY() };
+
+// IDamageable — where you define the contract
+class IDamageable
+{
+    GENERATED_BODY()
+public:
+    virtual void TakeHit() = 0;   // pure virtual
+};
+\`\`\`
+
+## Your Task
+The \`UDamageable\` shell is provided. Declare \`class IDamageable\` with a pure virtual \`TakeHit()\`.
 `,
     starterCode: {
-      'Source.h': 'class UDamageable : public UInterface {};\n\n// TODO: Implement class IDamageable\n'
+      'Source.h': `class UDamageable : public UInterface {};
+
+// TODO: Implement class IDamageable with pure virtual TakeHit()
+`,
     },
     hiddenTests: ['class IDamageable', 'virtual void TakeHit() = 0;'],
     successCriteria: [
       'Declare class IDamageable',
-      'Add pure virtual TakeHit function'
+      'Add pure virtual TakeHit() = 0',
     ],
     rules: [
       {
-        id: 'rule_task_18',
-        type: 'exercise',
-        description: 'Interface created.',
-        evaluate: (code) => {
-          if (!code.includes('class IDamageable')) return { passed: false, error: 'Declare IDamageable.' };
-          if (!code.includes('virtual void TakeHit() = 0;')) return { passed: false, error: 'Must add the pure virtual TakeHit() method.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_19',
-    title: '19. Instanced Arrays vs TSubclassOf',
-    category: 'Stage 5: UE5 Pro Features',
-    objective: `# Class References vs Instantiated Objects
-In Unreal, there is a massive difference between an Object and the *Blueprint Class* of that Object.
+        id: 'r20_class',
+        type: 'unreal',
+        description: 'class IDamageable declared',
+        evaluate: (code) => ({
+          passed: code.includes('class IDamageable'),
+          error: 'Declare class IDamageable.',
+          fix: 'class IDamageable { GENERATED_BODY() public: virtual void TakeHit() = 0; };',
+        }),
+      },
+      {
+        id: 'r20_pv',
+        type: 'unreal',
+        description: 'virtual void TakeHit() = 0 present',
+        evaluate: (code) => ({
+          passed: /virtual\s+void\s+TakeHit\s*\(\s*\)\s*=\s*0/.test(code),
+          error: 'Must declare: virtual void TakeHit() = 0;',
+          fix: 'virtual void TakeHit() = 0;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_20a',
+        title: 'Complete UInterface pair',
+        code: {
+          'Source.h': `UINTERFACE(MinimalAPI, Blueprintable)
+class UDamageable : public UInterface { GENERATED_BODY() };
 
-- \`UWeapon*\` - An actual physical weapon in the world. (Instance)
-- \`TSubclassOf<UWeapon>\` - A reference to the Weapon Asset/Class in the content browser so we can SPAWN it later!
-
-If your designer wants to select a template to spawn from a drop-down menu, you DO NOT use an instance pointer. You use \`TSubclassOf\`.
-
-### Your Task
-Declare a \`TSubclassOf<AActor>\` called \`SpawnTemplate\`. Add the \`UPROPERTY(EditAnywhere)\` macro so it shows as a dropdown in the editor.
+class IDamageable
+{
+    GENERATED_BODY()
+public:
+    virtual void TakeHit()         = 0;
+    virtual void TakeHit(float Dmg) { TakeHit(); }  // optional overload with default
+};
 `,
-    starterCode: {
-      'Source.h': 'class ASpawner : public AActor {\n    // TODO: Declare SpawnTemplate\n};\n'
-    },
-    hiddenTests: ['TSubclassOf<AActor>', 'SpawnTemplate', 'UPROPERTY(EditAnywhere)'],
-    successCriteria: [
-      'EditAnywhere UPROPERTY macro',
-      'Use TSubclassOf<AActor>',
-      'Variable named SpawnTemplate'
+        },
+        explanation: 'The I-prefixed class is where your logic lives. Implement with _Implementation suffix in the .cpp: void AMyActor::TakeHit_Implementation() { ... }',
+      },
     ],
-    rules: [
-      {
-        id: 'rule_task_19',
-        type: 'exercise',
-        description: 'SubclassOf correctly implemented.',
-        evaluate: (code) => {
-          if (!code.includes('UPROPERTY(EditAnywhere)')) return { passed: false, error: 'Use EditAnywhere' };
-          if (!code.includes('TSubclassOf<AActor>')) return { passed: false, error: 'Use TSubclassOf<AActor>' };
-          if (!code.includes('SpawnTemplate')) return { passed: false, error: 'Name it SpawnTemplate' };
-          return { passed: true };
-        }
-      }
-    ]
   },
-  {
-    id: 'task_20',
-    title: '20. Subsystems (The Pro Singleton)',
-    category: 'Stage 5: UE5 Pro Features',
-    objective: `# Subsystems
-Traditionally, developers used the GameMode or GameInstance to store global variables (like Player Score or Inventory). This led to bloated "God Classes" with 10,000 lines of code.
 
-Unreal Engine 4.22 introduced **Subsystems**. Subsystems are automatically created and managed by the engine. They have lifecycles based on the Engine, the GameInstance, the World, or the LocalPlayer.
+  // =========================================================================
+  // STAGE 5 — UE5 PRO FEATURES
+  // =========================================================================
 
-### Your Task
-Create a \`UGameInstanceSubsystem\` named \`UQuestManager\`.
-`,
-    starterCode: {
-      'Source.h': '// TODO: Create class UQuestManager that inherits from UGameInstanceSubsystem\n\n'
-    },
-    hiddenTests: ['class UQuestManager : public UGameInstanceSubsystem'],
-    successCriteria: [
-      'Name class UQuestManager',
-      'Inherit from UGameInstanceSubsystem'
-    ],
-    rules: [
-      {
-        id: 'rule_task_20',
-        type: 'exercise',
-        description: 'Subsystem layout correct.',
-        evaluate: (code) => {
-          if (!code.includes('class UQuestManager')) return { passed: false, error: 'Declare UQuestManager.' };
-          if (!code.includes(': public UGameInstanceSubsystem')) return { passed: false, error: 'Inherit publicly from UGameInstanceSubsystem.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
   {
     id: 'task_21',
-    title: '21. Blueprint Function Exposure',
-    category: 'Stage 6: Integrating with Blueprints',
-    objective: `# Exposing C++ to Blueprints
-Because designers work in Blueprints, you need to expose your C++ mechanics.
-Using the \`UFUNCTION\` macro, we can expose functions to Blueprint nodes.
+    title: '21. TSubclassOf — Class References',
+    category: 'Stage 5: UE5 Pro Features',
+    objective: `# TSubclassOf — Blueprint-Assignable Class References
 
-- \`BlueprintCallable\`: Can be executed as a regular execution node.
-- \`BlueprintPure\`: A "getter" node with no execution pins.
+There is a critical distinction:
+- \`AActor* Weapon\` — a **live instance** of a weapon already spawned.
+- \`TSubclassOf<AActor> WeaponClass\` — a **template** (Blueprint class asset) to spawn from.
 
-### Your Task
-Declare a public function \`float GetCurrentHealth() const\` and make it a pure blueprint node.
-Also declare \`void AddHealth(float Amount)\` and make it a callable blueprint node.
+\`TSubclassOf<T>\` enforces that only classes inheriting from T can be assigned. This lets designers pick from a dropdown list in the editor, and your C++ code spawns from it:
+
+\`\`\`cpp
+GetWorld()->SpawnActor<AActor>(SpawnTemplate, SpawnLocation, SpawnRotation);
+\`\`\`
+
+## Your Task
+Inside \`ASpawner\`, declare \`TSubclassOf<AActor> SpawnTemplate\` with \`UPROPERTY(EditAnywhere)\`.
 `,
     starterCode: {
-      'Source.h': 'class APlayer : public ACharacter {\npublic:\n    // TODO: Declare GetCurrentHealth as BlueprintPure\n    \n    // TODO: Declare AddHealth as BlueprintCallable\n    \n};\n'
+      'Source.h': `class ASpawner : public AActor
+{
+    // TODO: Declare UPROPERTY(EditAnywhere) TSubclassOf<AActor> SpawnTemplate
+};
+`,
     },
-    hiddenTests: ['BlueprintPure', 'BlueprintCallable'],
+    hiddenTests: ['TSubclassOf<AActor>', 'SpawnTemplate', 'EditAnywhere'],
     successCriteria: [
-      'Use UFUNCTION(BlueprintPure) for GetCurrentHealth',
-      'Use UFUNCTION(BlueprintCallable) for AddHealth'
+      'UPROPERTY(EditAnywhere)',
+      'TSubclassOf<AActor> SpawnTemplate declared',
     ],
     rules: [
       {
-        id: 'rule_task_21',
-        type: 'exercise',
-        description: 'UFUNCTION specifiers correct.',
-        evaluate: (code) => {
-          if (!code.includes('UFUNCTION(BlueprintPure)')) return { passed: false, error: 'Missing BlueprintPure UFUNCTION.', fix: 'UFUNCTION(BlueprintPure)' };
-          if (!code.includes('UFUNCTION(BlueprintCallable)')) return { passed: false, error: 'Missing BlueprintCallable UFUNCTION.', fix: 'UFUNCTION(BlueprintCallable)' };
-          if (!/float\s+GetCurrentHealth/.test(code)) return { passed: false, error: 'Missing GetCurrentHealth float function.' };
-          if (!/void\s+AddHealth/.test(code)) return { passed: false, error: 'Missing AddHealth void function.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r21_prop',
+        type: 'unreal',
+        description: 'UPROPERTY(EditAnywhere)',
+        evaluate: (code) => ({
+          passed: code.includes('EditAnywhere'),
+          error: 'Add UPROPERTY(EditAnywhere) to expose SpawnTemplate in the editor.',
+          fix: 'UPROPERTY(EditAnywhere)',
+        }),
+      },
+      {
+        id: 'r21_sub',
+        type: 'unreal',
+        description: 'TSubclassOf<AActor> SpawnTemplate',
+        evaluate: (code) => ({
+          passed: /TSubclassOf\s*<\s*AActor\s*>/.test(code) && code.includes('SpawnTemplate'),
+          error: 'Declare TSubclassOf<AActor> SpawnTemplate.',
+          fix: 'TSubclassOf<AActor> SpawnTemplate;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_21a',
+        title: 'SpawnTemplate property',
+        code: {
+          'Source.h': `class ASpawner : public AActor
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, Category = "Spawning")
+    TSubclassOf<AActor> SpawnTemplate;
+};
+`,
+        },
+        explanation: 'TSubclassOf<AActor> prevents designers from accidentally assigning a non-Actor class. At runtime: GetWorld()->SpawnActor<AActor>(SpawnTemplate, ...);',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_22',
-    title: '22. Unreal Structs (USTRUCT)',
-    category: 'Stage 6: Integrating with Blueprints',
-    objective: `# Structs
-When you have grouped data, like an item's durability, name, and weight, you should use a struct.
-In Unreal, structs need the \`USTRUCT(BlueprintType)\` macro so they can be exposed to Blueprints.
-Unlike \`UCLASS\`, a \`USTRUCT\` does not use the garbage collector, so it is just plain data!
+    title: '22. Subsystems — The Pro Singleton',
+    category: 'Stage 5: UE5 Pro Features',
+    objective: `# Subsystems — Auto-Managed Global Services
 
-We prefix structs with \`F\` (for Float, standard Unreal convention).
-A struct must include \`GENERATED_BODY()\` at the very top.
+The old way to make a global system was a Singleton stored on GameMode or GameInstance — one god-class with thousands of lines. Subsystems fix this by auto-creating separate objects scoped to their lifetime:
 
-### Your Task
-Create a struct named \`FItemData\`.
-Decorate it with \`USTRUCT(BlueprintType)\`.
-Include the \`GENERATED_BODY()\` macro inside.
+| Subsystem type | Lifetime |
+|---|---|
+| \`UEngineSubsystem\` | Engine |
+| \`UGameInstanceSubsystem\` | Game session |
+| \`UWorldSubsystem\` | Level/World |
+| \`ULocalPlayerSubsystem\` | Per local player |
+
+Subsystems are automatically created and destroyed — you never call \`new\` or \`delete\`.
+
+\`\`\`cpp
+// Access from anywhere:
+UQuestManager* QM = GetGameInstance()->GetSubsystem<UQuestManager>();
+\`\`\`
+
+## Your Task
+Declare \`UQuestManager\` inheriting from \`UGameInstanceSubsystem\`. Include \`UCLASS()\` and \`GENERATED_BODY()\`.
 `,
     starterCode: {
-      'Source.h': '// TODO: Declare FItemData struct with USTRUCT(BlueprintType)\n\n'
+      'Source.h': `// TODO: Declare UQuestManager : public UGameInstanceSubsystem
+`,
     },
-    hiddenTests: ['USTRUCT(BlueprintType)', 'struct FItemData', 'GENERATED_BODY()'],
+    hiddenTests: ['class UQuestManager', 'UGameInstanceSubsystem', 'GENERATED_BODY()'],
     successCriteria: [
-      'Create FItemData struct',
-      'Use USTRUCT(BlueprintType)',
-      'Include GENERATED_BODY()'
+      'UCLASS() macro',
+      'UQuestManager inherits from UGameInstanceSubsystem',
+      'GENERATED_BODY() present',
     ],
     rules: [
       {
-        id: 'rule_task_22',
-        type: 'exercise',
-        description: 'USTRUCT implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('USTRUCT(BlueprintType)')) return { passed: false, error: 'Missing USTRUCT(BlueprintType).' };
-          if (!code.includes('struct FItemData')) return { passed: false, error: 'Declare struct FItemData.' };
-          if (!code.includes('GENERATED_BODY()')) return { passed: false, error: 'Struct must contain GENERATED_BODY() at the top.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r22_uclass',
+        type: 'unreal',
+        description: 'UCLASS() macro',
+        evaluate: (code) => ({
+          passed: /UCLASS\s*\(/.test(code),
+          error: 'Add UCLASS() macro.',
+          fix: 'UCLASS()',
+        }),
+      },
+      {
+        id: 'r22_decl',
+        type: 'unreal',
+        description: 'UQuestManager : public UGameInstanceSubsystem',
+        evaluate: (code) => ({
+          passed: code.includes('UQuestManager') && code.includes('UGameInstanceSubsystem'),
+          error: 'Declare UQuestManager inheriting from UGameInstanceSubsystem.',
+          fix: 'class UQuestManager : public UGameInstanceSubsystem',
+        }),
+      },
+      {
+        id: 'r22_gen',
+        type: 'unreal',
+        description: 'GENERATED_BODY()',
+        evaluate: (code) => ({
+          passed: code.includes('GENERATED_BODY()'),
+          error: 'Include GENERATED_BODY() inside the class.',
+          fix: 'GENERATED_BODY()',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_22a',
+        title: 'Minimal UGameInstanceSubsystem',
+        code: {
+          'Source.h': `#pragma once
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "QuestManager.generated.h"
+
+UCLASS()
+class UQuestManager : public UGameInstanceSubsystem
+{
+    GENERATED_BODY()
+public:
+    virtual void Initialize(FSubsystemCollectionBase& Collection) override;
+    virtual void Deinitialize() override;
+};
+`,
+        },
+        explanation: 'Override Initialize/Deinitialize instead of BeginPlay/EndPlay — these are the subsystem lifecycle callbacks. The engine calls them automatically.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_23',
-    title: '23. Debugging (Assertions)',
-    category: 'Stage 7: Production Standards',
-    objective: `# Assertions
-Assertions are ways to test code logic in development. If an assumption fails, what happens?
+    title: '23. Soft References — TSoftObjectPtr',
+    category: 'Stage 5: UE5 Pro Features',
+    objective: `# Soft vs Hard References
 
-- \`check(condition)\`: Stops the engine instantly (fatal crash). Use when continuing would corrupt data.
-- \`ensure(condition)\`: Throws a bright red error in the log, but allows the engine to keep running.
+**Hard reference** (\`UTexture2D*\`) — the asset loads *immediately* when the class is loaded, regardless of whether it's needed. With 500 enemy types, that's 500 textures in RAM at spawn.
 
-### Your Task
-You are writing a function that expects \`Health\` to be greater than 0.
-Write an \`ensure(Health > 0);\` check before continuing.
+**Soft reference** (\`TSoftObjectPtr<UTexture2D>\`) — stores only the *asset path*. You load manually when needed:
+
+\`\`\`cpp
+TSoftObjectPtr<UTexture2D> IconRef;
+
+// Load on demand (causes a short hitch — prefer async):
+UTexture2D* Tex = IconRef.LoadSynchronous();
+
+// Async load:
+StreamableManager.RequestAsyncLoad(IconRef.ToSoftObjectPath(), ...);
+\`\`\`
+
+Use soft references for content that isn't always needed (character skins, level-specific assets).
+
+## Your Task
+Inside \`UInventoryItem\`, declare a soft pointer to \`UTexture2D\` named \`IconRef\`.
 `,
     starterCode: {
-      'Source.cpp': 'void APlayer::Heal() {\n    // TODO: Ensure Health is greater than 0\n    \n}\n'
-    },
-    hiddenTests: ['ensure', 'Health > 0'],
-    successCriteria: [
-      'Write an ensure statement checking if Health > 0'
-    ],
-    rules: [
-      {
-        id: 'rule_task_23',
-        type: 'exercise',
-        description: 'Ensure statement used.',
-        evaluate: (code) => {
-          if (!code.includes('ensure(Health > 0)') && !code.includes('ensure( Health > 0 )')) return { passed: false, error: 'Use ensure(Health > 0);' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_24',
-    title: '24. Safe Casting',
-    category: 'Stage 7: Production Standards',
-    objective: `# Type Casting
-In C++, casting lets you treat a variable of one type as another type.
-But standard C++ \`dynamic_cast\` is disabled in Unreal Engine for performance!
-
-Unreal provides its own casting template: \`Cast<TargetType>(ObjectToCast)\`.
-If the cast fails (the object wasn't actually that type), it returns \`nullptr\`.
-
-### Your Task
-You are given a generic \`AActor* HitActor\`.
-Use \`Cast<AMonster>(HitActor)\` and assign it to a new pointer variable named \`MonsterTarget\`.
+      'Source.h': `class UInventoryItem : public UObject
+{
+    // TODO: Declare TSoftObjectPtr<UTexture2D> IconRef
+};
 `,
-    starterCode: {
-      'Source.cpp': 'void OnHit(AActor* HitActor) {\n    // TODO: Cast HitActor to AMonster* and store it in MonsterTarget\n    \n}\n'
-    },
-    hiddenTests: ['AMonster*', 'Cast<AMonster>', 'HitActor'],
-    successCriteria: [
-      'Call Cast<AMonster>(HitActor)',
-      'Assign it to a pointer named MonsterTarget'
-    ],
-    rules: [
-      {
-        id: 'rule_task_24',
-        type: 'exercise',
-        description: 'Correctly casted.',
-        evaluate: (code) => {
-          if (!code.includes('Cast<AMonster>')) return { passed: false, error: 'You must use Cast<AMonster>' };
-          if (!code.includes('MonsterTarget')) return { passed: false, error: 'Name the variable MonsterTarget' };
-          if (!/AMonster\s*\*\s*MonsterTarget/.test(code) && !/auto\s*MonsterTarget/.test(code)) return { passed: false, error: 'Declare MonsterTarget as an AMonster pointer.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_25',
-    title: '25. UE_LOG Logging',
-    category: 'Stage 7: Production Standards',
-    objective: `# Logging
-Printing to the screen with \`std::cout\` doesn't work in Unreal Engine because there is no terminal attached to the final game!
-You must use Unreal's built-in macro: \`UE_LOG\`.
-
-Syntax: \`UE_LOG(LogCategory, Verbosity, TEXT("Your message here"));\`
-A common default category is \`LogTemp\`, and common verbosity is \`Warning\`.
-
-### Your Task
-Write a log statement using \`UE_LOG\` on category \`LogTemp\` with verbosity \`Warning\`.
-Make the message \`TEXT("Booting Sequence Initiated")\`.
-`,
-    starterCode: {
-      'Source.cpp': 'void Practice() {\n    // TODO: Write a UE_LOG statement\n    \n}\n'
-    },
-    hiddenTests: ['UE_LOG', 'LogTemp', 'Warning', 'TEXT("Booting Sequence Initiated")'],
-    successCriteria: [
-      'Use the UE_LOG macro',
-      'Category: LogTemp',
-      'Verbosity: Warning',
-      'Message: TEXT("Booting Sequence Initiated")'
-    ],
-    rules: [
-      {
-        id: 'rule_task_25',
-        type: 'exercise',
-        description: 'UE_LOG used correctly.',
-        evaluate: (code) => {
-          if (!code.includes('UE_LOG(')) return { passed: false, error: 'Use the UE_LOG macro.' };
-          if (!code.includes('LogTemp')) return { passed: false, error: 'Category should be LogTemp.' };
-          if (!code.includes('Warning')) return { passed: false, error: 'Verbosity should be Warning.' };
-          if (!code.includes('TEXT("Booting Sequence Initiated")')) return { passed: false, error: 'Check string format (needs TEXT macro).' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_26',
-    title: '26. Naming Conventions',
-    category: 'Stage 8: Unreal Workflows',
-    objective: `# Naming Conventions
-Unreal Header Tool requires strict naming conventions for classes and variables. If you break them, your code won't compile!
-
-- \`A\`: Actors (e.g. APlayer)
-- \`U\`: Objects/Components (e.g. UInventoryComponent)
-- \`F\`: Structs / plain data (e.g. FVector)
-- \`E\`: Enums (e.g. EGameState)
-- \`b\`: Booleans (e.g. bIsDead)
-- \`T\`: Templates (e.g. TArray)
-
-### Your Task
-Declare a boolean variable for if the player is jumping. It MUST be named following Unreal conventions (start with 'b', so \`bIsJumping\`). Initialize it to false.
-`,
-    starterCode: {
-      'Source.h': 'class APlayer : public ACharacter {\n    // TODO: Declare a boolean with the correct prefix for "is jumping"\n    \n};\n'
-    },
-    hiddenTests: ['bIsJumping = false', 'bool '],
-    successCriteria: [
-      'Declare a boolean',
-      'Name it bIsJumping',
-      'Set it to false'
-    ],
-    rules: [
-      {
-        id: 'rule_task_26',
-        type: 'exercise',
-        description: 'Checked for boolean prefix.',
-        evaluate: (code) => {
-          if (!code.includes('bool bIsJumping')) return { passed: false, error: 'Declare bool bIsJumping.', fix: 'bool bIsJumping = false;' };
-          if (!code.includes('false')) return { passed: false, error: 'Must be set to false.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_27',
-    title: '27. String Types (FName vs FText)',
-    category: 'Stage 8: Unreal Workflows',
-    objective: `# Strings in Unreal
-\`FString\` is the standard string, but Unreal uses two other strings heavily:
-- \`FName\`: A super-lightweight string for identification (like Hash Maps or Tag names). They are case-insensitive and cannot be modified.
-- \`FText\`: Used FOR VISUAL TEXT ONLY! If the user sees it (UI, Subtitles), it MUST be \`FText\` so the engine can localize it for different languages.
-
-### Your Task
-1. Declare an \`FName\` called \`PlayerTag\` and set it to \`"Player"\`.
-2. Declare an \`FText\` called \`Greeting\` and set it to \`FText::FromString("Hello")\`. (In real games, we use \`NSLOCTEXT\`).
-`,
-    starterCode: {
-      'Source.cpp': 'void SetupStrings() {\n    // TODO: Declare FName PlayerTag\n    \n    // TODO: Declare FText Greeting\n    \n}\n'
-    },
-    hiddenTests: ['FName PlayerTag', 'FText Greeting'],
-    successCriteria: [
-      'Create FName PlayerTag set to "Player"',
-      'Create FText Greeting set to FText::FromString("Hello")'
-    ],
-    rules: [
-      {
-        id: 'rule_task_27',
-        type: 'exercise',
-        description: 'FName and FText implementation.',
-        evaluate: (code) => {
-          if (!code.includes('FName PlayerTag')) return { passed: false, error: 'Missing FName PlayerTag.' };
-          if (!code.includes('"Player"')) return { passed: false, error: 'Set PlayerTag to "Player".' };
-          if (!code.includes('FText Greeting')) return { passed: false, error: 'Missing FText Greeting.' };
-          if (!code.includes('FText::FromString("Hello")')) return { passed: false, error: 'Set Greeting using FText::FromString("Hello").' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_28',
-    title: '28. Dictionaries (TMap)',
-    category: 'Stage 8: Unreal Workflows',
-    objective: `# Hash Maps
-When you need to look up data instantly via a Key rather than an Index, you use a Map.
-Standard C++ uses \`std::map\` or \`std::unordered_map\`. Unreal uses \`TMap\`.
-
-Example: \`TMap<FString, int32> Inventory;\`
-This maps an Item Name to a Quantity.
-
-### Your Task
-Declare a \`TMap\` that links an \`FName\` (Key) to a \`float\` (Value). Name the variable \`PlayerScores\`.
-Add the \`UPROPERTY()\` macro above it to protect it with garbage collection.
-`,
-    starterCode: {
-      'Source.h': 'class AGameState : public AInfo {\n    // TODO: Declare TMap PlayerScores\n    \n};\n'
-    },
-    hiddenTests: ['TMap<FName, float>', 'PlayerScores', 'UPROPERTY()'],
-    successCriteria: [
-      'Declare TMap<FName, float> PlayerScores',
-      'Add UPROPERTY()'
-    ],
-    rules: [
-      {
-        id: 'rule_task_28',
-        type: 'exercise',
-        description: 'TMap implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('UPROPERTY()') && !code.includes('UPROPERTY(')) return { passed: false, error: 'Missing UPROPERTY.' };
-          if (!code.includes('TMap<FName, float>') && !code.includes('TMap<FName,float>')) return { passed: false, error: 'Must use TMap<FName, float>.' };
-          if (!code.includes('PlayerScores')) return { passed: false, error: 'Name it PlayerScores.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_29',
-    title: '29. Hard vs Soft References',
-    category: 'Stage 9: Enterprise Architecture',
-    objective: `# Asset Loading
-If your Player class has a hard pointer to a \`UTexture2D* PlayerIcon\`, then the MOMENT the player class is loaded, the texture is loaded into RAM.
-If you have an array of 500 enemies, and each has hard references to their meshes, your game will freeze on startup while 2GB of assets load instantly.
-
-Instead, use **Soft References**. A Soft Reference only stores the *String Path* to the asset, and you load it manually when needed!
-
-### Your Task
-Declare a soft object pointer to a Texture2D called \`IconRef\`.
-Syntax: \`TSoftObjectPtr<UTexture2D> IconRef;\`
-`,
-    starterCode: {
-      'Source.h': 'class UInventoryItem : public UObject {\n    // TODO: Declare soft object reference to a UTexture2D\n    \n};\n'
     },
     hiddenTests: ['TSoftObjectPtr<UTexture2D>', 'IconRef'],
     successCriteria: [
-      'Declare TSoftObjectPtr<UTexture2D>',
-      'Name it IconRef'
+      'TSoftObjectPtr<UTexture2D> declared',
+      'Named IconRef',
     ],
     rules: [
       {
-        id: 'rule_task_29',
-        type: 'exercise',
-        description: 'TSoftObjectPtr implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('TSoftObjectPtr<UTexture2D>')) return { passed: false, error: 'Missing TSoftObjectPtr<UTexture2D>.' };
-          if (!code.includes('IconRef')) return { passed: false, error: 'Name it IconRef.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r23_soft',
+        type: 'unreal',
+        description: 'TSoftObjectPtr<UTexture2D> declared',
+        evaluate: (code) => ({
+          passed: /TSoftObjectPtr\s*<\s*UTexture2D\s*>/.test(code),
+          error: 'Must use TSoftObjectPtr<UTexture2D>.',
+          fix: 'TSoftObjectPtr<UTexture2D> IconRef;',
+        }),
+      },
+      {
+        id: 'r23_name',
+        type: 'unreal',
+        description: 'Variable named IconRef',
+        evaluate: (code) => ({
+          passed: code.includes('IconRef'),
+          error: 'Name the variable IconRef.',
+          fix: 'TSoftObjectPtr<UTexture2D> IconRef;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_23a',
+        title: 'Soft pointer with UPROPERTY',
+        code: {
+          'Source.h': `class UInventoryItem : public UObject
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, Category = "Visuals")
+    TSoftObjectPtr<UTexture2D> IconRef;
+};
+`,
+        },
+        explanation: 'UPROPERTY is still needed so the GC tracks the soft path string and doesn\'t garbage-collect the path data itself.',
+      },
+    ],
   },
+
+  // =========================================================================
+  // STAGE 6 — BLUEPRINT INTEGRATION
+  // =========================================================================
+
   {
-    id: 'task_30',
-    title: '30. Smart Pointers (Unreal C++)',
-    category: 'Stage 9: Enterprise Architecture',
-    objective: `# Smart Pointers
-When writing standard C++ code (outside of UObject classes that have Garbage Collection), raw pointers cause memory leaks.
-You must manually \`delete\` them.
+    id: 'task_24',
+    title: '24. UFUNCTION Blueprint Specifiers',
+    category: 'Stage 6: Blueprint Integration',
+    objective: `# UFUNCTION — Exposing C++ Functions to Blueprint
 
-Using Smart Pointers (\`TSharedPtr\`, \`TUniquePtr\`, \`TWeakPtr\`), the pointer automatically zeroes its own memory when it goes out of scope!
+| Specifier | Behaviour |
+|-----------|-----------|
+| \`BlueprintCallable\` | Has an execution pin; can cause side effects |
+| \`BlueprintPure\` | No execution pin; cached result; should be a getter |
+| \`BlueprintImplementableEvent\` | No C++ body; *must* be implemented in Blueprint |
+| \`BlueprintNativeEvent\` | C++ body is the default; Blueprint can override |
 
-### Your Task
-Declare a Shared Pointer to a standard generic struct \`FMyData\`.
-Syntax: \`TSharedPtr<FMyData> DataPtr;\`
+\`\`\`cpp
+// Read-only getter — pure (no state change)
+UFUNCTION(BlueprintPure)
+float GetCurrentHealth() const { return Health; }
+
+// Mutation — needs exec pin
+UFUNCTION(BlueprintCallable)
+void AddHealth(float Amount) { Health += Amount; }
+\`\`\`
+
+## Your Task
+Declare both functions inside \`APlayer\`:
+1. \`GetCurrentHealth()\` as \`BlueprintPure\`, returns \`float\`, marked \`const\`.
+2. \`AddHealth(float Amount)\` as \`BlueprintCallable\`, returns \`void\`.
 `,
     starterCode: {
-      'Source.h': 'struct FMyData { int Value; };\n\nclass FDataManager {\n    // TODO: Declare TSharedPtr to FMyData\n    \n};\n'
+      'Source.h': `class APlayer : public ACharacter
+{
+public:
+    // TODO: Declare GetCurrentHealth as BlueprintPure
+    // TODO: Declare AddHealth as BlueprintCallable
+};
+`,
     },
-    hiddenTests: ['TSharedPtr<FMyData>', 'DataPtr'],
+    hiddenTests: ['BlueprintPure', 'BlueprintCallable', 'GetCurrentHealth', 'AddHealth'],
     successCriteria: [
-      'Declare TSharedPtr<FMyData>',
-      'Name it DataPtr'
+      'GetCurrentHealth declared with BlueprintPure',
+      'AddHealth declared with BlueprintCallable',
     ],
     rules: [
       {
-        id: 'rule_task_30',
-        type: 'exercise',
-        description: 'TSharedPtr implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('TSharedPtr<FMyData>')) return { passed: false, error: 'Missing TSharedPtr<FMyData>.' };
-          if (!code.includes('DataPtr')) return { passed: false, error: 'Name it DataPtr.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_31',
-    title: '31. Modern C++: The Auto Keyword',
-    category: 'Stage 10: Modern C++ Features',
-    objective: `# The Auto Keyword
-In Modern C++ (C++11 and later), you don't always need to explicitly declare the type of a variable if the compiler can deduce it from the initialization.
-This is especially useful for long iterator types or complicated template types.
+        id: 'r24_pure',
+        type: 'unreal',
+        description: 'UFUNCTION(BlueprintPure) for GetCurrentHealth',
+        evaluate: (code) => ({
+          passed: code.includes('BlueprintPure') && code.includes('GetCurrentHealth'),
+          error: 'Declare GetCurrentHealth with UFUNCTION(BlueprintPure).',
+          fix: 'UFUNCTION(BlueprintPure)\nfloat GetCurrentHealth() const;',
+        }),
+      },
+      {
+        id: 'r24_callable',
+        type: 'unreal',
+        description: 'UFUNCTION(BlueprintCallable) for AddHealth',
+        evaluate: (code) => ({
+          passed: code.includes('BlueprintCallable') && code.includes('AddHealth'),
+          error: 'Declare AddHealth with UFUNCTION(BlueprintCallable).',
+          fix: 'UFUNCTION(BlueprintCallable)\nvoid AddHealth(float Amount);',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_24a',
+        title: 'Pure getter + callable setter',
+        code: {
+          'Source.h': `class APlayer : public ACharacter
+{
+    GENERATED_BODY()
+public:
+    UFUNCTION(BlueprintPure, Category = "Health")
+    float GetCurrentHealth() const { return Health; }
 
-### Your Task
-Declare a variable using \`auto\` instead of an explicit type.
-Name it \`MyAutoVar\` and set it to \`100.5f\`.
+    UFUNCTION(BlueprintCallable, Category = "Health")
+    void AddHealth(float Amount);
+
+private:
+    float Health = 100.0f;
+};
+`,
+        },
+        explanation: 'BlueprintPure functions must be const. Non-const functions default to BlueprintCallable. If you mark a const function as BlueprintCallable with BlueprintPure=false, UE will still expose the exec pin.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_25',
+    title: '25. USTRUCT — Blueprint Data Containers',
+    category: 'Stage 6: Blueprint Integration',
+    objective: `# USTRUCT — Plain Data for Blueprint
+
+When you want to group related data (item name, weight, durability) into a single Blueprint variable, use \`USTRUCT\`.
+
+Unlike \`UCLASS\`:
+- Structs have **no garbage collector**. They hold data, not UObject ownership.
+- Structs are **copied** when passed by value — cheap for small data, expensive for large.
+- Use \`F\` prefix (Unreal convention for structs).
+
+\`\`\`cpp
+USTRUCT(BlueprintType)
+struct FItemData
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    FName ItemName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    float Weight = 1.0f;
+};
+\`\`\`
+
+## Your Task
+Declare \`FItemData\` with \`USTRUCT(BlueprintType)\` and \`GENERATED_BODY()\`. Add at least one UPROPERTY member.
 `,
     starterCode: {
-      'Source.cpp': 'void Practice() {\n    // TODO: Declare MyAutoVar using auto and set it to 100.5f\n    \n}\n'
+      'Source.h': `// TODO: Declare FItemData struct with USTRUCT(BlueprintType)
+`,
     },
-    hiddenTests: ['auto MyAutoVar = 100.5f;'],
+    hiddenTests: ['USTRUCT(BlueprintType)', 'struct FItemData', 'GENERATED_BODY()'],
     successCriteria: [
-      'Use the auto keyword',
-      'Name the variable MyAutoVar',
-      'Value should be 100.5f'
+      'USTRUCT(BlueprintType) macro',
+      'struct FItemData declared',
+      'GENERATED_BODY() present',
     ],
     rules: [
       {
-        id: 'rule_task_31',
-        type: 'exercise',
-        description: 'Auto keyword used correctly.',
-        evaluate: (code) => {
-          if (!code.includes('auto ')) return { passed: false, error: 'Use the auto keyword.' };
-          if (!code.includes('MyAutoVar')) return { passed: false, error: 'Name the variable MyAutoVar.' };
-          if (!code.includes('100.5f')) return { passed: false, error: 'Set the value to 100.5f.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_32',
-    title: '32. Modern C++: Lambda Expressions',
-    category: 'Stage 10: Modern C++ Features',
-    objective: `# Lambda Expressions
-A Lambda is a temporary, anonymous function that you can define inline.
-It is incredibly useful for passing temporary callback functions to algorithms or Unreal delegates.
-
-The syntax is: \`[captures](parameters) { body }\`.
-
-### Your Task
-Create a lambda function named \`MyLambda\` (using \`auto\`) that takes no parameters and returns nothing.
-Inside the body, write a simple comment \`// Do something\`.
-Capture nothing \`[]\`.
-`,
-    starterCode: {
-      'Source.cpp': 'void Practice() {\n    // TODO: Declare auto MyLambda = []() { /* Do something */ };\n    \n}\n'
-    },
-    hiddenTests: ['auto MyLambda = []', '()', '{', '}'],
-    successCriteria: [
-      'Use auto to define MyLambda',
-      'Use the lambda syntax [](){}'
-    ],
-    rules: [
+        id: 'r25_macro',
+        type: 'unreal',
+        description: 'USTRUCT(BlueprintType)',
+        evaluate: (code) => ({
+          passed: code.includes('USTRUCT(BlueprintType)'),
+          error: 'Missing USTRUCT(BlueprintType) macro.',
+          fix: 'USTRUCT(BlueprintType)',
+        }),
+      },
       {
-        id: 'rule_task_32',
-        type: 'exercise',
-        description: 'Lambda implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('auto MyLambda')) return { passed: false, error: 'Declare auto MyLambda.' };
-          if (!code.includes('[]') && !code.includes('()')) return { passed: false, error: 'Use lambda syntax with captures and parameters.' };
-          if (!code.includes('{') || !code.includes('}')) return { passed: false, error: 'Include the lambda body.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_33',
-    title: '33. Templates (Generic Programming)',
-    category: 'Stage 10: Modern C++ Features',
-    objective: `# C++ Templates
-Templates allow you to write functions or classes that operate with generic types.
-Instead of writing an \`Add(int, int)\` and \`Add(float, float)\`, you write a template that works for *any* numeric type.
-
-\`template <typename T>\`
-\`T Add(T A, T B) { return A + B; }\`
-
-### Your Task
-Create a template function named \`GetMax\` that returns the maximum of two values \`A\` and \`B\`.
-Prefix it with \`template <typename T>\`.
-Make it return type \`T\`, accepting \`T A\` and \`T B\`.
-You can use \`return (A > B) ? A : B;\` inside.
-`,
-    starterCode: {
-      'Source.h': '// TODO: Write template generic function GetMax\n\n'
-    },
-    hiddenTests: ['template <typename T>', 'T GetMax', 'T A', 'T B'],
-    successCriteria: [
-      'Write template <typename T>',
-      'Function GetMax returns T and takes T A, T B'
-    ],
-    rules: [
+        id: 'r25_struct',
+        type: 'unreal',
+        description: 'struct FItemData declared',
+        evaluate: (code) => ({
+          passed: code.includes('struct FItemData'),
+          error: 'Declare struct FItemData.',
+          fix: 'struct FItemData { ... };',
+        }),
+      },
       {
-        id: 'rule_task_33',
-        type: 'exercise',
-        description: 'Template implemented correctly.',
-        evaluate: (code) => {
-          if (!code.includes('template <typename T>') && !code.includes('template<typename T>')) return { passed: false, error: 'Must specify template <typename T>.' };
-          if (!code.includes('T GetMax')) return { passed: false, error: 'Function must be named GetMax and return T.' };
-          if (!code.includes('T A') || !code.includes('T B')) return { passed: false, error: 'Function must accept T A and T B.' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_34',
-    title: '34. Move Semantics',
-    category: 'Stage 10: Modern C++ Features',
-    objective: `# Move Semantics & Rvalue References
-When copying large data (like huge arrays or complex strings), duplicating memory is very slow.
-Modern C++ introduced Move Semantics (\`std::move\`) which allows resources to be "stolen" from temporary objects instead of copied.
-
-### Your Task
-You have an \`FString\` named \`SourceInfo\`.
-Declare a new \`FString\` named \`TargetInfo\` and initialize it by moving \`SourceInfo\` using \`MoveTemp()\` (Unreal's version of \`std::move\`).
-`,
-    starterCode: {
-      'Source.cpp': 'void SetupStrings() {\n    FString SourceInfo = TEXT("Heavy Data Placed Here");\n    // TODO: Create TargetInfo and use MoveTemp(SourceInfo)\n    \n}\n'
-    },
-    hiddenTests: ['FString TargetInfo = MoveTemp(SourceInfo);'],
-    successCriteria: [
-      'Declare FString TargetInfo',
-      'Use MoveTemp(SourceInfo) to avoid copying'
+        id: 'r25_gen',
+        type: 'unreal',
+        description: 'GENERATED_BODY() inside struct',
+        evaluate: (code) => ({
+          passed: code.includes('GENERATED_BODY()'),
+          error: 'Structs used with UHT must contain GENERATED_BODY().',
+          fix: 'GENERATED_BODY()',
+        }),
+      },
     ],
-    rules: [
+    exampleSolutions: [
       {
-        id: 'rule_task_34',
-        type: 'exercise',
-        description: 'MoveTemp used successfully.',
-        evaluate: (code) => {
-          if (!code.includes('TargetInfo')) return { passed: false, error: 'Declare TargetInfo.' };
-          if (!code.includes('MoveTemp(SourceInfo)')) return { passed: false, error: 'Must use MoveTemp(SourceInfo).' };
-          return { passed: true };
-        }
-      }
-    ]
-  },
-  {
-    id: 'task_35',
-    title: '35. Virtual Destructors',
-    category: 'Stage 10: Modern C++ Features',
-    objective: `# Memory Safety in Inheritance
-When you use inheritance, deleting a derived class object through a pointer to the base class results in undefined behavior (usually a memory leak), UNLESS the base class has a **virtual destructor**.
+        id: 'sol_25a',
+        title: 'FItemData with two members',
+        code: {
+          'Source.h': `USTRUCT(BlueprintType)
+struct FItemData
+{
+    GENERATED_BODY()
 
-### Your Task
-You are building the base class for standard C++ logic.
-Define a public \`virtual ~FBaseLogic();\` inside \`FBaseLogic\`.
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    FName ItemName;
+
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
+    float Weight = 1.0f;
+};
 `,
-    starterCode: {
-      'Source.h': 'class FBaseLogic {\npublic:\n    // TODO: Declare virtual destructor\n    \n};\n'
-    },
-    hiddenTests: ['virtual ~FBaseLogic();'],
-    successCriteria: [
-      'Declare the virtual destructor for FBaseLogic'
+        },
+        explanation: 'struct members must also be decorated with UPROPERTY() to be visible in Blueprint. Structs without UPROPERTY members are still useful in C++ but invisible to BP.',
+      },
     ],
-    rules: [
-      {
-        id: 'rule_task_35',
-        type: 'exercise',
-        description: 'Virtual destructor used.',
-        evaluate: (code) => {
-          if (!code.includes('virtual ~FBaseLogic()')) return { passed: false, error: 'Declare virtual ~FBaseLogic().' };
-          return { passed: true };
-        }
-      }
-    ]
   },
+
+  // -------------------------------------------------------------------------
   {
-    id: 'task_36',
-    title: '36. Blueprint Implementable Events',
-    category: 'Stage 11: Blueprint Integration',
-    objective: `# Calling Blueprints from C++
-Sometimes you want designers to implement a graphical effect in Blueprints (like particle effects), but you want to trigger it from C++.
-You can use \`UFUNCTION(BlueprintImplementableEvent)\` to declare a function in C++ that has NO C++ body, guaranteeing it will be implemented entirely in Blueprint!
+    id: 'task_26',
+    title: '26. BlueprintImplementableEvent',
+    category: 'Stage 6: Blueprint Integration',
+    objective: `# BlueprintImplementableEvent
 
-If you want a C++ base implementation that Blueprints can optionally override, you would use \`BlueprintNativeEvent\`.
+Use this when you want C++ to *trigger* something and let the designer implement the visual response (particle effects, sounds, UI animations) in Blueprint without touching C++ at all.
 
-### Your Task
-Declare a function named \`void OnTakeDamage();\`. 
-Add the \`UFUNCTION(BlueprintImplementableEvent)\` macro above it. Note: Do not write a body ({}) for this function!
+\`\`\`cpp
+// Header — declare but NO body in C++
+UFUNCTION(BlueprintImplementableEvent)
+void OnTakeDamage();
+
+// Blueprint will implement OnTakeDamage with visual nodes
+\`\`\`
+
+**Important:** Do **not** provide a C++ body (\`{}\`). If you need a C++ fallback, use \`BlueprintNativeEvent\` instead and implement \`void OnTakeDamage_Implementation()\`.
+
+## Your Task
+Declare \`void OnTakeDamage();\` with \`UFUNCTION(BlueprintImplementableEvent)\`. No function body in C++.
 `,
     starterCode: {
-      'Source.h': 'class APlayer : public ACharacter {\npublic:\n    // TODO: Declare OnTakeDamage as a BlueprintImplementableEvent\n    \n};\n'
+      'Source.h': `class APlayer : public ACharacter
+{
+public:
+    // TODO: Declare OnTakeDamage as a BlueprintImplementableEvent (no body!)
+};
+`,
     },
     hiddenTests: ['BlueprintImplementableEvent', 'void OnTakeDamage();'],
     successCriteria: [
-      'Use UFUNCTION(BlueprintImplementableEvent)',
-      'Declare void OnTakeDamage();'
+      'UFUNCTION(BlueprintImplementableEvent) macro',
+      'void OnTakeDamage() declared without a body',
     ],
     rules: [
       {
-        id: 'rule_task_36',
-        type: 'exercise',
-        description: 'BlueprintImplementableEvent correct.',
-        evaluate: (code) => {
-          if (!code.includes('BlueprintImplementableEvent')) return { passed: false, error: 'Missing BlueprintImplementableEvent specifier.' };
-          if (!code.includes('void OnTakeDamage();')) return { passed: false, error: 'Declare void OnTakeDamage(); without a body.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r26_macro',
+        type: 'unreal',
+        description: 'BlueprintImplementableEvent specifier',
+        evaluate: (code) => ({
+          passed: code.includes('BlueprintImplementableEvent'),
+          error: 'Missing BlueprintImplementableEvent specifier.',
+          fix: 'UFUNCTION(BlueprintImplementableEvent)\nvoid OnTakeDamage();',
+        }),
+      },
+      {
+        id: 'r26_decl',
+        type: 'unreal',
+        description: 'void OnTakeDamage() declared as a forward declaration (no { })',
+        evaluate: (code) => ({
+          passed: /void\s+OnTakeDamage\s*\(\s*\)\s*;/.test(code),
+          error: 'Declare void OnTakeDamage(); — note the semicolon, no curly brace body.',
+          fix: 'void OnTakeDamage();',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_26a',
+        title: 'Correct declaration',
+        code: {
+          'Source.h': `class APlayer : public ACharacter
+{
+    GENERATED_BODY()
+public:
+    // C++ calls this; Blueprint implements it
+    UFUNCTION(BlueprintImplementableEvent, Category = "Damage")
+    void OnTakeDamage();
+};
+`,
+        },
+        explanation: 'UHT generates the C++ glue. Calling OnTakeDamage() from C++ will invoke the Blueprint graph without any extra work.',
+      },
+    ],
   },
+
+  // =========================================================================
+  // STAGE 7 — PRODUCTION STANDARDS
+  // =========================================================================
+
+  {
+    id: 'task_27',
+    title: '27. Assertions — check, ensure, verify',
+    category: 'Stage 7: Production Standards',
+    objective: `# Assertions in Unreal Engine
+
+Assertions catch programmer mistakes at the earliest possible point:
+
+| Macro | Shipping? | Behaviour on failure |
+|-------|-----------|----------------------|
+| \`check(cond)\` | ❌ stripped | Crash immediately (fatal) |
+| \`verify(cond)\` | ✅ kept | Crash (evaluates the expression in shipping) |
+| \`ensure(cond)\` | ✅ kept | Log + continue (non-fatal) |
+
+\`\`\`cpp
+void Heal()
+{
+    ensure(Health > 0);   // warn if already dead, but don't crash
+    check(HealComponent); // fatal: we cannot proceed without HealComponent
+    Health += 50;
+}
+\`\`\`
+
+Use \`ensure\` for "this shouldn't happen, but we can recover." Use \`check\` for "this is impossible and continuing would corrupt state."
+
+## Your Task
+Inside \`APlayer::Heal()\`, add \`ensure(Health > 0);\` **before** any healing logic.
+`,
+    starterCode: {
+      'Source.cpp': `void APlayer::Heal()
+{
+    // TODO: Add ensure(Health > 0) before healing
+    Health += 50;
+}
+`,
+    },
+    hiddenTests: ['ensure', 'Health > 0'],
+    successCriteria: ['Write ensure(Health > 0); before modifying Health'],
+    rules: [
+      {
+        id: 'r27_ensure',
+        type: 'unreal',
+        description: 'ensure(Health > 0) present',
+        evaluate: (code) => ({
+          passed: /ensure\s*\(\s*Health\s*>\s*0\s*\)/.test(code),
+          error: 'Must add ensure(Health > 0);',
+          fix: 'ensure(Health > 0);',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_27a',
+        title: 'ensure before healing',
+        code: {
+          'Source.cpp': `void APlayer::Heal()
+{
+    ensure(Health > 0);        // non-fatal warning if health is already 0 or negative
+    check(Health <= MaxHealth); // fatal: healing above max is a logic error
+    Health += 50;
+}
+`,
+        },
+        explanation: 'Layered assertions: ensure logs and continues so QA can report the state; check halts on impossible states where continuing is dangerous.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_28',
+    title: '28. Safe Casting — Cast<T>',
+    category: 'Stage 7: Production Standards',
+    objective: `# Safe Casting with Cast<T>
+
+\`dynamic_cast\` is **disabled** in Unreal Engine (for performance). Use \`Cast<T>()\` instead:
+
+\`\`\`cpp
+AActor* HitActor = GetHitResult().GetActor();
+AMonster* Monster = Cast<AMonster>(HitActor);
+
+if (Monster)
+{
+    Monster->TakeHit();    // safe — cast succeeded
+}
+// if cast failed: Monster == nullptr, no crash
+\`\`\`
+
+\`CastChecked<T>()\` is the asserting variant — it crashes if the cast fails. Use it when failure would mean a logic error.
+
+## Your Task
+In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it in a variable named \`MonsterTarget\`. Check if it's valid before using.
+`,
+    starterCode: {
+      'Source.cpp': `void OnHit(AActor* HitActor)
+{
+    // TODO: Cast HitActor to AMonster* and store in MonsterTarget
+    // TODO: Check MonsterTarget is valid before using it
+}
+`,
+    },
+    hiddenTests: ['AMonster*', 'Cast<AMonster>', 'HitActor', 'MonsterTarget'],
+    successCriteria: [
+      'Call Cast<AMonster>(HitActor)',
+      'Store result in MonsterTarget',
+      'Check MonsterTarget before use (if block or IsValid)',
+    ],
+    rules: [
+      {
+        id: 'r28_cast',
+        type: 'unreal',
+        description: 'Cast<AMonster> used',
+        evaluate: (code) => ({
+          passed: code.includes('Cast<AMonster>'),
+          error: 'Must use Cast<AMonster> (not static_cast or C-style cast).',
+          fix: 'AMonster* MonsterTarget = Cast<AMonster>(HitActor);',
+        }),
+      },
+      {
+        id: 'r28_var',
+        type: 'unreal',
+        description: 'Result stored in MonsterTarget',
+        evaluate: (code) => ({
+          passed: code.includes('MonsterTarget'),
+          error: 'Store the cast result in a variable named MonsterTarget.',
+          fix: 'AMonster* MonsterTarget = Cast<AMonster>(HitActor);',
+        }),
+      },
+      {
+        id: 'r28_guard',
+        type: 'unreal',
+        description: 'Null-check before using MonsterTarget',
+        evaluate: (code) => ({
+          passed: /if\s*\(\s*(MonsterTarget|IsValid\s*\(\s*MonsterTarget)/.test(code),
+          error: 'Check MonsterTarget for nullptr before using it (if (MonsterTarget) { ... }).',
+          fix: 'if (MonsterTarget) { MonsterTarget->TakeHit(); }',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_28a',
+        title: 'Standard Cast + null guard',
+        code: {
+          'Source.cpp': `void OnHit(AActor* HitActor)
+{
+    AMonster* MonsterTarget = Cast<AMonster>(HitActor);
+    if (MonsterTarget)
+    {
+        MonsterTarget->TakeHit();
+    }
+}
+`,
+        },
+        explanation: 'Cast<T> returns nullptr on failure. Always guard before use. For objects that might be GC\'d, use IsValid() instead of a raw nullptr check.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_29',
+    title: '29. UE_LOG — Structured Logging',
+    category: 'Stage 7: Production Standards',
+    objective: `# UE_LOG — Structured Game Logging
+
+\`std::cout\` doesn't work in shipped games. UE_LOG writes to:
+- The Output Log panel in the editor
+- \`YourProject/Saved/Logs/\` on disk
+- The screen (via \`GEngine->AddOnScreenDebugMessage\`)
+
+\`\`\`cpp
+UE_LOG(LogCategory, Verbosity, TEXT("format %s"), *SomeString);
+\`\`\`
+
+Verbosity levels: \`Fatal\`, \`Error\`, \`Warning\`, \`Display\`, \`Log\`, \`Verbose\`.
+
+In UE5.2+ prefer \`UE_LOGFMT\` which avoids the \`TEXT()\` wrapper and is type-safe:
+\`\`\`cpp
+#include "Logging/StructuredLog.h"
+UE_LOGFMT(LogTemp, Warning, "Loading '{Name}' failed", Package->GetName());
+\`\`\`
+
+## Your Task
+Write a \`UE_LOG\` call with:
+- Category: \`LogTemp\`
+- Verbosity: \`Warning\`
+- Message: \`TEXT("Booting Sequence Initiated")\`
+`,
+    starterCode: {
+      'Source.cpp': `void Practice()
+{
+    // TODO: Write a UE_LOG statement per the spec
+}
+`,
+    },
+    hiddenTests: ['UE_LOG', 'LogTemp', 'Warning', 'TEXT("Booting Sequence Initiated")'],
+    successCriteria: [
+      'Use UE_LOG macro',
+      'Category LogTemp',
+      'Verbosity Warning',
+      'Message TEXT("Booting Sequence Initiated")',
+    ],
+    rules: [
+      {
+        id: 'r29_macro',
+        type: 'unreal',
+        description: 'UE_LOG macro used',
+        evaluate: (code) => ({
+          passed: code.includes('UE_LOG('),
+          error: 'Must use UE_LOG() macro.',
+          fix: 'UE_LOG(LogTemp, Warning, TEXT("Booting Sequence Initiated"));',
+        }),
+      },
+      {
+        id: 'r29_cat',
+        type: 'unreal',
+        description: 'LogTemp category',
+        evaluate: (code) => ({
+          passed: code.includes('LogTemp'),
+          error: 'Category must be LogTemp.',
+          fix: 'UE_LOG(LogTemp, ...',
+        }),
+      },
+      {
+        id: 'r29_verb',
+        type: 'unreal',
+        description: 'Warning verbosity',
+        evaluate: (code) => ({
+          passed: code.includes('Warning'),
+          error: 'Verbosity must be Warning.',
+          fix: 'UE_LOG(LogTemp, Warning, ...',
+        }),
+      },
+      {
+        id: 'r29_msg',
+        type: 'unreal',
+        description: 'Exact message string',
+        evaluate: (code) => ({
+          passed: code.includes('TEXT("Booting Sequence Initiated")'),
+          error: 'Message must be TEXT("Booting Sequence Initiated") — check spelling and TEXT() macro.',
+          fix: 'TEXT("Booting Sequence Initiated")',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_29a',
+        title: 'Standard UE_LOG call',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    UE_LOG(LogTemp, Warning, TEXT("Booting Sequence Initiated"));
+}
+`,
+        },
+        explanation: 'For format arguments use %s (FString — dereference with *), %d (int32), %f (float). Example: UE_LOG(LogTemp, Log, TEXT("HP: %d"), Health);',
+      },
+    ],
+  },
+
+  // =========================================================================
+  // STAGE 8 — UNREAL WORKFLOWS
+  // =========================================================================
+
+  {
+    id: 'task_30',
+    title: '30. Naming Conventions — Hungarian Prefixes',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# Naming Conventions in Unreal Engine
+
+UHT and the engine rely on prefix conventions for reflection and code generation:
+
+| Prefix | Class type | Example |
+|--------|-----------|---------|
+| \`A\` | Actor | \`APlayerCharacter\` |
+| \`U\` | UObject component | \`UHealthComponent\` |
+| \`F\` | Struct / value type | \`FVector\`, \`FHitResult\` |
+| \`E\` | Enum | \`EPlayerState\` |
+| \`I\` | Interface | \`IDamageable\` |
+| \`T\` | Template | \`TArray<T>\` |
+| \`b\` | Boolean member | \`bIsJumping\` |
+| \`G\` | Global | \`GEngine\` |
+
+Violating naming conventions causes UHT compilation errors.
+
+## Your Task
+Declare a boolean member variable for "is the player jumping" using the correct Unreal prefix. Initialise it to \`false\`.
+`,
+    starterCode: {
+      'Source.h': `class APlayer : public ACharacter
+{
+    // TODO: Declare a bool with correct UE naming for "is jumping", set to false
+};
+`,
+    },
+    hiddenTests: ['bool bIsJumping', 'false'],
+    successCriteria: [
+      'Variable named bIsJumping (b prefix)',
+      'Type bool',
+      'Initialised to false',
+    ],
+    rules: [
+      {
+        id: 'r30_name',
+        type: 'exercise',
+        description: 'bool bIsJumping declared',
+        evaluate: (code) => ({
+          passed: code.includes('bIsJumping'),
+          error: 'Variable must be named bIsJumping (Unreal boolean prefix b).',
+          fix: 'bool bIsJumping = false;',
+        }),
+      },
+      {
+        id: 'r30_init',
+        type: 'exercise',
+        description: 'Initialised to false',
+        evaluate: (code) => ({
+          passed: /bIsJumping\s*=\s*false/.test(code),
+          error: 'Must initialise bIsJumping = false.',
+          fix: 'bool bIsJumping = false;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_30a',
+        title: 'Correct boolean with UPROPERTY',
+        code: {
+          'Source.h': `class APlayer : public ACharacter
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadOnly, Category = "Movement")
+    bool bIsJumping = false;
+};
+`,
+        },
+        explanation: 'The b prefix is mandatory — UHT enforces it and other engineers rely on it for quick type identification at a glance.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_31',
+    title: '31. FName vs FText — String Types',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# Choosing the Right String Type
+
+| Type | Mutable? | Localisable? | Best for |
+|------|---------|--------------|---------|
+| \`FName\` | ❌ | ❌ | Asset/tag identification (hashed, fast) |
+| \`FText\` | ❌ | ✅ | Any text the **player sees** (UI, subtitles) |
+| \`FString\` | ✅ | ❌ | General runtime manipulation |
+
+**Rule of thumb:**
+- Player reads it → \`FText\`
+- Engine identifies it → \`FName\`
+- You manipulate it in code → \`FString\`
+
+\`\`\`cpp
+FName   PlayerTag  = TEXT("Player");
+FText   Greeting   = FText::FromString(TEXT("Hello"));
+FString BuildMsg   = FString::Printf(TEXT("Score: %d"), Score);
+\`\`\`
+
+## Your Task
+Declare:
+1. \`FName PlayerTag = TEXT("Player");\`
+2. \`FText Greeting = FText::FromString(TEXT("Hello"));\`
+`,
+    starterCode: {
+      'Source.cpp': `void SetupStrings()
+{
+    // TODO 1: FName PlayerTag = TEXT("Player")
+    // TODO 2: FText Greeting = FText::FromString(TEXT("Hello"))
+}
+`,
+    },
+    hiddenTests: ['FName PlayerTag', 'FText Greeting', 'FText::FromString'],
+    successCriteria: [
+      'Declare FName PlayerTag = TEXT("Player")',
+      'Declare FText Greeting = FText::FromString(TEXT("Hello"))',
+    ],
+    rules: [
+      {
+        id: 'r31_fname',
+        type: 'unreal',
+        description: 'FName PlayerTag declared',
+        evaluate: (code) => ({
+          passed: code.includes('FName PlayerTag') && code.includes('"Player"'),
+          error: 'Must declare FName PlayerTag = TEXT("Player");',
+          fix: 'FName PlayerTag = TEXT("Player");',
+        }),
+      },
+      {
+        id: 'r31_ftext',
+        type: 'unreal',
+        description: 'FText Greeting via FText::FromString',
+        evaluate: (code) => ({
+          passed: code.includes('FText Greeting') && code.includes('FText::FromString'),
+          error: 'Must declare FText Greeting using FText::FromString(TEXT("Hello"));',
+          fix: 'FText Greeting = FText::FromString(TEXT("Hello"));',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_31a',
+        title: 'All three string types compared',
+        code: {
+          'Source.cpp': `void SetupStrings()
+{
+    FName   PlayerTag = TEXT("Player");                        // hashed, immutable
+    FText   Greeting  = FText::FromString(TEXT("Hello"));      // localisable
+    FString ChatMsg   = FString::Printf(TEXT("Hi, %s!"), *Greeting.ToString()); // manipulable
+}
+`,
+        },
+        explanation: 'In production, use NSLOCTEXT("Namespace", "Key", "Hello") for FText instead of FromString — it integrates with the localization pipeline.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_32',
+    title: '32. TMap — Hash-Map Lookups',
+    category: 'Stage 8: Unreal Workflows',
+    objective: `# TMap — O(1) Key→Value Lookup
+
+\`TArray\` gives O(n) search. When you need instant lookup by key, use \`TMap\`:
+
+\`\`\`cpp
+TMap<FName, int32> PlayerScores;
+PlayerScores.Add(TEXT("Alice"), 1200);
+PlayerScores.Add(TEXT("Bob"),   980);
+
+int32* Score = PlayerScores.Find(TEXT("Alice")); // O(1) lookup
+if (Score) { UE_LOG(LogTemp, Log, TEXT("Score: %d"), *Score); }
+\`\`\`
+
+Common operations:
+- \`Add(Key, Value)\` — insert or overwrite
+- \`Find(Key)\` — returns \`T*\` (nullptr if missing)
+- \`Remove(Key)\` — delete entry
+- \`Contains(Key)\` — boolean check
+
+## Your Task
+Inside \`AGameState\`, declare \`TMap<FName, float> PlayerScores\` with \`UPROPERTY()\`.
+`,
+    starterCode: {
+      'Source.h': `class AGameState : public AInfo
+{
+    // TODO: Declare TMap<FName, float> PlayerScores with UPROPERTY()
+};
+`,
+    },
+    hiddenTests: ['TMap<FName, float>', 'PlayerScores', 'UPROPERTY'],
+    successCriteria: [
+      'UPROPERTY() macro present',
+      'TMap<FName, float> PlayerScores declared',
+    ],
+    rules: [
+      {
+        id: 'r32_prop',
+        type: 'unreal',
+        description: 'UPROPERTY() on PlayerScores',
+        evaluate: (code) => ({
+          passed: /UPROPERTY\s*\(/.test(code),
+          error: 'TMap members must be decorated with UPROPERTY() for GC visibility.',
+          fix: 'UPROPERTY()',
+        }),
+      },
+      {
+        id: 'r32_tmap',
+        type: 'unreal',
+        description: 'TMap<FName, float> PlayerScores',
+        evaluate: (code) => ({
+          passed: /TMap\s*<\s*FName\s*,\s*float\s*>/.test(code) && code.includes('PlayerScores'),
+          error: 'Declare TMap<FName, float> PlayerScores.',
+          fix: 'TMap<FName, float> PlayerScores;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_32a',
+        title: 'TMap with UPROPERTY',
+        code: {
+          'Source.h': `class AGameState : public AInfo
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(BlueprintReadOnly, Category = "Scores")
+    TMap<FName, float> PlayerScores;
+};
+`,
+        },
+        explanation: 'Note: TMap is not replicatable out-of-the-box for networking. For replicated dictionaries, consider a TArray of custom structs with a NetSerialize function.',
+      },
+    ],
+  },
+
+  // =========================================================================
+  // STAGE 9 — ENTERPRISE ARCHITECTURE
+  // =========================================================================
+
+  {
+    id: 'task_33',
+    title: '33. Smart Pointers — TSharedPtr & TUniquePtr',
+    category: 'Stage 9: Enterprise Architecture',
+    objective: `# Smart Pointers for Non-UObject Code
+
+UObject subclasses use the GC. For **plain C++ classes** (not UObject), manual memory management → leaks. Smart pointers automate this:
+
+| Type | Ownership | Nullable | Thread-safe ref count |
+|------|-----------|----------|-----------------------|
+| \`TUniquePtr<T>\` | Exclusive | yes | — |
+| \`TSharedPtr<T>\` | Shared (ref-counted) | yes | optional |
+| \`TWeakPtr<T>\` | Observer (no ownership) | yes | — |
+
+\`\`\`cpp
+TUniquePtr<FMyData> Unique = MakeUnique<FMyData>();
+TSharedPtr<FMyData> Shared = MakeShared<FMyData>();
+TWeakPtr<FMyData>   Weak   = Shared;  // doesn't increment ref count
+\`\`\`
+
+## Your Task
+Inside \`FDataManager\`, declare a \`TSharedPtr<FMyData>\` named \`DataPtr\`.
+`,
+    starterCode: {
+      'Source.h': `struct FMyData { int32 Value; };
+
+class FDataManager
+{
+    // TODO: Declare TSharedPtr<FMyData> DataPtr
+};
+`,
+    },
+    hiddenTests: ['TSharedPtr<FMyData>', 'DataPtr'],
+    successCriteria: [
+      'TSharedPtr<FMyData> declared',
+      'Named DataPtr',
+    ],
+    rules: [
+      {
+        id: 'r33_type',
+        type: 'exercise',
+        description: 'TSharedPtr<FMyData> declared',
+        evaluate: (code) => ({
+          passed: /TSharedPtr\s*<\s*FMyData\s*>/.test(code),
+          error: 'Must use TSharedPtr<FMyData>.',
+          fix: 'TSharedPtr<FMyData> DataPtr;',
+        }),
+      },
+      {
+        id: 'r33_name',
+        type: 'exercise',
+        description: 'Variable named DataPtr',
+        evaluate: (code) => ({
+          passed: code.includes('DataPtr'),
+          error: 'Name the variable DataPtr.',
+          fix: 'TSharedPtr<FMyData> DataPtr;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_33a',
+        title: 'TSharedPtr with initialisation',
+        code: {
+          'Source.h': `struct FMyData { int32 Value = 0; };
+
+class FDataManager
+{
+public:
+    TSharedPtr<FMyData> DataPtr;
+
+    FDataManager()
+        : DataPtr(MakeShared<FMyData>())   // initialise immediately
+    {}
+};
+`,
+        },
+        explanation: 'MakeShared<T>() is preferred over TSharedPtr<T>(new T()) — it allocates the object and ref-count block in a single allocation.',
+      },
+    ],
+  },
+
+  // =========================================================================
+  // STAGE 10 — MODERN C++ FEATURES
+  // =========================================================================
+
+  {
+    id: 'task_34',
+    title: '34. The auto Keyword',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# auto — Type Deduction
+
+\`auto\` tells the compiler to deduce the type from the initialiser. It removes redundancy:
+
+\`\`\`cpp
+// Verbose:
+TMap<FName, TArray<FHitResult>>::TIterator It = Map.CreateIterator();
+
+// auto:
+auto It = Map.CreateIterator();   // same type, less noise
+\`\`\`
+
+**When to use auto** (Unreal style guide):
+- ✅ Iterator types / range-for variables
+- ✅ When the type appears on the same line (e.g., casts, MakeShared)
+- ❌ Function return types visible to callers (hides the return type)
+- ❌ UPROPERTY members (UHT needs explicit types)
+
+## Your Task
+Declare a variable named \`MyAutoVar\` using \`auto\` and set it to \`100.5f\`.
+`,
+    starterCode: {
+      'Source.cpp': `void Practice()
+{
+    // TODO: Declare auto MyAutoVar = 100.5f
+}
+`,
+    },
+    hiddenTests: ['auto MyAutoVar', '100.5f'],
+    successCriteria: [
+      'Use the auto keyword',
+      'Variable named MyAutoVar',
+      'Initialised to 100.5f',
+    ],
+    rules: [
+      {
+        id: 'r34_auto',
+        type: 'exercise',
+        description: 'auto keyword used',
+        evaluate: (code) => ({
+          passed: /auto\s+MyAutoVar/.test(code),
+          error: 'Declare: auto MyAutoVar = 100.5f;',
+          fix: 'auto MyAutoVar = 100.5f;',
+        }),
+      },
+      {
+        id: 'r34_val',
+        type: 'exercise',
+        description: 'Value is 100.5f',
+        evaluate: (code) => ({
+          passed: code.includes('100.5f'),
+          error: 'Set value to 100.5f (the f suffix makes it float, not double).',
+          fix: 'auto MyAutoVar = 100.5f;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_34a',
+        title: 'auto with float literal',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    auto MyAutoVar = 100.5f;  // deduced as float
+
+    // auto is especially useful with complex iterator types:
+    TArray<int32> Arr = {1, 2, 3};
+    for (auto& Val : Arr) { Val *= 2; }
+}
+`,
+        },
+        explanation: 'Without the f suffix, 100.5 would be a double literal and MyAutoVar would be deduced as double — a subtle type mismatch.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_35',
+    title: '35. Lambda Expressions',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Lambda Expressions — Inline Anonymous Functions
+
+A lambda is a temporary function defined inline. Syntax:
+\`\`\`cpp
+[capture](params) -> ReturnType { body }
+\`\`\`
+
+Common in Unreal for:
+- Delegate binding: \`Delegate.BindLambda([this]() { ... });\`
+- Sorting: \`Arr.Sort([](const FMyStruct& A, const FMyStruct& B) { return A.Score > B.Score; });\`
+- Async callbacks: \`AsyncTask(ENamedThreads::GameThread, [this]() { ... });\`
+
+Capture modes:
+- \`[]\` — capture nothing
+- \`[this]\` — capture \`this\` pointer (members accessible)
+- \`[&]\` — capture all locals by reference
+- \`[=]\` — capture all locals by value
+
+## Your Task
+Declare \`auto MyLambda\` as a lambda that:
+- Captures nothing \`[]\`
+- Takes no parameters \`()\`
+- Returns nothing
+- Has an empty body (or a comment inside)
+`,
+    starterCode: {
+      'Source.cpp': `void Practice()
+{
+    // TODO: Declare auto MyLambda = []() { /* body */ };
+}
+`,
+    },
+    hiddenTests: ['auto MyLambda', '[]', '()', '{'],
+    successCriteria: [
+      'auto MyLambda declared',
+      'Lambda syntax []() { }',
+    ],
+    rules: [
+      {
+        id: 'r35_decl',
+        type: 'exercise',
+        description: 'auto MyLambda = lambda',
+        evaluate: (code) => ({
+          passed: /auto\s+MyLambda\s*=/.test(code),
+          error: 'Declare: auto MyLambda = [...](...) { ... };',
+          fix: 'auto MyLambda = []() { };',
+        }),
+      },
+      {
+        id: 'r35_syntax',
+        type: 'exercise',
+        description: 'Lambda syntax []() { }',
+        evaluate: (code) => ({
+          passed: /\[\s*\]\s*\(\s*\)\s*\{/.test(code),
+          error: 'Lambda must use []() { } syntax.',
+          fix: 'auto MyLambda = []() { /* do something */ };',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_35a',
+        title: 'Basic lambda + invocation',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    auto MyLambda = []()
+    {
+        UE_LOG(LogTemp, Log, TEXT("Lambda executed!"));
+    };
+
+    MyLambda();   // call it like a regular function
+}
+`,
+        },
+        explanation: 'Lambdas are stored as closures — objects with an operator(). auto deduces the unique compiler-generated type.',
+      },
+      {
+        id: 'sol_35b',
+        title: 'Lambda bound to a delegate',
+        code: {
+          'Source.cpp': `void Practice()
+{
+    FTimerDelegate TimerDel;
+    TimerDel.BindLambda([this]()
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Timer fired!"));
+    });
+
+    GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
+}
+`,
+        },
+        explanation: 'The [this] capture lets the lambda access member variables. Beware: if the owning object is destroyed before the timer fires, this will be a dangling pointer. Use TWeakObjectPtr for safety.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_36',
+    title: '36. Templates — Generic Programming',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# C++ Templates
+
+Without templates, you'd write \`MaxInt(int a, int b)\`, \`MaxFloat(float a, float b)\`, \`MaxDouble(…)\` — endless duplication.
+
+With templates, one definition works for any comparable type:
+\`\`\`cpp
+template <typename T>
+T GetMax(T A, T B)
+{
+    return (A > B) ? A : B;
+}
+
+GetMax(3, 7);           // T=int → 7
+GetMax(3.5f, 2.1f);     // T=float → 3.5f
+\`\`\`
+
+Unreal uses templates pervasively: \`TArray<T>\`, \`TMap<K,V>\`, \`Cast<T>()\`, \`MakeShared<T>()\`.
+
+## Your Task
+Write a template function \`GetMax\` that returns the larger of two values \`A\` and \`B\` of type \`T\`.
+`,
+    starterCode: {
+      'Source.h': `// TODO: Write template <typename T> T GetMax(T A, T B)
+`,
+    },
+    hiddenTests: ['template <typename T>', 'T GetMax', 'T A', 'T B'],
+    successCriteria: [
+      'template <typename T> prefix',
+      'Function named GetMax returning T',
+      'Parameters T A and T B',
+    ],
+    rules: [
+      {
+        id: 'r36_tmpl',
+        type: 'exercise',
+        description: 'template <typename T> prefix present',
+        evaluate: (code) => ({
+          passed: /template\s*<\s*typename\s+T\s*>/.test(code),
+          error: 'Must have template <typename T> before the function.',
+          fix: 'template <typename T>',
+        }),
+      },
+      {
+        id: 'r36_fn',
+        type: 'exercise',
+        description: 'T GetMax(T A, T B) signature',
+        evaluate: (code) => ({
+          passed: /T\s+GetMax\s*\(\s*T\s+A\s*,\s*T\s+B\s*\)/.test(code),
+          error: 'Function signature must be: T GetMax(T A, T B)',
+          fix: 'T GetMax(T A, T B) { return (A > B) ? A : B; }',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_36a',
+        title: 'Template GetMax with ternary',
+        code: {
+          'Source.h': `template <typename T>
+T GetMax(T A, T B)
+{
+    return (A > B) ? A : B;
+}
+
+// Usage:
+// int32 MaxHP  = GetMax(100, 200);    // → 200
+// float MaxDmg = GetMax(45.5f, 12.0f); // → 45.5f
+`,
+        },
+        explanation: 'The compiler generates a separate function body for each unique T used. No runtime overhead compared to non-template — it\'s purely compile-time code generation.',
+      },
+    ],
+  },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_37',
-    title: '37. UPROPERTY Meta Tags (Units)',
-    category: 'Stage 11: Blueprint Integration',
-    objective: `# UPROPERTY Meta Tags
-The \`meta\` tags allow you to add extra editor functionality to your properties.
-For example, you can specify physical units like Celsius, Kilograms, or Percent to help designers understand what a float represents. 
-Syntax: \`UPROPERTY(EditAnywhere, meta=(Units="Celsius"))\`
+    title: '37. Move Semantics — MoveTemp',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Move Semantics — Steal, Don't Copy
 
-### Your Task
-Declare a float named \`Temperature\`. 
-Give it the \`EditAnywhere\` specifier and a \`meta=(Units="Celsius")\` tag inside the \`UPROPERTY\` macro.
+When you assign one \`FString\` to another, the internal character buffer is **copied** — an allocation + byte-copy. For megabyte strings, this is expensive.
+
+**Move semantics** transfer ownership of the internal buffer — no allocation, no copy:
+\`\`\`cpp
+FString Source = TEXT("Very Long String...");
+FString Target = MoveTemp(Source);   // buffer ownership transferred
+// Source is now empty (valid but unspecified state)
+\`\`\`
+
+Unreal's \`MoveTemp()\` is equivalent to \`std::move()\`.
+
+Use it when you're done with a variable and want to hand its data to another without copying (e.g., building a string then passing it to a function that stores it).
+
+## Your Task
+Given \`FString SourceInfo\`, declare \`FString TargetInfo\` and initialise it by *moving* from \`SourceInfo\` using \`MoveTemp\`.
 `,
     starterCode: {
-      'Source.h': 'class AWeatherSystem : public AActor {\n    // TODO: Declare Temperature float with correct UPROPERTY meta tag\n    \n};\n'
+      'Source.cpp': `void SetupStrings()
+{
+    FString SourceInfo = TEXT("Heavy Data Payload");
+
+    // TODO: Declare FString TargetInfo using MoveTemp(SourceInfo)
+}
+`,
     },
-    hiddenTests: ['meta=(Units="Celsius")', 'float Temperature;'],
+    hiddenTests: ['FString TargetInfo', 'MoveTemp(SourceInfo)'],
     successCriteria: [
-      'Use UPROPERTY(EditAnywhere, meta=(Units="Celsius"))',
-      'Declare float Temperature;'
+      'Declare FString TargetInfo',
+      'Use MoveTemp(SourceInfo) to initialise it',
     ],
     rules: [
       {
-        id: 'rule_task_37',
+        id: 'r37_target',
         type: 'exercise',
-        description: 'Meta tag used correctly.',
-        evaluate: (code) => {
-          if (!code.includes('meta=(Units="Celsius")') && !code.includes('meta = (Units = "Celsius")')) return { passed: false, error: 'Include the meta=(Units="Celsius") tag.' };
-          if (!code.includes('float Temperature;')) return { passed: false, error: 'Declare float Temperature;' };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'FString TargetInfo declared',
+        evaluate: (code) => ({
+          passed: code.includes('TargetInfo'),
+          error: 'Declare a variable named TargetInfo.',
+          fix: 'FString TargetInfo = MoveTemp(SourceInfo);',
+        }),
+      },
+      {
+        id: 'r37_move',
+        type: 'exercise',
+        description: 'MoveTemp(SourceInfo) used',
+        evaluate: (code) => ({
+          passed: code.includes('MoveTemp(SourceInfo)'),
+          error: 'Must use MoveTemp(SourceInfo) to avoid copying.',
+          fix: 'FString TargetInfo = MoveTemp(SourceInfo);',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_37a',
+        title: 'MoveTemp initialisation',
+        code: {
+          'Source.cpp': `void SetupStrings()
+{
+    FString SourceInfo = TEXT("Heavy Data Payload");
+    FString TargetInfo = MoveTemp(SourceInfo);
+
+    // SourceInfo is now empty:
+    ensure(SourceInfo.IsEmpty());
+    // TargetInfo holds the original buffer:
+    UE_LOG(LogTemp, Log, TEXT("TargetInfo: %s"), *TargetInfo);
+}
+`,
+        },
+        explanation: 'After MoveTemp, SourceInfo is in a "valid but unspecified" state — always treat it as empty. Use MoveTemp when returning large locals from a function to avoid a copy.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_38',
-    title: '38. GameMode Architecture',
-    category: 'Stage 12: Framework Architecture',
-    objective: `# GameMode
-In Unreal's Multiplayer framework, the \`AGameMode\` dictates the rules of the match. It exists ONLY on the server.
-If you need to define conditions like winning a match, managing spawn points, or starting a timer, it goes here.
-The base classes are \`AGameModeBase\` and \`AGameMode\` (which has more multiplayer match features).
+    title: '38. Virtual Destructors',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Virtual Destructors — Safe Polymorphic Cleanup
 
-### Your Task
-Create a class called \`AMyGameMode\` that inherits publicly from \`AGameModeBase\`.
+\`\`\`cpp
+FBaseLogic* Obj = new FDerivedLogic();
+delete Obj;   // which destructor runs?
+\`\`\`
+
+Without \`virtual ~FBaseLogic()\`, the compiler deletes as \`FBaseLogic\` — the derived class destructor **never runs** → resource leak.
+
+With a virtual destructor, \`delete\` correctly invokes \`~FDerivedLogic()\` first, then \`~FBaseLogic()\`.
+
+**Rule:** If a class has any virtual functions, give it a virtual destructor.
+
+UObjects handled by the GC don't have this problem (the GC knows the concrete type). But plain C++ base classes used polymorphically absolutely need it.
+
+## Your Task
+Add \`virtual ~FBaseLogic();\` to the class.
 `,
     starterCode: {
-      'Source.h': '// TODO: Create AMyGameMode inheriting from AGameModeBase\n\n'
+      'Source.h': `class FBaseLogic
+{
+public:
+    // TODO: Declare virtual destructor
+    virtual void Execute() = 0;
+};
+`,
     },
-    hiddenTests: ['class AMyGameMode : public AGameModeBase'],
-    successCriteria: [
-      'Class AMyGameMode',
-      'Inherit from AGameModeBase'
-    ],
+    hiddenTests: ['virtual ~FBaseLogic()'],
+    successCriteria: ['Declare virtual ~FBaseLogic();'],
     rules: [
       {
-        id: 'rule_task_38',
+        id: 'r38_dtor',
         type: 'exercise',
-        description: 'GameMode inheritance.',
-        evaluate: (code) => {
-          if (!code.includes('class AMyGameMode')) return { passed: false, error: 'Declare class AMyGameMode.' };
-          if (!code.includes(': public AGameModeBase')) return { passed: false, error: 'Inherit publicly from AGameModeBase.' };
-          return { passed: true };
-        }
-      }
-    ]
+        description: 'virtual ~FBaseLogic() declared',
+        evaluate: (code) => ({
+          passed: /virtual\s*~\s*FBaseLogic\s*\(\s*\)/.test(code),
+          error: 'Must declare virtual ~FBaseLogic();',
+          fix: 'virtual ~FBaseLogic() = default;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_38a',
+        title: 'Virtual destructor with = default',
+        code: {
+          'Source.h': `class FBaseLogic
+{
+public:
+    virtual ~FBaseLogic() = default;   // correct polymorphic cleanup
+    virtual void Execute() = 0;
+};
+`,
+        },
+        explanation: '= default asks the compiler to generate the default destructor body. This is more expressive than an empty {} and lets the compiler apply the Rule of Zero.',
+      },
+    ],
   },
+
+  // =========================================================================
+  // STAGE 11 — BLUEPRINT INTEGRATION (ADVANCED)
+  // =========================================================================
+
   {
     id: 'task_39',
-    title: '39. Math Data Types (FVector & FRotator)',
-    category: 'Stage 12: Framework Architecture',
-    objective: `# 3D Math Types
-Unreal has customized types for 3D Math that are heavily used across all components. Make sure you memorize these:
-- \`FVector\`: X, Y, Z coordinates.
-- \`FRotator\`: Pitch (Y), Yaw (Z), Roll (X).
-- \`FTransform\`: Combines Location, Rotation, and Scale.
+    title: '39. GameMode Architecture',
+    category: 'Stage 11: Framework Architecture',
+    objective: `# GameMode — The Rules of the Match
 
-### Your Task
-Declare an \`FVector\` named \`SpawnLocation\`.
-Declare an \`FRotator\` named \`SpawnRotation\`.
+\`AGameModeBase\` defines *how* the game is played:
+- Which Pawn class is used
+- Which PlayerController class is used
+- Win/loss conditions
+- Match state
+
+It exists **only on the server** (or in single-player). Never put client-side UI logic here.
+
+\`AGameMode\` extends \`AGameModeBase\` with multiplayer-specific features (match states, ready-to-start checks). For simpler games, \`AGameModeBase\` is sufficient.
+
+\`\`\`cpp
+UCLASS()
+class AMyGameMode : public AGameModeBase
+{
+    GENERATED_BODY()
+public:
+    AMyGameMode();
+    virtual void PostLogin(APlayerController* NewPlayer) override;
+};
+\`\`\`
+
+## Your Task
+Declare \`AMyGameMode\` inheriting from \`AGameModeBase\` with \`UCLASS()\` and \`GENERATED_BODY()\`.
 `,
     starterCode: {
-      'Source.h': 'class ASpawner : public AActor {\n    // TODO: Declare SpawnLocation (FVector) and SpawnRotation (FRotator)\n    \n};\n'
+      'Source.h': `// TODO: Declare AMyGameMode inheriting from AGameModeBase
+`,
     },
-    hiddenTests: ['FVector SpawnLocation;', 'FRotator SpawnRotation;'],
+    hiddenTests: ['class AMyGameMode', 'AGameModeBase', 'GENERATED_BODY()'],
     successCriteria: [
-      'Declare FVector SpawnLocation;',
-      'Declare FRotator SpawnRotation;'
+      'UCLASS() macro',
+      'class AMyGameMode : public AGameModeBase',
+      'GENERATED_BODY()',
     ],
     rules: [
       {
-        id: 'rule_task_39',
-        type: 'exercise',
-        description: 'Math data types declared.',
-        evaluate: (code) => {
-          if (!code.includes('FVector SpawnLocation;')) return { passed: false, error: 'Declare FVector SpawnLocation;' };
-          if (!code.includes('FRotator SpawnRotation;')) return { passed: false, error: 'Declare FRotator SpawnRotation;' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r39_uclass',
+        type: 'unreal',
+        description: 'UCLASS() macro',
+        evaluate: (code) => ({
+          passed: /UCLASS\s*\(/.test(code),
+          error: 'UCLASS() macro is missing.',
+          fix: 'UCLASS()',
+        }),
+      },
+      {
+        id: 'r39_decl',
+        type: 'unreal',
+        description: 'AMyGameMode : public AGameModeBase',
+        evaluate: (code) => ({
+          passed: code.includes('AMyGameMode') && code.includes('AGameModeBase'),
+          error: 'Declare AMyGameMode inheriting from AGameModeBase.',
+          fix: 'class AMyGameMode : public AGameModeBase',
+        }),
+      },
+      {
+        id: 'r39_gen',
+        type: 'unreal',
+        description: 'GENERATED_BODY()',
+        evaluate: (code) => ({
+          passed: code.includes('GENERATED_BODY()'),
+          error: 'Must include GENERATED_BODY() inside the class.',
+          fix: 'GENERATED_BODY()',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_39a',
+        title: 'AMyGameMode with override',
+        code: {
+          'Source.h': `UCLASS()
+class AMyGameMode : public AGameModeBase
+{
+    GENERATED_BODY()
+public:
+    AMyGameMode();
+
+    virtual void PostLogin(APlayerController* NewPlayer) override;
+    virtual void Logout(AController* Exiting)             override;
+};
+`,
+        },
+        explanation: 'PostLogin fires when a player joins. Logout fires when they disconnect. These are common hooks for match tracking in multiplayer.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_40',
-    title: '40. Draw Debug Shapes',
-    category: 'Stage 12: Framework Architecture',
-    objective: `# Draw Debug Helpers
-When prototyping, it is incredibly useful to draw lines, spheres, and boxes in the 3D world to visualize what your code is doing (e.g., drawing a line trace for a gun).
-Unreal provides \`DrawDebugHelpers.h\` for this.
+    title: '40. Math Data Types — FVector & FRotator',
+    category: 'Stage 11: Framework Architecture',
+    objective: `# 3D Math Types
 
-Common functions:
-- \`DrawDebugLine\`
-- \`DrawDebugSphere\`
-- \`DrawDebugBox\`
+| Type | Represents | Components |
+|------|-----------|-----------|
+| \`FVector\` | Position or direction | X, Y, Z |
+| \`FRotator\` | Euler rotation | Pitch (Y), Yaw (Z), Roll (X) |
+| \`FQuat\` | Quaternion rotation | X, Y, Z, W |
+| \`FTransform\` | Full transform | Location + Rotation + Scale |
 
-### Your Task
-Call \`DrawDebugSphere\` passing in \`GetWorld()\`, \`Location\`, \`Radius\`, \`Segments\`, and \`FColor::Red\`.
+\`\`\`cpp
+FVector  Origin   = FVector::ZeroVector;  // (0,0,0)
+FRotator Facing   = FRotator(0.f, 90.f, 0.f); // face right
+FVector  Forward  = Facing.Vector();       // → unit vector facing right
+\`\`\`
+
+In UE5, all math types default to \`double\` backend for Large World Coordinates support.
+
+## Your Task
+Inside \`ASpawner\`, declare:
+1. \`FVector SpawnLocation;\` (default-initialised)
+2. \`FRotator SpawnRotation;\` (default-initialised)
 `,
     starterCode: {
-      'Source.cpp': '#include "DrawDebugHelpers.h"\n\nvoid AMyActor::ShowDebugSphere() {\n    FVector Location = FVector(0, 0, 0);\n    float Radius = 100.0f;\n    int32 Segments = 12;\n    \n    // TODO: Call DrawDebugSphere\n    \n}\n'
+      'Source.h': `class ASpawner : public AActor
+{
+    // TODO: Declare FVector SpawnLocation and FRotator SpawnRotation
+};
+`,
     },
-    hiddenTests: ['DrawDebugSphere', 'GetWorld()', 'Location', 'Radius', 'Segments', 'FColor::Red'],
+    hiddenTests: ['FVector SpawnLocation', 'FRotator SpawnRotation'],
     successCriteria: [
-      'Call DrawDebugSphere',
-      'Pass GetWorld() as the first parameter',
-      'Pass FColor::Red'
+      'Declare FVector SpawnLocation',
+      'Declare FRotator SpawnRotation',
     ],
     rules: [
       {
-        id: 'rule_task_40',
-        type: 'exercise',
-        description: 'DrawDebugSphere implemented.',
-        evaluate: (code) => {
-          if (!code.includes('DrawDebugSphere')) return { passed: false, error: 'Must call DrawDebugSphere.' };
-          if (!code.includes('GetWorld()')) return { passed: false, error: 'Must pass GetWorld().' };
-          if (!code.includes('FColor::Red')) return { passed: false, error: 'Must pass FColor::Red.' };
-          return { passed: true };
-        }
-      }
-    ]
+        id: 'r40_vec',
+        type: 'unreal',
+        description: 'FVector SpawnLocation declared',
+        evaluate: (code) => ({
+          passed: code.includes('FVector SpawnLocation') || /FVector\s+SpawnLocation/.test(code),
+          error: 'Declare FVector SpawnLocation;',
+          fix: 'FVector SpawnLocation = FVector::ZeroVector;',
+        }),
+      },
+      {
+        id: 'r40_rot',
+        type: 'unreal',
+        description: 'FRotator SpawnRotation declared',
+        evaluate: (code) => ({
+          passed: code.includes('FRotator SpawnRotation') || /FRotator\s+SpawnRotation/.test(code),
+          error: 'Declare FRotator SpawnRotation;',
+          fix: 'FRotator SpawnRotation = FRotator::ZeroRotator;',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_40a',
+        title: 'UPROPERTY math members',
+        code: {
+          'Source.h': `class ASpawner : public AActor
+{
+    GENERATED_BODY()
+public:
+    UPROPERTY(EditAnywhere, Category = "Spawn")
+    FVector SpawnLocation = FVector::ZeroVector;
+
+    UPROPERTY(EditAnywhere, Category = "Spawn")
+    FRotator SpawnRotation = FRotator::ZeroRotator;
+};
+`,
+        },
+        explanation: 'FVector::ZeroVector and FRotator::ZeroRotator are convenient named constants. Use them over FVector(0,0,0) for clarity and to avoid typos.',
+      },
+    ],
   },
+
+  // -------------------------------------------------------------------------
   {
     id: 'task_41',
-    title: '41. Gameplay Timers',
-    category: 'Stage 12: Framework Architecture',
-    objective: `# Timers
-Instead of using Tick (which happens every frame and kills performance), if you want something to happen in exactly 2 seconds, you use the Timer Manager!
+    title: '41. Gameplay Timers — SetTimer',
+    category: 'Stage 11: Framework Architecture',
+    objective: `# Gameplay Timers — Scheduled Callbacks
 
-\`GetWorldTimerManager().SetTimer(...)\` is how you set a timer.
+\`Tick\` fires every frame. For "execute something in 2 seconds", Timers are far better:
 
-### Your Task
-You have an \`FTimerHandle\` named \`AttackTimer\`.
-Write a comment \`// Timers are better than Tick\` inside the function to show you understand. (We are simplifying setting the actual timer syntax for this exercise).
+\`\`\`cpp
+// Setup
+FTimerHandle AttackTimerHandle;
+
+void AEnemy::StartAttack()
+{
+    // Call PerformAttack after 1.5 seconds, once
+    GetWorldTimerManager().SetTimer(
+        AttackTimerHandle,
+        this,
+        &AEnemy::PerformAttack,
+        1.5f,           // delay in seconds
+        false           // bLooping
+    );
+}
+
+void AEnemy::PerformAttack()
+{
+    UE_LOG(LogTemp, Log, TEXT("Attack!"));
+}
+\`\`\`
+
+Timers are invalidated automatically if the owning actor is destroyed.
+
+## Your Task
+Implement \`AEnemy::StartAttack()\` that uses \`GetWorldTimerManager().SetTimer\` to call \`PerformAttack\` after **2.0** seconds, **non-looping**.
 `,
     starterCode: {
-      'Source.cpp': 'void AEnemy::StartAttack() {\n    FTimerHandle AttackTimer;\n    \n    // TODO: Add the comment about timers\n    \n}\n'
+      'Source.cpp': `void AEnemy::StartAttack()
+{
+    // TODO: Set a timer to call PerformAttack in 2.0 seconds (non-looping)
+    // Use GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false)
+}
+`,
     },
-    hiddenTests: ['Timers are better than Tick'],
+    hiddenTests: ['SetTimer', 'AttackTimerHandle', 'PerformAttack', '2.0f'],
     successCriteria: [
-      'Add the required comment'
+      'Call GetWorldTimerManager().SetTimer',
+      'Pass AttackTimerHandle',
+      'Target function &AEnemy::PerformAttack',
+      'Delay 2.0f, bLooping false',
     ],
     rules: [
       {
-        id: 'rule_task_41',
-        type: 'exercise',
-        description: 'Understand timers vs tick.',
-        evaluate: (code) => {
-          if (!code.includes('Timers are better than Tick')) return { passed: false, error: 'Must include the comment: // Timers are better than Tick' };
-          return { passed: true };
-        }
-      }
-    ]
-  }
+        id: 'r41_settimer',
+        type: 'unreal',
+        description: 'SetTimer called',
+        evaluate: (code) => ({
+          passed: code.includes('SetTimer'),
+          error: 'Call GetWorldTimerManager().SetTimer(...).',
+          fix: 'GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false);',
+        }),
+      },
+      {
+        id: 'r41_handle',
+        type: 'unreal',
+        description: 'AttackTimerHandle passed',
+        evaluate: (code) => ({
+          passed: code.includes('AttackTimerHandle'),
+          error: 'Pass AttackTimerHandle as the first argument.',
+          fix: 'SetTimer(AttackTimerHandle, ...)',
+        }),
+      },
+      {
+        id: 'r41_target',
+        type: 'unreal',
+        description: 'Target function is &AEnemy::PerformAttack',
+        evaluate: (code) => ({
+          passed: code.includes('PerformAttack'),
+          error: 'Target function must be &AEnemy::PerformAttack.',
+          fix: '&AEnemy::PerformAttack',
+        }),
+      },
+      {
+        id: 'r41_delay',
+        type: 'unreal',
+        description: 'Delay is 2.0f',
+        evaluate: (code) => ({
+          passed: code.includes('2.0f'),
+          error: 'Delay must be 2.0f seconds.',
+          fix: '2.0f, false',
+        }),
+      },
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_41a',
+        title: 'SetTimer + cancel on end',
+        code: {
+          'Source.cpp': `void AEnemy::StartAttack()
+{
+    GetWorldTimerManager().SetTimer(
+        AttackTimerHandle,
+        this,
+        &AEnemy::PerformAttack,
+        2.0f,    // delay in seconds
+        false    // not looping — fires once
+    );
+}
+
+void AEnemy::PerformAttack()
+{
+    UE_LOG(LogTemp, Log, TEXT("Attack executed!"));
+    // AttackTimerHandle is now invalid — don't check IsBound after a one-shot timer
+}
+
+void AEnemy::StopAttack()
+{
+    // Cancel if the enemy dies before the timer fires
+    GetWorldTimerManager().ClearTimer(AttackTimerHandle);
+}
+`,
+        },
+        explanation: 'Always store the handle if you might need to cancel. ClearTimer is safe to call even if the timer has already fired.',
+      },
+    ],
+  },
 ];

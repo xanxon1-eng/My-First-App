@@ -3,6 +3,7 @@ import Editor from '@monaco-editor/react';
 import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
 import { FileCode2, BookOpen, ChevronDown, ChevronRight } from 'lucide-react';
 import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export function CodeEditorWidget() {
   const { currentTask, documents, activeDocumentId, setActiveDocument, updateDocument } = useTrainingCore();
@@ -71,7 +72,7 @@ export function CodeEditorWidget() {
         {showObjective && (
           <div className="px-4 pb-4">
              <div className="markdown-body mb-4 text-sm">
-               <Markdown>{currentTask.objective}</Markdown>
+               <Markdown remarkPlugins={[remarkGfm]}>{currentTask.objective}</Markdown>
              </div>
              <h3 className="font-semibold text-white mb-2 pb-2 border-b border-kingfisher-border/50 text-sm">Rules & Criteria</h3>
              <ul className="list-disc pl-4 space-y-1 text-kingfisher-muted text-xs mb-4">
@@ -139,7 +140,7 @@ export function CodeEditorWidget() {
         <div className="hidden md:block w-72 lg:w-80 border-l border-kingfisher-border bg-kingfisher-panel p-4 overflow-y-auto shrink-0 text-sm">
           <h3 className="font-semibold text-white mb-2 pb-2 border-b border-kingfisher-border">Objective</h3>
           <div className="markdown-body mb-6 text-sm">
-            <Markdown>{currentTask.objective}</Markdown>
+            <Markdown remarkPlugins={[remarkGfm]}>{currentTask.objective}</Markdown>
           </div>
           
           <h3 className="font-semibold text-white mb-2 pb-2 border-b border-kingfisher-border">Rules & Criteria</h3>
