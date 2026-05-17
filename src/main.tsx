@@ -1,6 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import React, { Component, ReactNode } from 'react';
-import App from './App';
+import App from './Source/TrainingUI/App';
 import './index.css';
 
 // Solution 2: Global window fallback to prevent invisible crashes rendering a blank white/black screen
