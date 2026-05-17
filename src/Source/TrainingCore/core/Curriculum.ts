@@ -1111,5 +1111,179 @@ Syntax: \`TSharedPtr<FMyData> DataPtr;\`
         }
       }
     ]
+  },
+  {
+    id: 'task_31',
+    title: '31. Modern C++: The Auto Keyword',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# The Auto Keyword
+In Modern C++ (C++11 and later), you don't always need to explicitly declare the type of a variable if the compiler can deduce it from the initialization.
+This is especially useful for long iterator types or complicated template types.
+
+### Your Task
+Declare a variable using \`auto\` instead of an explicit type.
+Name it \`MyAutoVar\` and set it to \`100.5f\`.
+`,
+    starterCode: {
+      'Source.cpp': 'void Practice() {\n    // TODO: Declare MyAutoVar using auto and set it to 100.5f\n    \n}\n'
+    },
+    hiddenTests: ['auto MyAutoVar = 100.5f;'],
+    successCriteria: [
+      'Use the auto keyword',
+      'Name the variable MyAutoVar',
+      'Value should be 100.5f'
+    ],
+    rules: [
+      {
+        id: 'rule_task_31',
+        type: 'exercise',
+        description: 'Auto keyword used correctly.',
+        evaluate: (code) => {
+          if (!code.includes('auto ')) return { passed: false, error: 'Use the auto keyword.' };
+          if (!code.includes('MyAutoVar')) return { passed: false, error: 'Name the variable MyAutoVar.' };
+          if (!code.includes('100.5f')) return { passed: false, error: 'Set the value to 100.5f.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_32',
+    title: '32. Modern C++: Lambda Expressions',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Lambda Expressions
+A Lambda is a temporary, anonymous function that you can define inline.
+It is incredibly useful for passing temporary callback functions to algorithms or Unreal delegates.
+
+The syntax is: \`[captures](parameters) { body }\`.
+
+### Your Task
+Create a lambda function named \`MyLambda\` (using \`auto\`) that takes no parameters and returns nothing.
+Inside the body, write a simple comment \`// Do something\`.
+Capture nothing \`[]\`.
+`,
+    starterCode: {
+      'Source.cpp': 'void Practice() {\n    // TODO: Declare auto MyLambda = []() { /* Do something */ };\n    \n}\n'
+    },
+    hiddenTests: ['auto MyLambda = []', '()', '{', '}'],
+    successCriteria: [
+      'Use auto to define MyLambda',
+      'Use the lambda syntax [](){}'
+    ],
+    rules: [
+      {
+        id: 'rule_task_32',
+        type: 'exercise',
+        description: 'Lambda implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('auto MyLambda')) return { passed: false, error: 'Declare auto MyLambda.' };
+          if (!code.includes('[]') && !code.includes('()')) return { passed: false, error: 'Use lambda syntax with captures and parameters.' };
+          if (!code.includes('{') || !code.includes('}')) return { passed: false, error: 'Include the lambda body.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_33',
+    title: '33. Templates (Generic Programming)',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# C++ Templates
+Templates allow you to write functions or classes that operate with generic types.
+Instead of writing an \`Add(int, int)\` and \`Add(float, float)\`, you write a template that works for *any* numeric type.
+
+\`template <typename T>\`
+\`T Add(T A, T B) { return A + B; }\`
+
+### Your Task
+Create a template function named \`GetMax\` that returns the maximum of two values \`A\` and \`B\`.
+Prefix it with \`template <typename T>\`.
+Make it return type \`T\`, accepting \`T A\` and \`T B\`.
+You can use \`return (A > B) ? A : B;\` inside.
+`,
+    starterCode: {
+      'Source.h': '// TODO: Write template generic function GetMax\n\n'
+    },
+    hiddenTests: ['template <typename T>', 'T GetMax', 'T A', 'T B'],
+    successCriteria: [
+      'Write template <typename T>',
+      'Function GetMax returns T and takes T A, T B'
+    ],
+    rules: [
+      {
+        id: 'rule_task_33',
+        type: 'exercise',
+        description: 'Template implemented correctly.',
+        evaluate: (code) => {
+          if (!code.includes('template <typename T>') && !code.includes('template<typename T>')) return { passed: false, error: 'Must specify template <typename T>.' };
+          if (!code.includes('T GetMax')) return { passed: false, error: 'Function must be named GetMax and return T.' };
+          if (!code.includes('T A') || !code.includes('T B')) return { passed: false, error: 'Function must accept T A and T B.' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_34',
+    title: '34. Move Semantics',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Move Semantics & Rvalue References
+When copying large data (like huge arrays or complex strings), duplicating memory is very slow.
+Modern C++ introduced Move Semantics (\`std::move\`) which allows resources to be "stolen" from temporary objects instead of copied.
+
+### Your Task
+You have an \`FString\` named \`SourceInfo\`.
+Declare a new \`FString\` named \`TargetInfo\` and initialize it by moving \`SourceInfo\` using \`MoveTemp()\` (Unreal's version of \`std::move\`).
+`,
+    starterCode: {
+      'Source.cpp': 'void SetupStrings() {\n    FString SourceInfo = TEXT("Heavy Data Placed Here");\n    // TODO: Create TargetInfo and use MoveTemp(SourceInfo)\n    \n}\n'
+    },
+    hiddenTests: ['FString TargetInfo = MoveTemp(SourceInfo);'],
+    successCriteria: [
+      'Declare FString TargetInfo',
+      'Use MoveTemp(SourceInfo) to avoid copying'
+    ],
+    rules: [
+      {
+        id: 'rule_task_34',
+        type: 'exercise',
+        description: 'MoveTemp used successfully.',
+        evaluate: (code) => {
+          if (!code.includes('TargetInfo')) return { passed: false, error: 'Declare TargetInfo.' };
+          if (!code.includes('MoveTemp(SourceInfo)')) return { passed: false, error: 'Must use MoveTemp(SourceInfo).' };
+          return { passed: true };
+        }
+      }
+    ]
+  },
+  {
+    id: 'task_35',
+    title: '35. Virtual Destructors',
+    category: 'Stage 10: Modern C++ Features',
+    objective: `# Memory Safety in Inheritance
+When you use inheritance, deleting a derived class object through a pointer to the base class results in undefined behavior (usually a memory leak), UNLESS the base class has a **virtual destructor**.
+
+### Your Task
+You are building the base class for standard C++ logic.
+Define a public \`virtual ~FBaseLogic();\` inside \`FBaseLogic\`.
+`,
+    starterCode: {
+      'Source.h': 'class FBaseLogic {\npublic:\n    // TODO: Declare virtual destructor\n    \n};\n'
+    },
+    hiddenTests: ['virtual ~FBaseLogic();'],
+    successCriteria: [
+      'Declare the virtual destructor for FBaseLogic'
+    ],
+    rules: [
+      {
+        id: 'rule_task_35',
+        type: 'exercise',
+        description: 'Virtual destructor used.',
+        evaluate: (code) => {
+          if (!code.includes('virtual ~FBaseLogic()')) return { passed: false, error: 'Declare virtual ~FBaseLogic().' };
+          return { passed: true };
+        }
+      }
+    ]
   }
 ];
