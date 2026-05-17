@@ -23,7 +23,8 @@ export default function App() {
   const [isAndroidFirefox] = useState(() => {
     if (typeof window === 'undefined') return false;
     const ua = navigator.userAgent;
-    return /Android/i.test(ua) && /Firefox/i.test(ua);
+    // Expanded regex to be more inclusive of Firefox versions on Android
+    return /Android/i.test(ua) && (/Firefox/i.test(ua) || /FxiOS/i.test(ua) || /Focus/i.test(ua));
   });
 
   useEffect(() => {
@@ -36,7 +37,8 @@ export default function App() {
       return standalone;
     };
 
-    const ua = navigator.userAgent;
+    // Initial check
+    checkStandalone();
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -54,6 +56,7 @@ export default function App() {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
     
+    const ua = navigator.userAgent;
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua);
     if (isMobile && !checkStandalone()) {
       setShowInstallButton(true);

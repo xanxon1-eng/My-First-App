@@ -17,8 +17,12 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   showInstallButton,
   onInstallClick
 }) => {
-  const isBlockedView = isAndroidFirefox && !isStandalone;
-  const showSmallInstall = showInstallButton && !isStandalone && !isAndroidFirefox;
+  // Logic simplified to follow user instructions exactly:
+  // Android Firefox Logic (Website/Browser): Hide gym timer and school, show install button.
+  // Installed App Experience: Show all content, hide install button.
+  const isFirefoxWebsite = isAndroidFirefox && !isStandalone;
+  const showMainContent = !isFirefoxWebsite;
+  const showInstallInMenu = !isStandalone && (isFirefoxWebsite || showInstallButton);
 
   return (
     <div className="flex flex-col items-center justify-between h-full w-full bg-kingfisher-dark p-6 overflow-hidden">
@@ -33,7 +37,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
           Kingfisher <span className="text-kingfisher-warm">Hub</span>
         </h1>
-        {isBlockedView && (
+        {isFirefoxWebsite && (
           <p className="mt-4 text-kingfisher-muted max-w-xs text-center text-sm md:text-base leading-relaxed">
             Please install the application to your home screen to access the full experience on Android Firefox.
           </p>
@@ -41,19 +45,7 @@ export const MainMenu: React.FC<MainMenuProps> = ({
       </motion.div>
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-6 w-full max-w-2xl px-2 mb-auto">
-        {isBlockedView ? (
-          <motion.button
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onInstallClick}
-            className="w-full flex items-center justify-center gap-3 p-6 bg-emerald-600 hover:bg-emerald-500 text-white rounded-3xl font-bold shadow-2xl transition-all group"
-          >
-            <Download className="w-8 h-8 group-hover:translate-y-0.5 transition-transform" />
-            <span className="text-xl">Install App</span>
-          </motion.button>
-        ) : (
+        {showMainContent && (
           <>
             <motion.button
               whileHover={{ scale: 1.02, backgroundColor: 'rgba(233, 187, 147, 0.1)' }}
@@ -78,25 +70,29 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               </div>
               <h2 className="text-xl md:text-2xl font-bold text-white">C++ School</h2>
             </motion.button>
-            
-            {showSmallInstall && (
-              <motion.button
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                whileHover={{ scale: 1.02, backgroundColor: 'rgba(16, 185, 129, 0.1)' }}
-                whileTap={{ scale: 0.98 }}
-                onClick={onInstallClick}
-                className="md:hidden flex items-center justify-center gap-3 p-4 bg-kingfisher-panel border border-emerald-900/50 rounded-2xl transition-all text-emerald-400 font-semibold"
-              >
-                <Download className="w-5 h-5" />
-                <span>Install App</span>
-              </motion.button>
-            )}
           </>
+        )}
+
+        {showInstallInMenu && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onInstallClick}
+            className={`flex items-center justify-center gap-3 p-6 rounded-3xl font-bold shadow-2xl transition-all group ${
+              isFirefoxWebsite 
+                ? "w-full bg-emerald-600 hover:bg-emerald-500 text-white" 
+                : "md:hidden bg-kingfisher-panel border border-emerald-900/50 text-emerald-400"
+            }`}
+          >
+            <Download className={`w-8 h-8 group-hover:translate-y-0.5 transition-transform ${isFirefoxWebsite ? "" : "w-5 h-5"}`} />
+            <span className={isFirefoxWebsite ? "text-xl" : "text-base"}>Install App</span>
+          </motion.button>
         )}
       </div>
 
-      {isBlockedView && (
+      {isFirefoxWebsite && (
         <motion.div 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
