@@ -230,6 +230,40 @@ const OverviewTab = () => (
         </ul>
       </SectionCard>
     </div>
+    <SectionCard className="mt-6" title="Pending / Missing Systems (Multiplayer & Optimization)" icon={CircleDashed} color={COLORS.status.warning}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Major Subsystems</h4>
+          <ul className="space-y-3">
+            {[
+              ['Full Authoritative Server Protocol', 'Currently standalone local auth. Missing true Dedicated Server execution models and rollback integration for states.'],
+              ['Deterministic Frame Sync', 'Missing physics determinism required for tight lockstep syncing or advanced rollback Netcode protocols.'],
+              ['World Partition Sub-Relevancy', 'Need sub-hashing for server to aggressively cull network updates across massive open-world grid cells.'],
+            ].map(([title, desc]) => (
+              <li key={title} className="flex items-start gap-3">
+                <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div><strong className="text-white block mb-0.5 text-sm">{title}</strong><span className="text-kingfisher-muted text-xs">{desc}</span></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Minor Subsystems</h4>
+          <ul className="space-y-3">
+            {[
+              ['Client-Side Prediction Modules', 'Custom generic prediction interpolation for advanced abilities outside of the standard Character Movement Component.'],
+              ['Fast Array Serializers', 'Inventory array uses full standard Replication instead of delta-synced FFastArraySerializer logic.'],
+              ['Interest Management Culling', 'Need to implement Network Dormancy (DORM_Initial) and spatial dependency for heavily clustered interactive actors.'],
+            ].map(([title, desc]) => (
+              <li key={title} className="flex items-start gap-3">
+                <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                <div><strong className="text-white block mb-0.5 text-sm">{title}</strong><span className="text-kingfisher-muted text-xs">{desc}</span></div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </SectionCard>
   </div>
 );
 
@@ -266,6 +300,15 @@ const PipelineTab = () => (
         </div>
       </SectionCard>
     </div>
+    <SectionCard title="Multiplayer Thread Protocol (Server Tick)" icon={Network} color={COLORS.kingfisher.warm}>
+      <p className="font-semibold text-white mb-2">Dedicated Server Pipeline</p>
+      <p className="text-sm text-kingfisher-muted mb-3">On a headless server, the Draw Thread and GPU time are literally 0ms. The Game Thread architecture dynamically bounds the Maximum Tick Rate (Tick Rate != Framerate).</p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+        <li><strong className="text-white">NetConnection Tick:</strong> Evaluating RPC inputs and generating outbound Delta property updates is hugely CPU intensive. Moving from 30Hz to 60Hz Server Tick doubles the network pipeline cost.</li>
+        <li><strong className="text-white">Replication Queueing:</strong> Servers dynamically throttle updates based on <code>NetUpdateFrequency</code>. Lower priority actors automatically skip ticks if bandwidth or CPU ceilings are breached.</li>
+        <li><strong className="text-white">Risk — Thread Sync Delay:</strong> Lockstep RTS or rollback fighting games demand hard-deterministic Game Threads. In standard server-client states, variance in server thread processing creates visible client stutters if prediction buffers run dry. Provide generous buffer padding at the cost of slight baseline delay.</li>
+      </ul>
+    </SectionCard>
     <HighlightBox type="success">
       <strong>The Parallel Secret:</strong> Game Thread (10ms) + Draw Thread (10ms) + GPU (10ms) = 30ms of work delivered simultaneously every 10ms. Frame rate is determined by the <em>slowest individual thread</em> — not the sum.
     </HighlightBox>
@@ -869,11 +912,12 @@ const CollisionTab = () => (
         </ul>
       </SectionCard>
       <SectionCard title="Multiplayer Hit Validation & Rollback Netcode" icon={ShieldAlert} color={COLORS.status.error}>
-        <p className="text-sm mb-3">If you ever sync combat online, the server must validate hits to prevent cheating, but clients must feel zero latency.</p>
+        <p className="text-sm mb-3">If you ever sync combat online, the server must validate hits to prevent cheating, but clients must feel zero latency. This is the hardest scaling problem in fast-paced networked games.</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
-          <li><strong className="text-white">Client-Side Prediction:</strong> Client instantly plays firing animation, traces locally, and plays blood particle. Sender triggers <code>Server_FireWeapon()</code> RPC.</li>
-          <li><strong className="text-white">Server Rewind:</strong> Server receives RPC. Because of latency, the server rewinds Hitboxes (using an un-linked proxy capsule history) to exactly where they were on the client at the time of firing, checking validity.</li>
-          <li><strong className="text-white">Secure Tracing:</strong> Never pass "Hit Character" from Client to Server. Pass <code>(FVector Origin, FVector Direction)</code> and force the Server to execute the authoritative trace.</li>
+          <li><strong className="text-white">Client-Side Prediction:</strong> Client instantly plays firing animation, traces locally, and plays blood particle. Client triggers <code>Server_FireWeapon()</code> RPC. <em>Risk: Client predicts a kill, but server overrides (rubberband ghost shots).</em></li>
+          <li><strong className="text-white">Server Rewind (Lag Compensation):</strong> Because of ping latency (e.g., 100ms), the server must rewind collision hitboxes. It keeps a rolling ring buffer of transforms for the last 500ms. It rewinds colliders to where they were <em>on the client's screen</em> at the exact time of firing, checks validity, then restores physics state.</li>
+          <li><strong className="text-white">Secure Tracing Policy:</strong> Never pass "Hit Character" from Client to Server (this enables instant-kill cheats). Pass <code>(FVector Origin, FVector Direction, Timestamp)</code> and compel the Server to execute the authoritative trace against the rewound historical data.</li>
+          <li><strong className="text-white">The Resource Cost:</strong> Storing history profiles and executing backward integration traces is enormously CPU and Mem-heavy. Limit rewind buffers aggressively to 500ms max history.</li>
         </ul>
       </SectionCard>
       <SectionCard title="Async Trace — Never Block the Game Thread" icon={Activity} color={COLORS.status.success}>
@@ -1012,12 +1056,13 @@ const NetworkingPhysicsTab = () => (
         </div>
       </SectionCard>
       
-      <SectionCard className="md:col-span-2" title="Massive Graph & Payload Compression" icon={Database} color={COLORS.status.error}>
-        <p className="mb-2 text-sm"><strong>Bandwidth Optimization (The 1KB/s Target):</strong> Don't sync verbose arrays or strings over UDP.</p>
+      <SectionCard className="md:col-span-2" title="Payload Compression & Connection Resilience" icon={Database} color={COLORS.status.error}>
+        <p className="mb-2 text-sm"><strong>Bandwidth Optimization (The 1KB/s Target):</strong> Don't sync verbose arrays or strings over UDP. Plan for packet loss.</p>
         <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
           <li><strong className="text-white">Bitmask Compression:</strong> Quest steps, passive skill trees, and unlock grids natively mapped into bitwise integers (e.g., <code>uint32 ProgressionFlags</code>). You sync 4 bytes instead of an array of 32 booleans.</li>
           <li><strong className="text-white">Fast Array Serializer:</strong> Unreal’s <code>FFastArraySerializer</code> is mandatory for inventory management. Instead of re-replicating a generic 100-slot TArray on every change, it generates delta-only diffs for just the mutated index.</li>
-          <li><strong className="text-white">COND_SkipOwner Protocol:</strong> Never enforce the server to redundantly reply with a verified stat back to the original client that initiated it (if that client is confidently predicting it). Prevent cyclical bandwidth waste via <code>ReplicationCondition = COND_SkipOwner</code>.</li>
+          <li><strong className="text-white">Risk: RPC Packet Loss:</strong> Important UDP RPCs must be marked <code>Reliable</code>. But never make Tick or Movement reliable—if network degrades, the server will stall waiting for historical ACKs and crash. For reliable continuous streams, let standard generic Property Replication handle eventual consistency.</li>
+          <li><strong className="text-white">COND_SkipOwner & Ghost Echoes:</strong> If a client predicting an action receives an old server variable update, their UI jitters. Prevent this cyclical bandwidth waste and state desync via <code>ReplicationCondition = COND_SkipOwner</code>.</li>
         </ul>
       </SectionCard>
     </div>
@@ -1039,6 +1084,17 @@ const AITab = () => (
         <h4 className="text-white text-sm font-semibold mb-2">Distance: Near (Complex Tracing)</h4>
         <p className="mb-4 text-sm">Materializing array points into 3D characters executing Behavior Trees. Employs perception hooks against SightCones and NoiseRadii thresholds, evaluating immediate Navigation Meshes.</p>
       </SectionCard>
+
+      <SectionCard className="lg:col-span-2" title="Server-Authoritative AI & Network Graphing" icon={ShieldAlert} color={COLORS.status.error}>
+        <p className="mb-2 text-sm"><strong>The Network Bottleneck:</strong> Computing AI is cheap; syncing 100 AIs accurately to 50 players is catastrophic.</p>
+        <ul className="list-disc pl-5 mt-2 space-y-3 text-sm text-kingfisher-muted">
+          <li><strong className="text-white">Determinism vs Syncing:</strong> Never sync "AI moved to X,Y" every tick. Send the <em>Intent</em> via RPC (<code>Multicast_MoveToTarget(Location, Timestamp)</code>). Let the clients locally run identical deterministic NavMesh walking simulation so the NPC arrives naturally without streaming bandwidth.</li>
+          <li><strong className="text-white">Perception Delegation:</strong> Do not replicate AI sight/hearing. The Server AI Controller maintains absolute true validity, evaluates hidden Behavior Trees, and simply replicates the active State enum (e.g., <code>EAIState::Investigating</code>).</li>
+          <li><strong className="text-white">Risks — Path Desync:</strong> If NavMeshes vary slightly between client/server, or if the client frame drops, determinism breaks. Utilize routine authoritative "Correction Transforms" every 1-2 seconds to snap the visual proxy back inline with the server truth.</li>
+          <li><strong className="text-white">Client-Side Cosmetics:</strong> Head tracking interpolation, procedural IK foot placement, root motion blending, and footstep audio should be 100% computed on the presentation client. The server does not care if the AI is physically looking at the player's face, only that the abstract boolean evaluation is true.</li>
+        </ul>
+      </SectionCard>
+
       <SectionCard className="lg:col-span-2" title="Analytical Simulation (Timestamp Catch-Up)" icon={Clock} color={COLORS.kingfisher.warm}>
         <p className="mb-2"><strong>Offline Ecosystems:</strong> Never process an unloaded farming village in real time.</p>
         <p className="mt-2 text-sm text-kingfisher-muted leading-relaxed">

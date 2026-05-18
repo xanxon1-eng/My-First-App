@@ -52,6 +52,9 @@ C++ is a **statically typed** language: you must declare the type of every varia
 
 In Unreal we prefer \`int32\` over bare \`int\` because the Standard doesn't guarantee \`int\` is 32-bit on every platform.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`Practice()\`:
 1. Declare \`int32 Health = 100;\`
@@ -139,6 +142,9 @@ With variables declared you can mutate them. Unreal gameplay logic is full of:
 Health -= Damage;          // subtract and assign back
 bIsAlive = Health > 0;     // comparison returns bool
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Given the starter variables:
@@ -231,6 +237,9 @@ The **scope resolution operator \`::\`** reads as *"the thing named X inside nam
 
 > In Unreal Engine code you will almost never use \`std::cout\`; \`UE_LOG\` is the correct tool. But understanding \`::\` is essential because Unreal uses it constantly: \`Super::BeginPlay()\`, \`FMath::Clamp()\`, etc.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 In \`Practice()\`, use \`std::cout\` to print exactly the string \`"Hello Unreal"\` followed by \`std::endl\`.
 `,
@@ -313,6 +322,9 @@ To read or write through a pointer, you **dereference** it with \`*\`:
 
 Pointers are the foundation of everything in Unreal: component attachment, UObject ownership, GC relationships. Nail this.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 1. \`int32 Ammo = 30;\` is already provided.
 2. Declare an \`int32*\` named \`AmmoPtr\` that points to \`Ammo\`.
@@ -390,6 +402,9 @@ When the number of elements isn't known at compile-time, we use **dynamic arrays
 | Count | \`.size()\` | \`.Num()\` |
 
 Unreal wrote \`TArray\` because \`std::vector\` caused memory fragmentation inside the engine's custom allocators. The APIs are nearly identical — once you know one, you know the other.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 1. Declare \`std::vector<int32> Scores;\`
@@ -486,6 +501,9 @@ else
 }
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Write a function \`FString GetHealthState(int32 Health)\` that:
 - Returns \`TEXT("Healthy")\` if \`Health > 50\`
@@ -578,6 +596,9 @@ for (int32 i = 0; i < 5; ++i)
 }
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Write a function \`int32 SumFirstN(int32 N)\` that:
 1. Uses a classic \`for\` loop to iterate from \`1\` up to and including \`N\`.
@@ -665,6 +686,9 @@ while (i < 5)
     ++i; 
 }
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Write a function \`int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHealth, int32 HealPerTick)\` that:
@@ -764,6 +788,9 @@ for (const int32& Val : Arr)
 }
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 In \`SumArray()\`:
 1. Use a **range-for** loop to iterate over the provided \`TArray<int32> Numbers\`.
@@ -853,6 +880,9 @@ for (int32 i = 0; i < 10; ++i)
     if (i == 5) break;    // stops entirely when 5 is reached
 }
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Write a function \`int32 SumPositiveUntilZero(const TArray<int32>& Numbers)\` that:
@@ -963,6 +993,9 @@ for (int32 y = 0; y < Height; ++y)
     }
 }
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks if the array contains any duplicate values.
@@ -1086,6 +1119,9 @@ UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
 int32 Health = 100;
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 The class has a bare \`int32 Health\`. Add a \`UPROPERTY\` macro above it that includes **both** \`EditAnywhere\` and \`BlueprintReadWrite\`.
 `,
@@ -1182,6 +1218,9 @@ UWeapon* CurrentWeapon = nullptr;
 
 Also initialise to \`nullptr\`. Un-initialised pointers hold a random address — accessing them is undefined behaviour.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
 1. Add \`UPROPERTY()\` above it.
@@ -1274,6 +1313,9 @@ FString Name = TEXT("Commando");
 
 Without \`TEXT()\` the literal is ANSI-encoded. On certain platforms (or with certain compilers), this breaks Unicode characters and potentially causes encoding mismatches at runtime.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
 `,
@@ -1355,6 +1397,9 @@ void AMyActor::BeginPlay()
 
 This design keeps compile times fast: changing the .cpp of one class doesn't force every other file that includes the header to recompile.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Implement \`AMyActor::BeginPlay()\` in the .cpp file. The function body can be empty (or call Super).
 `,
@@ -1421,6 +1466,9 @@ virtual void Attack() override;
 \`\`\`
 
 Unreal's class tree is deeply hierarchical: \`AActor → APawn → ACharacter → AMyCharacter\`. Understanding where your class sits determines what functions are available to you.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare class \`AMonster\` that **publicly** inherits from \`ACharacter\`. Include the class body \`{}\` and closing semicolon.
@@ -1508,6 +1556,9 @@ void AMyActor::BeginPlay()
 
 Skipping \`Super::BeginPlay()\` leaves engine systems (replication, component initialisation, blueprint BeginPlay) un-initialised → subtle, hard-to-find bugs.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Implement \`AMyPlayer::BeginPlay()\`. The **first** statement inside the body must be \`Super::BeginPlay();\`.
 `,
@@ -1574,6 +1625,9 @@ float DistanceMoved = Speed * DeltaTime;  // correct distance this frame
 \`\`\`
 
 ⚠️ Tick runs every frame — keep it lean. Use delegates, timers, or event-driven code when possible.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Implement \`AMyActor::Tick(float DeltaTime)\`:
@@ -1665,6 +1719,9 @@ void TakeDamage(int32& OutHealth)
 }
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Implement \`void TakeDamage(int32& OutHealth)\`. Inside, subtract **10** from \`OutHealth\`.
 `,
@@ -1745,6 +1802,9 @@ In Unreal, const member functions signal that calling them doesn't change the ob
 float GetHealth() const { return Health; }
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Write \`void PrintName(const FString& Name)\`. The body can be empty.
 `,
@@ -1813,6 +1873,9 @@ class UInventorySystem : public UObject
     // Pure logic — no transform, never placed directly
 };
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS()\` macro and \`GENERATED_BODY()\`.
@@ -1916,6 +1979,9 @@ OnPlayerDied.Broadcast();
 | DECLARE_MULTICAST_DELEGATE | ✅ | ❌ |
 | DECLARE_DYNAMIC_MULTICAST_DELEGATE | ✅ | ✅ |
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare \`FOnPlayerDiedSignature\` using the correct multicast dynamic macro.
 `,
@@ -1984,6 +2050,9 @@ Key points:
 - \`enum class\` (scoped enum) prevents accidental integer promotion.
 - \`: uint8\` keeps the size to one byte — UHT requires a \`uint8\` backing type.
 - \`UMETA(DisplayName = "…")\` sets the text shown in the Blueprint dropdown.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare \`EPlayerState\` with the exact structure above.
@@ -2074,6 +2143,9 @@ public:
 };
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 The \`UDamageable\` shell is provided. Declare \`class IDamageable\` with a pure virtual \`TakeHit()\`.
 `,
@@ -2158,6 +2230,9 @@ There is a critical distinction:
 GetWorld()->SpawnActor<AActor>(SpawnTemplate, SpawnLocation, SpawnRotation);
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`ASpawner\`, declare \`TSubclassOf<AActor> SpawnTemplate\` with \`UPROPERTY(EditAnywhere)\`.
 `,
@@ -2237,6 +2312,9 @@ Subsystems are automatically created and destroyed — you never call \`new\` or
 // Access from anywhere:
 UQuestManager* QM = GetGameInstance()->GetSubsystem<UQuestManager>();
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare \`UQuestManager\` inheriting from \`UGameInstanceSubsystem\`. Include \`UCLASS()\` and \`GENERATED_BODY()\`.
@@ -2319,6 +2397,9 @@ StreamableManager.RequestAsyncLoad(IconRef.ToSoftObjectPath(), ...);
 
 Use soft references for content that isn't always needed (character skins, level-specific assets).
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`UInventoryItem\`, declare a soft pointer to \`UTexture2D\` named \`IconRef\`.
 `,
@@ -2391,6 +2472,9 @@ UAssetManager::GetStreamableManager().RequestAsyncLoad(
     FStreamableDelegate::CreateUObject(this, &UMyUI::OnIconLoaded)
 );
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Write a function \`LoadIconAsync()\` that uses \`RequestAsyncLoad\` on \`IconRef\`, binding the callback to \`UMyUI::OnIconLoaded\`.
@@ -2484,6 +2568,9 @@ public:
 \`\`\`
 Players can then simply store a \`TObjectPtr<UWeaponData>\`.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare a \`UWeaponData\` class inheriting from \`UPrimaryDataAsset\`. Add a \`Damage\` float property.
 `,
@@ -2563,6 +2650,9 @@ float GetCurrentHealth() const { return Health; }
 UFUNCTION(BlueprintCallable)
 void AddHealth(float Amount) { Health += Amount; }
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare both functions inside \`APlayer\`:
@@ -2659,6 +2749,9 @@ struct FItemData
 };
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare \`FItemData\` with \`USTRUCT(BlueprintType)\` and \`GENERATED_BODY()\`. Add at least one UPROPERTY member.
 `,
@@ -2743,6 +2836,9 @@ void OnTakeDamage();
 
 **Important:** Do **not** provide a C++ body (\`{}\`). If you need a C++ fallback, use \`BlueprintNativeEvent\` instead and implement \`void OnTakeDamage_Implementation()\`.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare \`void OnTakeDamage();\` with \`UFUNCTION(BlueprintImplementableEvent)\`. No function body in C++.
 `,
@@ -2818,6 +2914,9 @@ void ADoor::Interact_Implementation()
 }
 \`\`\`
 Do NOT manually write the non-suffixed \`Interact()\` body; UHT generates it to route the call to Blueprint first, then fallback to your \`_Implementation\`.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare \`void Interact();\` as a \`BlueprintNativeEvent\`. Then, write the \`void AMyActor::Interact_Implementation()\` definition in the C++ file.
@@ -2915,6 +3014,9 @@ void Heal()
 
 Use \`ensure\` for "this shouldn't happen, but we can recover." Use \`check\` for "this is impossible and continuing would corrupt state."
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`APlayer::Heal()\`, add \`ensure(Health > 0);\` **before** any healing logic.
 `,
@@ -2986,6 +3088,9 @@ if (Monster)
 \`\`\`
 
 \`CastChecked<T>()\` is the asserting variant — it crashes if the cast fails. Use it when failure would mean a logic error.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it in a variable named \`MonsterTarget\`. Check if it's valid before using.
@@ -3076,6 +3181,9 @@ In UE5.2+ prefer \`UE_LOGFMT\` which avoids the \`TEXT()\` wrapper and is type-s
 UE_LOGFMT(LogTemp, Warning, "Loading '{Name}' failed", Package->GetName());
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Write a \`UE_LOG\` call with:
 - Category: \`LogTemp\`
@@ -3153,6 +3261,9 @@ UHT and the engine rely on prefix conventions for reflection and code generation
 | \`G\` | Global | \`GEngine\` |
 
 Violating naming conventions causes UHT compilation errors.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare a boolean member variable for "is the player jumping" using the correct Unreal prefix. Initialise it to \`false\`.
@@ -3232,6 +3343,9 @@ FName   PlayerTag  = TEXT("Player");
 FText   Greeting   = FText::FromString(TEXT("Hello"));
 FString BuildMsg   = FString::Printf(TEXT("Score: %d"), Score);
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare:
@@ -3317,6 +3431,9 @@ Common operations:
 - \`Remove(Key)\` — delete entry
 - \`Contains(Key)\` — boolean check
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`AGameState\`, declare \`TMap<FName, float> PlayerScores\` with \`UPROPERTY()\`.
 `,
@@ -3398,6 +3515,9 @@ TSharedPtr<FMyData> Shared = MakeShared<FMyData>();
 TWeakPtr<FMyData>   Weak   = Shared;  // doesn't increment ref count
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Inside \`FDataManager\`, declare a \`TSharedPtr<FMyData>\` named \`DataPtr\`.
 `,
@@ -3473,6 +3593,9 @@ if (TSharedPtr<FNode> PinnedNode = SafeRef.Pin())
     // Object still exists, safe to use PinnedNode
 }
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Inside \`FObserver\`, declare a \`TWeakPtr<FData>\` named \`DataRef\`. Then in \`PrintData()\`, try to \`.Pin()\` it and verify it's valid before using.
@@ -3570,6 +3693,9 @@ AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []()
 });
 \`\`\`
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Use \`AsyncTask\` to run a background lambda (\`ENamedThreads::AnyBackgroundThreadNormalTask\`). Inside the lambda, write a nested \`AsyncTask\` that hops back to \`ENamedThreads::GameThread\`.
 `,
@@ -3663,6 +3789,9 @@ auto It = Map.CreateIterator();   // same type, less noise
 - ❌ Function return types visible to callers (hides the return type)
 - ❌ UPROPERTY members (UHT needs explicit types)
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Declare a variable named \`MyAutoVar\` using \`auto\` and set it to \`100.5f\`.
 `,
@@ -3733,6 +3862,9 @@ Capture modes:
 - \`[this]\` — capture \`this\` pointer (members accessible)
 - \`[&]\` — capture all locals by reference
 - \`[=]\` — capture all locals by value
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare \`auto MyLambda\` as a lambda that:
@@ -3809,6 +3941,9 @@ GetMax(3.5f, 2.1f);     // T=float → 3.5f
 
 Unreal uses templates pervasively: \`TArray<T>\`, \`TMap<K,V>\`, \`Cast<T>()\`, \`MakeShared<T>()\`.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Write a template function \`GetMax\` that returns the larger of two values \`A\` and \`B\` of type \`T\`.
 `,
@@ -3877,6 +4012,9 @@ FString Target = MoveTemp(Source);   // buffer ownership transferred
 Unreal's \`MoveTemp()\` is equivalent to \`std::move()\`.
 
 Use it when you're done with a variable and want to hand its data to another without copying (e.g., building a string then passing it to a function that stores it).
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Given \`FString SourceInfo\`, declare \`FString TargetInfo\` and initialise it by *moving* from \`SourceInfo\` using \`MoveTemp\`.
@@ -3950,6 +4088,9 @@ With a virtual destructor, \`delete\` correctly invokes \`~FDerivedLogic()\` fir
 **Rule:** If a class has any virtual functions, give it a virtual destructor.
 
 UObjects handled by the GC don't have this problem (the GC knows the concrete type). But plain C++ base classes used polymorphically absolutely need it.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Add \`virtual ~FBaseLogic();\` to the class.
@@ -4025,6 +4166,9 @@ public:
     virtual void PostLogin(APlayerController* NewPlayer) override;
 };
 \`\`\`
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Declare \`AMyGameMode\` inheriting from \`AGameModeBase\` with \`UCLASS()\` and \`GENERATED_BODY()\`.
@@ -4102,6 +4246,9 @@ FVector  Forward  = Facing.Vector();       // → unit vector facing right
 \`\`\`
 
 In UE5, all math types default to \`double\` backend for Large World Coordinates support.
+
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
 
 ## Your Task
 Inside \`ASpawner\`, declare:
@@ -4205,6 +4352,9 @@ void AEnemy::PerformAttack()
 
 Timers are invalidated automatically if the owning actor is destroyed.
 
+## 🌍 Multiplayer Consideration
+When writing C++ for Unreal, always ask: *Does the server need to know about this?* or *Does the client need to see this?* Ensure variables are explicitly replicated if needed, and RPCs (Remote Procedure Calls) are used to communicate state changes across the network.
+
 ## Your Task
 Implement \`AEnemy::StartAttack()\` that uses \`GetWorldTimerManager().SetTimer\` to call \`PerformAttack\` after **2.0** seconds, **non-looping**.
 `,
@@ -4274,4 +4424,92 @@ void AEnemy::StopAttack()
       },
     ],
   },
+  // -------------------------------------------------------------------------
+  {
+    id: 'task_NEW_LIGHTING',
+    title: '47. Light & Shadows Optimization',
+    category: 'Stage 12: Rendering & Graphics',
+    objective: `# Light & Shadows: Efficient & Powerful Methods
+
+Lighting can severely impact game performance. Understanding the different methods, their efficiency, and when to use them is key.
+
+1. **Static Lighting (Lightmaps):** 
+Precalculated during compilation. Extremely efficient at runtime (zero cost), used for static environment geometry. Does not update dynamically.
+2. **Lumen:** 
+Real-time dynamic global illumination and reflections. Powerful for dynamic scenes but computationally expensive; best for current-gen hardware.
+3. **Virtual Shadow Maps (VSMs):** 
+High-resolution shadows for dynamic objects combined with Nanite. Scalable but has memory overhead.
+4. **Distance Field Shadows:** 
+Uses Mesh Distance Fields to trace efficient soft shadows. Excellent for foliage or distant objects where standard cascaded shadows become too expensive.
+5. **Contact Shadows:** 
+Screen-space micro-shadows added on top of standard shadows to ground small props (e.g. grass, pebbles) at very low cost.
+
+## 🌍 Multiplayer Consideration
+Lighting and rendering are exclusively **client-side** operations. The server does not render graphics (Dedicated Servers run headlessly) and does not care about Lumen, shadows, or materials. Never trigger visual-only lighting changes via costly RPCs unless gameplay relies on it; instead, replicate the *state* (e.g., "bIsDaytime") and let clients update their lights independently.
+
+## Your Task
+Declare a \`UDirectionalLightComponent*\` named \`SunLight\`. Then, enable Distance Field Shadows.
+\`\`\`cpp
+// Assume inside a constructor
+SunLight = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("SunLight"));
+SunLight->bCastDistanceFieldShadows = true;
+\`\`\`
+`,
+    starterCode: {
+      'Source.cpp': `void AWeatherManager::InitLight()
+{
+    // TODO 1: CreateDefaultSubobject for UDirectionalLightComponent
+    // TODO 2: Set bCastDistanceFieldShadows to true
+}
+`,
+    },
+    hiddenTests: ['CreateDefaultSubobject', 'UDirectionalLightComponent', 'bCastDistanceFieldShadows'],
+    successCriteria: [
+      'Create the directional light component',
+      'Enable distance field shadows',
+    ],
+    rules: [
+      {
+        id: 'r_light_create',
+        type: 'unreal',
+        description: 'Directional Light created',
+        evaluate: (code) => {
+          const stripped = code.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, "").replace(/\s+/g, "");
+          return {
+            passed: stripped.includes('CreateDefaultSubobject<UDirectionalLightComponent>'),
+            error: 'Must create a UDirectionalLightComponent.',
+            fix: 'SunLight = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("SunLight"));'
+          };
+        }
+      },
+      {
+        id: 'r_light_df',
+        type: 'unreal',
+        description: 'Distance Field Shadows enabled',
+        evaluate: (code) => {
+           return {
+             passed: code.includes('bCastDistanceFieldShadows'),
+             error: 'Must enable bCastDistanceFieldShadows.',
+             fix: 'SunLight->bCastDistanceFieldShadows = true;'
+           };
+        }
+      }
+    ],
+    exampleSolutions: [
+      {
+        id: 'sol_light_df',
+        title: 'DF Shadows creation',
+        code: {
+          'Source.cpp': `void AWeatherManager::InitLight()
+{
+    SunLight = CreateDefaultSubobject<UDirectionalLightComponent>(TEXT("SunLight"));
+    SunLight->bCastDistanceFieldShadows = true;
+}
+`,
+        },
+        explanation: 'Enabling distance fields on the directional light provides cheap, soft shadows in the mid-to-far distance.',
+      },
+    ],
+  },
 ];
+
