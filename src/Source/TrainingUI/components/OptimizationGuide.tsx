@@ -40,6 +40,7 @@ const TABS = [
   { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
   { id: 'subsystems',       label: 'Subsystems Architecture',  icon: Database },
   { id: 'shader_permutations', label: 'Shader Permutations',   icon: Layers },
+  { id: 'ui_umg',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
 ];
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
@@ -73,6 +74,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'multithreading':   return <MultithreadingTab />;
       case 'subsystems':       return <SubsystemsTab />;
       case 'shader_permutations': return <ShaderPermutationsTab />;
+      case 'ui_umg':           return <UIUMGTab />;
       default:                 return null;
     }
   };
@@ -239,6 +241,7 @@ const OverviewTab = () => (
               ['Full Authoritative Server Protocol', 'Currently standalone local auth. Missing true Dedicated Server execution models and rollback integration for states.'],
               ['Deterministic Frame Sync', 'Missing physics determinism required for tight lockstep syncing or advanced rollback Netcode protocols.'],
               ['World Partition Sub-Relevancy', 'Need sub-hashing for server to aggressively cull network updates across massive open-world grid cells.'],
+              ['UI / UMG Architecture & Invalidation', 'Migrating from UMG property binding to purely push-based delegates and Retainer Boxes to alleviate Game Thread tick overhead.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -254,6 +257,8 @@ const OverviewTab = () => (
               ['Client-Side Prediction Modules', 'Custom generic prediction interpolation for advanced abilities outside of the standard Character Movement Component.'],
               ['Fast Array Serializers', 'Inventory array uses full standard Replication instead of delta-synced FFastArraySerializer logic.'],
               ['Interest Management Culling', 'Need to implement Network Dormancy (DORM_Initial) and spatial dependency for heavily clustered interactive actors.'],
+              ['Asset Manager Chunk & Async Loading', 'Need to replace manual Soft Object pointer loading with explicit Asset Manager Primary/Secondary Chunk distribution.'],
+              ['Garbage Collection Object Clustering', 'Need to implement GC clustering to group thousands of related data assets into single reference checks, skipping deep sweeps.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -341,13 +346,13 @@ const ArchitectureTab = () => (
           <strong className="text-blue-400">When You Must Use Tick:</strong> Set <code>PrimaryActorTick.TickInterval = 0.1f;</code> — anything that updates slower than 10 FPS logic (health regen, map fog) costs 90% less immediately.
         </div>
       </SectionCard>
-      <SectionCard title="Object Pooling — Defeating GC" icon={Database} color={COLORS.status.success}>
+      <SectionCard title="Garbage Collection & Object Pooling" icon={Database} color={COLORS.status.success}>
         <p className="font-semibold text-white">Never Destroy What You Can Recycle</p>
-        <p className="mt-2 text-sm text-kingfisher-muted">When you <code>Destroy()</code> an actor it marks as "Pending Kill". The GC sweeps every 60s causing 2–5ms hitches.</p>
+        <p className="mt-2 text-sm text-kingfisher-muted">When you <code>Destroy()</code> an actor it marks as "Pending Kill". The GC sweeps every 60s causing 2–5ms hitches traversing millions of references.</p>
         <ul className="list-disc pl-5 mt-2 space-y-1 text-sm text-kingfisher-muted">
-          <li><strong className="text-white">UObjects/Actors:</strong> Use an Object Pool — hide and recycle. Spawn once, reuse forever.</li>
-          <li><strong className="text-white">Niagara Particles:</strong> Use GPU-tier. Niagara recycles memory instantly and bypasses the GC mechanism entirely.</li>
-          <li><strong className="text-white">GC Tuning:</strong> Set <code>gc.TimeBetweenPurgingPendingKillObjects=120</code> to halve sweep frequency in stable scenes.</li>
+          <li><strong className="text-white">Object Pools:</strong> Hide and recycle. Spawn once, reuse forever.</li>
+          <li><strong className="text-white">GC Clustering:</strong> Group hundreds of data assets or sub-objects into a single <code>FGCCluster</code>. The garbage collector checks the root once instead of recursing through thousands of tiny objects, saving massive CPU time.</li>
+          <li><strong className="text-white">Structs over Objects:</strong> FStructs bypass the UObject GC system entirely. Use arrays of USTRUCTs for large data sets instead of arrays of UObjects.</li>
         </ul>
       </SectionCard>
       <SectionCard title="3-Layer Optimization Structure" icon={Layers} color={COLORS.kingfisher.blue}>
@@ -374,6 +379,56 @@ const ArchitectureTab = () => (
         <div className="mt-3 bg-black/20 p-2 rounded text-xs font-mono text-amber-300 border border-amber-500/20">
           Hard ref chain: CharacterBP → WeaponBP → 500MB texture atlas → loaded at startup
         </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const UIUMGTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="UI & UMG Optimization" subtitle="Migrating from prototype property binding to production purely push-based delegates to alleviate Game Thread frame tick overhead." />
+    <HighlightBox type="danger" className="mb-4">
+      <strong>The Silent Game Thread Killer:</strong> A single visible UMG Widget with bound data properties can tick thousands of times per minute. Fifty bound widgets (like health bars, stat numbers, inventory slots) will instantly consume 3ms+ of your 13.5ms frame budget just checking if values changed.
+    </HighlightBox>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="Push-Model Delegate Bindings" icon={Activity} color={COLORS.status.success}>
+        <p className="mb-2 text-sm"><strong>Rule: Never use 'Bind' drop-downs in UMG Designer.</strong></p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>Tick Prevention:</strong> Delete the <code>NativeTick</code> override unless doing purely localized smooth-loop animations.</li>
+          <li><strong>Event Subscriptions:</strong> In <code>NativeConstruct()</code>, bind to C++ Delegates on your Core Systems (e.g. <code>OnHealthChanged.AddDynamic</code>).</li>
+          <li><strong>Direct Payload Delivery:</strong> When health changes from the network, the delegate fires directly into the Widget, updating the progress bar only on that exact frame. Zero polling.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Invalidation Boxes & Caching" icon={Layers} color={COLORS.kingfisher.blue}>
+        <p className="mb-2 text-sm">Every time a widget paints, Slate traverses the entire UI tree. Invalidation prevents this.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>Retainer Boxes:</strong> Wraps children and renders them to a Texture. Set Phase count (render every N frames) or manual invalidate. Exceptional for complicated mini-maps.</li>
+          <li><strong>Invalidation Box:</strong> Caches the geometry of all children. Slate skips iterating them entirely unless a child explicitly calls <code>InvalidateLayoutAndVolatility()</code>. Indispensable for massive grids like RPG Inventories.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Collapsed vs Hidden vs Visible" icon={EyeOff} color={COLORS.status.warning}>
+        <p className="mb-2 text-sm">Misunderstanding Slate visibility states ruins CPU cycles on invisible screens.</p>
+        <div className="space-y-2 text-sm mt-3">
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-white block">Hit Test Invisible / Self Hit Test Invisible</strong>
+            <span className="text-kingfisher-muted text-xs">Does not intercept mouse clicks. Use for 99% of images/text to prevent deep click-trace calculations through the UI stack.</span>
+          </div>
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-red-400 block">Hidden</strong>
+            <span className="text-kingfisher-muted text-xs">Invisible, but <strong>still takes up physical layout space</strong>. Costs computation time in Grid/Box sizing loops.</span>
+          </div>
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-emerald-400 block">Collapsed</strong>
+            <span className="text-kingfisher-muted text-xs">Extirpated from the layout tree entirely. Takes no space, costs nothing to measure. Always prefer Collapsed over Hidden for toggled panels.</span>
+          </div>
+        </div>
+      </SectionCard>
+      <SectionCard title="Material/Texture UI Pipelines" icon={Palette} color={COLORS.kingfisher.warm}>
+        <p className="mb-2 text-sm">UI assets bypass world lighting but have unique bottlenecks.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>UserInterface2D Compression:</strong> Always set imported UI sprites to this setting, or they will be lossy BC compressed causing terrible artifacting around edges.</li>
+          <li><strong>Material Instances instead of complex UMG:</strong> Instead of layering 4 Images in UMG (4 draw calls, 4 overdraw passes), do it in a single Unlit UI Material Instance via masks (1 draw call).</li>
+        </ul>
       </SectionCard>
     </div>
   </div>
@@ -978,11 +1033,18 @@ const MemoryStateTab = () => (
           <li><strong>Network Dormancy:</strong> For interactive chests or doors, use <code>NetDormancy = DORM_Initial</code>. The Server stops checking them until a player specifically interacts via <code>FlushNetDormancy()</code>.</li>
         </ul>
       </SectionCard>
-      <SectionCard className="md:col-span-2" title="World Partition & Grid HLODs" icon={Layers} color={COLORS.status.warning}>
+      <SectionCard title="World Partition & Grid HLODs" icon={Layers} color={COLORS.status.warning}>
         <p className="mb-2 text-sm">Seamless mapping requires dividing the terrain into cell logic and asynchronously pulling chunks in before viewing.</p>
         <div className="bg-black/20 p-3 rounded border border-amber-500/30 mt-2 text-sm text-kingfisher-muted">
-          <strong className="text-amber-400">HLOD System:</strong> Automatic process integrating thousands of distant mesh instances into one merged Proxy material, resolving extreme Draw Call delays toward visible horizons. Sub-culling occurs directly per node.
+          <strong className="text-amber-400">HLOD System:</strong> Automatic process integrating thousands of distant mesh instances into one merged Proxy material, resolving extreme Draw Call delays toward horizons.
         </div>
+      </SectionCard>
+      <SectionCard title="Asset Manager & Chunk Streaming" icon={HardDrive} color={COLORS.status.error}>
+        <p className="mb-2 text-sm">Bypass manual Soft Object loading by leveraging UE5's unified Asset Manager engine.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>Primary Asset IDs:</strong> Label crucial item definitions or chunks directly in Editor registries. The game computes explicit bundle manifests prior to runtime.</li>
+          <li><strong>Stateful Dependency Loading:</strong> Automatically pull dependent textures and models in the background asynchronously without writing complex stream manager graphs.</li>
+        </ul>
       </SectionCard>
     </div>
   </div>
@@ -1056,13 +1118,19 @@ const NetworkingPhysicsTab = () => (
         </div>
       </SectionCard>
       
-      <SectionCard className="md:col-span-2" title="Payload Compression & Connection Resilience" icon={Database} color={COLORS.status.error}>
-        <p className="mb-2 text-sm"><strong>Bandwidth Optimization (The 1KB/s Target):</strong> Don't sync verbose arrays or strings over UDP. Plan for packet loss.</p>
+      <SectionCard title="Generic Prediction & Frame Rollback" icon={Activity} color={COLORS.kingfisher.warm}>
+        <p className="mb-2 text-sm"><strong>Beyond the CMC: Prediction for Custom Abilities.</strong></p>
         <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
-          <li><strong className="text-white">Bitmask Compression:</strong> Quest steps, passive skill trees, and unlock grids natively mapped into bitwise integers (e.g., <code>uint32 ProgressionFlags</code>). You sync 4 bytes instead of an array of 32 booleans.</li>
-          <li><strong className="text-white">Fast Array Serializer:</strong> Unreal’s <code>FFastArraySerializer</code> is mandatory for inventory management. Instead of re-replicating a generic 100-slot TArray on every change, it generates delta-only diffs for just the mutated index.</li>
-          <li><strong className="text-white">Risk: RPC Packet Loss:</strong> Important UDP RPCs must be marked <code>Reliable</code>. But never make Tick or Movement reliable—if network degrades, the server will stall waiting for historical ACKs and crash. For reliable continuous streams, let standard generic Property Replication handle eventual consistency.</li>
-          <li><strong className="text-white">COND_SkipOwner & Ghost Echoes:</strong> If a client predicting an action receives an old server variable update, their UI jitters. Prevent this cyclical bandwidth waste and state desync via <code>ReplicationCondition = COND_SkipOwner</code>.</li>
+          <li><strong className="text-white">Deterministic Sync:</strong> In combat, the client simulates instantly (like firing a dash or projectile), while logging the exact Frame ID and Input block.</li>
+          <li><strong className="text-white">Rollback Re-simulation:</strong> If the server's authoritative state update differs from the client's past prediction, the client rolls back its state to that frame, applies the server's update, and rapidly re-simulates all inputs between that past frame and the present.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Payload Compression Check" icon={Database} color={COLORS.status.error}>
+        <p className="mb-2 text-sm"><strong>Bandwidth Optimization (The 1KB/s Target):</strong></p>
+        <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
+          <li><strong className="text-white">Bitmask Compression:</strong> Quest steps and unlock grids map into bitwise integers (e.g., <code>uint32</code>), syncing 4 bytes instead of 32 booleans.</li>
+          <li><strong className="text-white">Fast Array Serializer:</strong> Unreal’s <code>FFastArraySerializer</code> is mandatory for inventory management, syncing only the delta diffs for mutated indexes.</li>
+          <li><strong className="text-white">Skip Owner Optimization:</strong> Prevent ghost echo jitter via <code>COND_SkipOwner</code>.</li>
         </ul>
       </SectionCard>
     </div>
