@@ -282,11 +282,14 @@ const OverviewTab = () => (
               ['Collision & Traces', 'Simple vs complex collision, trace channels, async trace patterns.'],
               ['Animation & Audio', 'Animation budget, skeletal LOD, audio streaming vs in-memory.'],
               ['Scalability & CVars', 'r.* console variable system, scalability presets, per-platform tuning.'],
-              ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD.'],
+              ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD, binary optimized.'],
               ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
               ['Multithreading & Async', 'TaskGraph, FRunnable, ParallelFor vs overhead, avoiding thread locks.'],
               ['UE Subsystems', 'Engine, GameInstance, LocalPlayer object lifecycle.'],
               ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction.'],
+              ['GPU Geometry & Nanite', 'Concrete ms budgets for Nanite overdraw, WPO clustering fixes, and limits.'],
+              ['Snapshot Interpolation Module', 'Rigorous buffer state capture limits (e.g. 5 snapshots trailing latency) to smooth out remote players dropping packets before extrapolation.'],
+              ['Jitter Buffer & Time-Warp', 'Adaptive jitter buffers specifically tuning network `MinUpdateDelay` to dynamically absorb lag spikes using fractional frame prediction.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -304,9 +307,7 @@ const OverviewTab = () => (
           <ul className="space-y-3">
             {[
               ['Replication Graph / Iris Refactoring', 'Need to replace standard Actor Channel replication with a custom IRIS Replication Graph for massive MMO-scale actor counts and fast-path variable syncing.'],
-              ['Snapshot Interpolation Module', 'Create rigorous buffer state capture limits (e.g. 5 snapshots trailing latency) to smooth out remote players dropping packets before extrapolation kicks in.'],
               ['Network Relevancy Masking', 'Implement bitmask-driven relevancy rules to selectively filter actor updates per-connection without doing raw spatial bounding checks.'],
-              ['Jitter Buffer & Time-Warp Correction', 'Adaptive jitter buffers specifically tuning network `MinUpdateDelay` to dynamically absorb lag spikes using fractional frame prediction.'],
               ['Scalable Server Microservices', 'Decouple login tokens, matchmaking mmr, chat clusters, and inventory persistence into separate Dockerized web services.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
@@ -1621,31 +1622,52 @@ const ProfilingDebugTestingTab = () => (
 
 const LiveMemoryTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Live Memory Connect" subtitle="Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation." />
+    <PageHeader title="Live Memory Connect" subtitle="Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation via binary protocols." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <SectionCard title="Architecture Setup" icon={Radio} color={COLORS.kingfisher.blue}>
-        <p className="text-sm mb-3">Instead of using Slate/UMG for complex metrics, we embed a lightweight WebSocket server in UE5 C++.</p>
+        <p className="text-sm mb-3">Instead of using Slate/UMG for complex metrics charts (which costs Game Thread time), we embed a lightweight WebSocket server in UE5 C++.</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
-          <li>Run a WebSocket server via <code className="text-white">IWebSocket</code> module.</li>
-          <li>Serialize tracking data (Memory, Draw Calls, AI counts) to JSON on a background thread.</li>
-          <li>Stream directly to localhost React application.</li>
+          <li>Run a WebSocket server via <code className="text-white">IWebSocket</code> module on a background C++ thread.</li>
+          <li>Gather telemetry arrays. Use <strong className="text-green-400">Binary Serialization (FlatBuffers or explicit byte packs)</strong> instead of JSON to save string allocation hitches.</li>
+          <li>Stream directly to the localhost React application/UI renderer at 10Hz to 30Hz target rates.</li>
         </ul>
       </SectionCard>
+      
       <SectionCard title="Implementation Structure" icon={Database} color={COLORS.status.success}>
-        <p className="text-sm mb-3">C++ Header example:</p>
+        <p className="text-sm mb-2">C++ Header Integration Example:</p>
         <div className="p-3 bg-black/40 rounded border border-kingfisher-border/30 font-mono text-xs text-kingfisher-surface overflow-x-auto whitespace-pre">
 {`void StartStatsServer();
 void BroadcastStats();
 
-// Payload structure
+// Payload structure (Aligned for binary packing)
 USTRUCT()
-struct FStatsPayload {
+struct alignas(16) FStatsPayload {
     GENERATED_BODY()
     UPROPERTY() float FrameTimeMs;
     UPROPERTY() int32 DrawCalls;
-    UPROPERTY() int32 PolyCount;
+    UPROPERTY() int32 ActiveNPCs;
+    UPROPERTY() float VRAMUsedMB;
 };`}
         </div>
+      </SectionCard>
+
+      <SectionCard title="Performance Overhead Optimization" icon={Activity} color={COLORS.status.warning}>
+        <p className="text-sm mb-3">Fetching deep memory strings can easily take <span className="font-mono text-xs">2.0ms+</span> per tick. We need to prevent the telemetry system from altering the game's actual frame rate.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Tick Isolation:</strong> Never pull stats on <code>Tick()</code>. Run a timer at 0.1s increments (10Hz). 10Hz is more than enough for human-readable live-graphs.</li>
+          <li><strong>Push State, Don't Pull:</strong> Instead of polling every frame, have game systems register their <code>Delta Memory</code> into a global static atomic integer.</li>
+          <li><strong>Network Profile:</strong> Sending a 64-byte payload locally via WebSocket costs <span className="font-mono text-xs">&lt; 0.1ms</span>. Sending 5MB of JSON text can spike to <span className="font-mono text-xs">5.0ms+</span> while garbage collecting massive strings.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Multiplayer Metric Subscriptions" icon={Network} color={COLORS.kingfisher.warm}>
+        <p className="text-sm mb-3">On a Dedicated Server context, WebSocket connections can stream headless health diagnostics to a separate monitoring Dashboard.</p>
+        <div className="space-y-1">
+          <StatRow label="Dedicated Server RAM" value="300MB - 1.2GB" color="text-amber-400" />
+          <StatRow label="In-bounds Players" value="256 max bounds" color="text-emerald-400" />
+          <StatRow label="Replication MS tick" value="&lt; 15.0ms" note="Warning threshold" color="text-red-400" />
+        </div>
+        <p className="text-xs text-kingfisher-muted mt-3">The React UI can bind directly to multiple servers remotely to maintain an oversight topology map with zero UE5 rendering cost.</p>
       </SectionCard>
     </div>
   </div>
@@ -1747,7 +1769,7 @@ const WorldPartitionTab = () => (
 
 const ClientPredictionTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Client-Side Prediction Modules" subtitle="Custom generic prediction interpolation for advanced abilities." />
+    <PageHeader title="Client-Side Prediction & Interpolation" subtitle="Generic prediction interpolation, Snapshot Buffers, and Jitter Correction for advanced abilities." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <SectionCard title="Masking Latency" icon={Zap} color={COLORS.kingfisher.warm}>
         <p className="text-sm mb-3">If a player presses "Dash", waiting 100ms for the server to reply feels unplayable.</p>
@@ -1757,10 +1779,26 @@ const ClientPredictionTab = () => (
           <li><strong>Correction:</strong> If the server response eventually disagrees, gently interpolate the local position back to reality to avoid visual snapping.</li>
         </ul>
       </SectionCard>
+      <SectionCard title="Snapshot Interpolation Module" icon={Database} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-2">Smoothing out remote players dropping packets before extrapolation kicks in.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Buffer State Capture:</strong> Maintain an array of recent server snapshots with absolute timestamps (e.g., 5 to 7 snapshots trailing latency).</li>
+          <li><strong>Interpolation vs Extrapolation:</strong> Always interpolate between the oldest known valid ticks. If the buffer runs dry (massive packet loss), gracefully switch to linear extrapolation for up to <span className="font-mono text-emerald-400">~250ms</span> before pausing the entity.</li>
+          <li><strong>Cost:</strong> Snapshot memory traces are very cheap, typically taking <span className="font-mono text-emerald-400">&lt; 0.5ms</span> CPU per frame for 100+ simulated proxies.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Jitter Buffer & Time-Warp Correction" icon={Clock} color={COLORS.status.warning}>
+        <p className="text-sm mb-3">Adaptive network tuning dynamically absorbing lag spikes.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Fractional Frame Prediction:</strong> Dynamically scale <code className="text-white">MinUpdateDelay</code> dependent on connection volatility.</li>
+          <li><strong>Jitter Absorption:</strong> Delay rendering of replicated actors by an artificial <span className="font-mono text-emerald-400">+50ms</span>. This ensures the client always has a "future" tick to interpolate towards, completely masking jitter variance at the cost of slight visual delay.</li>
+          <li><strong>Time-Warp:</strong> Client clock must locally warp to match server TimeOfFlight sync to prevent simulation drift.</li>
+        </ul>
+      </SectionCard>
       <SectionCard title="Generic Prediction System" icon={Activity} color={COLORS.status.success}>
         <ul className="list-disc pl-5 space-y-4 text-sm text-kingfisher-muted">
           <li>Create an inheritable generic module for things like <em>Projectiles</em> or <em>Melee Swings</em> that don't fit natively in CharacterMovementComponent.</li>
-          <li>Maintains a local buffer of Inputs, paired with monotonically increasing Timestamps.</li>
+          <li>Maintains a local buffer of Inputs (circular queue), paired with monotonically increasing Timestamps to facilitate predictive fast-forwarding upon state correction.</li>
         </ul>
       </SectionCard>
     </div>
@@ -2017,10 +2055,46 @@ const ShaderPermutationsTab = () => (
 
 const GeometryTab = () => (
   <div className="space-y-6">
-    <PageHeader title="GPU Geometry & Nanite" subtitle="Managing high polycount meshes to stay within budget." />
-    <div className="text-kingfisher-muted p-4 bg-black/20 rounded border border-kingfisher-border/30">
-      <SectionCard title="Nanite Optimization" icon={Box} color={COLORS.kingfisher.blue}>
-        <p className="text-sm">Nanite clusters triangles and streams them efficiently. However, overuse of masked materials or excessive overdraw can still hurt performance.</p>
+    <PageHeader title="GPU Geometry & Nanite" subtitle="Managing high polycount meshes, World Position Offset, and staying within budget while targeting 60 FPS." />
+    
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="Nanite Core Concepts" icon={Box} color={COLORS.kingfisher.blue}>
+        <p className="text-sm text-kingfisher-muted mb-3">Nanite virtualizes geometry, streaming micro-triangles from SSD to VRAM based on screen-space density. It removes the traditional polygon budget but shifts the bottleneck elsewhere.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Cluster Culling:</strong> Instead of culling entire objects, Nanite culls small clusters of ~128 triangles.</li>
+          <li><strong>Zero Overdraw Cost:</strong> Opaque Nanite meshes render via a depth pre-pass, meaning pixel shader overdraw is structurally eliminated.</li>
+          <li><strong>VRAM Pressure:</strong> 10M triangle meshes take significant disk space and stream pool memory. Compress aggressively.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Nanite Limitations & Costs" icon={Activity} color={COLORS.status.warning}>
+        <p className="text-sm text-kingfisher-muted mb-3">Nanite is not a magic bullet. Beware of these performance killers:</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong className="text-amber-400">Masked Materials (Foliage):</strong> Alpha testing forces the GPU to evaluate pixel shaders before depth culling. This can add <span className="font-mono text-xs">2.0–5.0ms</span> overhead in dense forests.</li>
+          <li><strong className="text-amber-400">World Position Offset (WPO):</strong> Wind, swaying grass, and bending trees. Nanite must evaluate WPO per-vertex. WPO on 10,000 trees can cost <span className="font-mono text-xs">3.0–6.0ms</span>.</li>
+          <li><strong className="text-emerald-400">Fix:</strong> Use <code>WPO Disable Distance</code> to turn off wind beyond 50 meters, reducing the cost to <span className="font-mono text-xs">&lt; 0.5ms</span>.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Non-Nanite Fallbacks (Mobile / Android)" icon={Smartphone} color={COLORS.status.error}>
+        <p className="text-sm text-kingfisher-muted mb-3">Mobile GPUs and low-end PCs cannot utilize Nanite's compute-shader rasterizer efficiently.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong className="text-white">Fallback Mesh:</strong> UE5 auto-generates a low-poly fallback mesh for platforms where Nanite is disabled. You must tune the <em>Fallback Relative Error</em> to keep Android polygon budgets under ~500k triangles per frame.</li>
+          <li><strong className="text-white">Draw Calls Return:</strong> When falling back to standard rendering on mobile, your Draw Calls instantly multiply. HISM/ISM instancing becomes mandatory again.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Geometry Render Budgets" icon={Database} color={COLORS.status.info}>
+         <div className="space-y-1">
+          <StatRow label="Nanite Overhead (Base)" value="~1.5 - 2.0ms" color="text-amber-400" />
+          <StatRow label="Opaque Geometry (Millions)" value="~0.5ms" color="text-emerald-400" />
+          <StatRow label="Dense Foliage (Masked)" value="~3.0 - 5.0ms" color="text-red-400" />
+          <StatRow label="Mobile Triangle Target" value="&lt; 500k" color="text-emerald-400" />
+          <StatRow label="Desktop Triangle Target" value="Infinite*" note="Compute bound" color="text-blue-400" />
+        </div>
+        <HighlightBox type="success" className="mt-4 text-xs">
+          <strong>Optimal Network Sync:</strong> High-poly geometry has <strong>0ms impact on Network Latency</strong>. The dedicated server evaluates purely based on invisible Simple Collision (Spheres/Capsules), ignoring visualization complexity.
+        </HighlightBox>
       </SectionCard>
     </div>
   </div>
