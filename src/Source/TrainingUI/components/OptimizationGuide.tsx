@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { 
   Settings, ArrowLeft, Activity, Cpu, Monitor, Sun, Database, Network, 
-  Clock, HardDrive, Zap, LayoutTemplate, Box, Waves, CheckCircle, CircleDashed, ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield
+  Clock, HardDrive, Zap, LayoutTemplate, Box, Waves, CheckCircle, CircleDashed, ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield, Radio, Hexagon, Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
@@ -13,14 +13,15 @@ interface OptimizationGuideProps {
 const TABS = [
   { id: 'overview', label: 'Implementation Status', icon: ClipboardList },
   { id: 'pipeline', label: '16.7ms Pipeline', icon: Activity },
-  { id: 'architecture', label: 'CPU & RAM Memory', icon: Cpu },
+  { id: 'architecture', label: 'CPU & RAM Architecture', icon: Cpu },
   { id: 'gpu', label: 'GPU & Geometry', icon: Box },
   { id: 'lighting', label: 'Light & Shadows', icon: Sun },
   { id: 'memory_state', label: 'Memory & State Arch', icon: Folder },
   { id: 'network_physics', label: 'Networking & Physics', icon: Globe },
   { id: 'npc', label: 'World AI Simulation', icon: Network },
   { id: 'budgets', label: 'Budgets & Tools', icon: Database },
-  { id: 'profiler', label: 'Interactive Profiler', icon: Zap },
+  { id: 'storage', label: 'Disk/Install Storage', icon: HardDrive },
+  { id: 'aaa_profiling', label: 'AAA Quality Profiling', icon: Zap },
 ];
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
@@ -37,7 +38,8 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'network_physics': return <NetworkingPhysicsTab />;
       case 'npc': return <AITab />;
       case 'budgets': return <BudgetsTab />;
-      case 'profiler': return <ProfilerTab />;
+      case 'storage': return <StorageTab />;
+      case 'aaa_profiling': return <AAAQualityProfilingTab />;
       default: return null;
     }
   };
@@ -123,7 +125,7 @@ const SectionCard = ({ title, icon: Icon, color = COLORS.kingfisher.blue, childr
   </div>
 );
 
-const HighlightBox = ({ children, type = 'info' }: any) => {
+const HighlightBox = ({ children, type = 'info', className = '' }: any) => {
   const colors = {
     info: 'border-blue-500/30 bg-blue-500/10 text-blue-100',
     warning: 'border-amber-500/30 bg-amber-500/10 text-amber-100',
@@ -132,7 +134,7 @@ const HighlightBox = ({ children, type = 'info' }: any) => {
   }[type as 'info' | 'warning' | 'danger' | 'success'];
 
   return (
-    <div className={`p-4 rounded-lg border ${colors} text-sm font-medium leading-relaxed`}>
+    <div className={`p-4 rounded-lg border ${colors} text-sm font-medium leading-relaxed ${className}`}>
       {children}
     </div>
   );
@@ -144,31 +146,38 @@ const OverviewTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-2">Implementation Status Overview</h2>
-      <p className="text-kingfisher-muted">A clear breakdown of what has been implemented in the training application, and what is scheduled for future updates.</p>
+      <p className="text-kingfisher-muted">Deep analysis from extensive documentation and practical technical playgrounds integration.</p>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Currently Implemented" icon={CheckCircle} color={COLORS.status.success}>
+      <SectionCard title="Currently Implemented (Completed)" icon={CheckCircle} color={COLORS.status.success}>
         <ul className="space-y-4 pt-2">
           <li className="flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block text-base mb-1">Theoretical Guidelines</strong>
-              <span className="text-kingfisher-muted text-sm leading-relaxed">Comprehensive documentation for the 16.7ms pipeline, CPU/RAM, GPU/Geometry, Lighting, AI bounds, memory, networking, and Budgets.</span>
+              <strong className="text-white block text-base mb-1">Architecture Validation</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">3-Layer Data-Driven Architecture (Definition -&gt; State -&gt; Presentation). The "Ban Event Tick", Soft Object References vs Hard References, Data-Driven Iterations, Object Pooling, Event Bus Decoupling.</span>
             </div>
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block text-base mb-1">System Optimizations Integrated</strong>
-              <span className="text-kingfisher-muted text-sm leading-relaxed">Included strategies for Data-Driven Items, Asynchronous Loading, UMG ViewModels, Multiplayer Replication Culling, and Quest/Passive-Tree Bitmasks.</span>
+              <strong className="text-white block text-base mb-1">Advanced Game Mechanics</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">Passive Tree Bitmask allocations, Spatial Jewel injections, Enhanced Input mappings, Inventory Component integrations, Modular USTRUCT definitions, and Item Crafting systems.</span>
             </div>
           </li>
           <li className="flex items-start gap-3">
             <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block text-base mb-1">Interactive Profiler Mockups</strong>
-              <span className="text-kingfisher-muted text-sm leading-relaxed">Live mock engine stat tools (stat Unit, stat GPU) with variable tweaking to simulate bottlenecks. (See Interactive Profiler tab).</span>
+              <strong className="text-white block text-base mb-1">Rendering & Profiling Metrics</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">16.7ms pipeline threading definitions, precise Budget allocations (CPU Game vs Draw vs GPU), AAA quality optimal profiling strategies, Nanite vs Foliage bucket classifications.</span>
+            </div>
+          </li>
+          <li className="flex items-start gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+            <div>
+              <strong className="text-white block text-base mb-1">Simulation & Logic Strategies</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">Quadtree Fog-of-War, Server Culling (COND_SkipOwner), Timestamp Catch-Up simulations for disconnected biomes, Significance Manager strategies.</span>
             </div>
           </li>
         </ul>
@@ -179,15 +188,15 @@ const OverviewTab = () => (
           <li className="flex items-start gap-3">
             <CircleDashed className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block text-base mb-1">Visual Culling & LOD Demo</strong>
-              <span className="text-kingfisher-muted text-sm leading-relaxed">Interactive 2D/3D visualizer showing how Nanite partitions and frustum culling actually work.</span>
+              <strong className="text-white block text-base mb-1">Live Memory Connect</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation. Current profilers are heavily accurate simulations.</span>
             </div>
           </li>
           <li className="flex items-start gap-3">
             <CircleDashed className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
             <div>
-              <strong className="text-white block text-base mb-1">Live Engine Connection</strong>
-              <span className="text-kingfisher-muted text-sm leading-relaxed">Direct WebSocket or REST integration to a running Unreal Engine instance for live metric capture.</span>
+              <strong className="text-white block text-base mb-1">Deep Visual Debug Overlays</strong>
+              <span className="text-kingfisher-muted text-sm leading-relaxed">In-game dynamic drawing overlays corresponding to Bitmask states or AI NavMesh traces outside of the isolated Playground.</span>
             </div>
           </li>
         </ul>
@@ -200,54 +209,55 @@ const PipelineTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-2">The 16.7ms Pipeline</h2>
-      <p className="text-kingfisher-muted">Understanding the fundamental mathematics of the 60 FPS parallel engine architecture.</p>
+      <p className="text-kingfisher-muted">Understanding the fundamental mathematics of the 60 FPS parallel engine architecture. 13.5ms Targets with 3ms Buffer.</p>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <SectionCard title="Game Thread (CPU)" icon={Activity} color={COLORS.status.info}>
-        <p><strong>Frame N:</strong> The Brain.<br/>Calculates player input, AI logic, physics, animations, and runs Blueprint/C++ code. This must ideally finish before 12ms.</p>
-        <ul className="list-disc pl-5 mt-2 space-y-1 text-kingfisher-muted">
-          <li>World Logic: ~3.0ms</li>
-          <li>AI & Behavior: ~3.5ms</li>
-          <li>Animations: ~2.5ms</li>
-          <li>Physics/Audio: ~3.5ms</li>
+        <p><strong>Frame N:</strong> The Brain.<br/>Calculates AI, physics, animations, and Blueprint/C++ code. Must finish before 13.5ms max limit.</p>
+        <ul className="list-disc pl-5 mt-4 space-y-1 text-kingfisher-muted text-sm">
+          <li><strong>World Logic:</strong> ~3.0ms</li>
+          <li><strong>AI & Tree:</strong> ~3.5ms</li>
+          <li><strong>Animations:</strong> ~2.5ms</li>
+          <li><strong>Physics/Audio:</strong> ~2.0ms</li>
+          <li><strong>Safety Buffer:</strong> 4.17ms</li>
         </ul>
       </SectionCard>
 
-      <SectionCard title="Render Thread (CPU)" icon={LayoutTemplate} color={COLORS.status.warning}>
-        <p><strong>Frame N-1:</strong> The Coordinator.<br/>Translates Game Thread data, handles occlusion culling (what exists on screen), and packages Draw Calls for the GPU. Target: {'<'}11ms.</p>
-        <ul className="list-disc pl-5 mt-2 space-y-1 text-kingfisher-muted">
-          <li>Visibility/Culling: ~4.0ms</li>
-          <li>Draw Call Prep: ~5.0ms</li>
-          <li>Shadow Prepping: ~3.0ms</li>
+      <SectionCard title="Draw Thread (CPU)" icon={LayoutTemplate} color={COLORS.status.warning}>
+        <p><strong>Frame N-1:</strong> The Coordinator.<br/>Translates Game Thread data, handles occlusion culling, and packages Draw Calls. Target {'<'}13.5ms.</p>
+        <ul className="list-disc pl-5 mt-4 space-y-1 text-kingfisher-muted text-sm">
+          <li><strong>Visibility/Culling:</strong> ~4.0ms</li>
+          <li><strong>Draw Call Prep:</strong> ~5.0ms</li>
+          <li><strong>Shadow Setup:</strong> ~3.0ms</li>
         </ul>
       </SectionCard>
 
       <SectionCard title="Graphics (GPU)" icon={Monitor} color={COLORS.status.success}>
-        <p><strong>Frame N-2:</strong> The Artist.<br/>Rasterizes polygons, calculates pixels, shadows, Global Illumination (Lumen), and post-processing. Target: {'<'}13ms.</p>
-        <ul className="list-disc pl-5 mt-2 space-y-1 text-kingfisher-muted">
-          <li>Base Pass (G-Buffer): ~3.5ms</li>
-          <li>Shadows (VSM): ~3.5ms</li>
-          <li>Lumen (GI): ~4.5ms</li>
-          <li>Post-Process/UI: ~1.5ms</li>
+        <p><strong>Frame N-2:</strong> The Artist.<br/>Rasterizes polygons, calculates pixels, shadows, Global Illumination (Lumen), and Post-Process.</p>
+        <ul className="list-disc pl-5 mt-4 space-y-1 text-kingfisher-muted text-sm">
+          <li><strong>Base Pass:</strong> ~3.5ms</li>
+          <li><strong>Shadows (VSM):</strong> ~3.5ms</li>
+          <li><strong>Lumen (GI):</strong> ~4.5ms</li>
+          <li><strong>Post-Process:</strong> ~1.5ms</li>
         </ul>
       </SectionCard>
     </div>
 
     <HighlightBox type="success">
-      <strong>The 60 FPS Secret:</strong> Frame math does <em>not</em> add up sequentially. Game Thread (10ms) + Draw Thread (10ms) + GPU (10ms) = 30ms total work, but delivered simultaneously every 10ms. Therefore, your game runs flawlessly. <strong>Aim for a 3ms safety buffer on all threads!</strong>
+      <strong>The 60 FPS Secret:</strong> The math runs in parallel, NOT sequential! Game Thread (10ms) + Draw Thread (10ms) + GPU (10ms) = 30ms of work total, but it is delivered simultaneously every 10ms. Frame rate is determined strictly by the <em>slowest individual thread</em>.
     </HighlightBox>
 
     <SectionCard title="The Thread Interlocking Trap (Traffic Jams)" icon={Network} color={COLORS.status.error}>
-      <p>Because the engine is a pipeline, a delay in one thread cascades into the others, causing visible stutters:</p>
+      <p>Because the engine is an assembly line pipeline, a delay in one thread cascades into the others, causing visible wait states and drops:</p>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
         <div className="bg-black/20 p-4 rounded border border-kingfisher-border/50">
           <strong className="text-white">GPU Bottleneck (Draw Waits)</strong>
-          <p className="mt-1 text-kingfisher-muted">If the GPU is choked (e.g. 25ms volumetric fog), the Draw Thread finishes in 10ms but <em>must</em> wait idle (WaitForGPU) to hand off the next frame, dropping FPS.</p>
+          <p className="mt-1 text-kingfisher-muted">If the GPU is choked by 25ms fog effects, the Draw Thread finishes its 10ms work but <em>must</em> wait idle (<code>WaitForGPU</code>) before handing off the next frame, dropping FPS heavily.</p>
         </div>
         <div className="bg-black/20 p-4 rounded border border-kingfisher-border/50">
           <strong className="text-white">CPU Bottleneck (GPU Waits)</strong>
-          <p className="mt-1 text-kingfisher-muted">If AI calculations take 30ms but GPU only takes 5ms, the GPU starves for instructions and sits idle at 20% utilization, locked to the CPU's ~33FPS pace.</p>
+          <p className="mt-1 text-kingfisher-muted">If AI pathfinding calculations take 30ms but the GPU is simple and takes 5ms, the GPU starves for rendering instructions. It sits idle at 20% utilization, locked to the CPU's ~33 FPS pace.</p>
         </div>
       </div>
     </SectionCard>
@@ -258,44 +268,43 @@ const ArchitectureTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-2">CPU & RAM Memory Architecture</h2>
-      <p className="text-kingfisher-muted">Eliminating traversal stutter, memory leaks, and CPU cache misses in Open Worlds.</p>
+      <p className="text-kingfisher-muted">Eliminating traversal stutters, memory leaks, garbage collection sweeps, and cache misses.</p>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="RAM Latency vs. CPU Cache" icon={Cpu} color={COLORS.kingfisher.warm}>
-        <p className="font-semibold text-white">The Target: Zero CPU Waits</p>
-        <p>RAM capacity rarely causes stuttering—RAM <em>latency</em> does. The CPU must fetch data from RAM to calculate math. If data is scattered randomly in memory (a "Cache Miss"), the CPU sits idle for hundreds of clock cycles waiting for delivery.</p>
+      <SectionCard title="The Golden Rule: Ban Event Tick" icon={Clock} color={COLORS.kingfisher.warm}>
+        <p className="font-semibold text-white">Event-Driven Architecture Only</p>
+        <p className="mt-2 text-sm">The CPU is almost always the bottleneck due to logic constraints. Ban Event Tick unconditionally on 99% of classes. Turn off <code>Start with Tick Enabled</code>.</p>
         
-        <div className="mt-4 p-3 bg-black/30 rounded border border-red-500/20">
-          <strong className="text-red-400">The Blueprint Trap:</strong> Creating heavy Blueprints for mechanics scatters complex 150KB object references everywhere. Loop updating 200 of them destroys the Game Thread.
-        </div>
-        <div className="mt-2 p-3 bg-black/30 rounded border border-emerald-500/20">
-          <strong className="text-emerald-400">The Solution: L1 CPU Prefetching:</strong> Use a Head Manager containing flat C++ TArrays of bare structs (e.g., FPoisonData, ~24 bytes). RAM sequentially streams these into the CPU's ultra-fast L1 Cache implicitly, plummeting costs to fractions of a millisecond.
+        <div className="mt-4 p-3 bg-black/30 rounded border border-purple-500/20">
+          <strong className="text-purple-400">Event Bus Integration:</strong> Instead of checking states on tick, use decoupled Multi-Cast Delegates (UGameEventBus). Emit isolated signals like <code>"PLAYER_DEATH"</code> so remote systems can subscribe asynchronously.
         </div>
       </SectionCard>
 
-      <SectionCard title="Soft vs. Hard References" icon={HardDrive} color={COLORS.status.info}>
-        <p className="font-semibold text-white">Preventing Traversal Stutter</p>
-        <p>If Code permanently references an Asset, it locks it dynamically into RAM constraints immediately, causing massive load-stutters ("Traversal Stutter") when moving around the world.</p>
-        <ul className="list-disc pl-5 mt-3 space-y-2 text-kingfisher-muted">
-          <li><strong>Soft Object References (TSoftObjectPtr):</strong> Points to a text string path (Zero RAM cost). When player is close, asynchronously stream the asset over several frames. Used for exactly-needed environments, bosses, or rare loot.</li>
-          <li><strong>Hard References:</strong> Instant memory lock. Mandatory for HUD/UI, Player Character Skeleton, basic collision impacts (wood/stone hits), and Fallback error objects (Generic sword).</li>
+      <SectionCard title="Object Pooling (GC Killer)" icon={Database} color={COLORS.status.success}>
+        <p className="font-semibold text-white">Defeating the Garbage Collector</p>
+        <p className="mt-2 text-sm text-kingfisher-muted">When you <code>Destroy()</code> an actor, it doesn't leave RAM instantly. It marks as "Pending Kill". Forcing instantaneous deallocation freezes the Game Thread, so GC sweeps the trash every 60s instead.</p>
+        <ul className="list-disc pl-5 mt-2 space-y-1 text-kingfisher-muted text-sm pb-2">
+          <li><strong>UObjects/Actors:</strong> Sit in RAM and trigger 2-5ms sweep hitches. Use an Object Pooler (hide and recycle) instead of destroying.</li>
+          <li><strong>Niagara Particles:</strong> Use highly optimized autonomous memory layers. Niagara recycle instantly and bypass the heavy GC mechanism entirely!</li>
         </ul>
       </SectionCard>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Garbage Collection (GC) Stutters" icon={Database} color={COLORS.kingfisher.blue}>
-        <p>Unreal does not erase destroyed objects instantly (it would freeze the frame). They get marked "Pending Kill" and linger. Every 30-60 seconds, GC sweeps the RAM, causing unavoidable micro-stutters if trash is massive.</p>
-        <HighlightBox type="info" className="mt-3">
-          <strong>The GC Killer: Object Pooling.</strong><br/>
-          Never spawn or destroy projectiles, enemy drop-loot, or standard FX constantly. Pull an inactive arrow from a pre-allocated RAM array. When it hits, hide it and place it back into the array. GC never triggers.
-        </HighlightBox>
+      <SectionCard title="3-Layer Optimization Structure" icon={Layers} color={COLORS.kingfisher.blue}>
+        <p className="text-sm">Separate concerns to maintain pure data states and optimize caching:</p>
+        <ul className="list-disc pl-5 mt-3 space-y-3 text-kingfisher-muted text-sm">
+          <li><strong className="text-white">1. Definition (UDataAsset)</strong>: The static read-only truth (Name, Base Damage). Loaded via async.</li>
+          <li><strong className="text-white">2. Runtime State (USTRUCT)</strong>: Very lean mutable state representations containing volatile durability or bitmasks. Never use Heavy Objects, ensures it stays within L1 Cache cycles.</li>
+          <li><strong className="text-white">3. Presentation (UWidget)</strong>: Render mirror only. Does absolutely no simulation logic!</li>
+        </ul>
       </SectionCard>
       
-      <SectionCard title="Component-Driven Passives" icon={Settings} color={COLORS.kingfisher.muted}>
-        <p>Not everything needs a flat C++ array (which introduces rigidity). For individual local enemies (not swarms):</p>
-        <p className="mt-2">Use <strong>Dynamic Tick Throttling</strong>. Give an enemy actor a custom C++ Component. Far away, it ticks once every 10 frames (300ms). When close or damaged, it accelerates dynamically to 16ms, maximizing ease of programming while maintaining CPU safety.</p>
+      <SectionCard title="Soft Pointers & Transitive Loading" icon={HardDrive} color={COLORS.status.info}>
+        <p className="font-semibold text-white mb-2">Preventing Traversal Stutter</p>
+        <p className="text-sm mb-3">If code places a Hard Reference to an asset, it instantly triggers synchronous loads holding the Main Thread hostage ("Traversal Hitching").</p>
+        <p className="text-sm">Use <strong>TSoftObjectPtr</strong> everywhere. It holds a text ID path of an asset and only executes Asynchronous requests using <code>StreamableManager.RequestAsyncLoad</code>.</p>
       </SectionCard>
     </div>
   </div>
@@ -305,39 +314,40 @@ const GeometryTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-2">GPU Geometry & Nanite Strategy</h2>
-      <p className="text-kingfisher-muted">Managing billions of polygons efficiently without melting the memory bandwidth.</p>
+      <p className="text-kingfisher-muted">Managing billions of polygons. Nanite shifts rendering costs to Disk/SSD I/O speeds!</p>
     </div>
 
     <HighlightBox type="warning">
-      <strong>The "Turn Nanite on Everything" Approach (Approach A):</strong> Moves the bottleneck from GPU rendering to SSD I/O bandwidth. It demands high-speed NVMe drives, requires capped player traversal speeds (preventing massive pop-ins), favors aggressive kitbashing (instancing 5 rocks forever), and favors Runtime Virtual Texturing (RVT).
+      <strong>Approach A: The "Nanite Everything" Rule</strong><br/><br/>
+      Trades extreme optimization time for extreme player hardware limits. Demands an SSD. Since everything is Micro-polygon streaming, player movement speeds must be clamped to avoid massive geometric "pop-in" traversal hitching due to disk bandwidth limits.
     </HighlightBox>
 
     <h3 className="text-lg font-semibold text-white mt-6 mb-4">Approach B: The Optimal AAA Hybrid Design</h3>
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <SectionCard title="Bucket 1: Heavyweights" icon={Waves} color={COLORS.kingfisher.blue}>
         <p className="font-semibold text-white mb-2">The World Foundations</p>
-        <p className="text-kingfisher-muted">Mountains, castles, large ruins, landscapes.</p>
+        <p className="text-kingfisher-muted">Mountains, castles, large ruins, main architectural sets.</p>
         <div className="mt-4 pt-4 border-t border-kingfisher-border/50">
           <strong className="text-emerald-400">Rule:</strong> Full Nanite Enabled.<br/>
-          Import cinema-film resolutions. Never create LODs. Nanite perfectly micro-polygon rasterizes massive geometry completely on the GPU rendering pipeline.
+          Import million-poly models. Zero manual LOD generation needed. Nanite manages instances perfectly.
         </div>
       </SectionCard>
 
       <SectionCard title="Bucket 2: Micro-Clutter" icon={Box} color={COLORS.status.warning}>
         <p className="font-semibold text-white mb-2">Traditional Small Props</p>
-        <p className="text-kingfisher-muted">Cups, books, debris, crates, simple fences.</p>
+        <p className="text-kingfisher-muted">Cups, books, debris, simple fences, interior filler.</p>
         <div className="mt-4 pt-4 border-t border-kingfisher-border/50">
-          <strong className="text-red-400">Rule:</strong> Keep Nanite Disabled.<br/>
-          Meshes under 2,000 triangles lose performance with Nanite due to fixed memory overheads. Use standard hardware instancing (HISMs) and Unreal's automatic 4-tier LOD generation. 
+          <strong className="text-red-400">Rule:</strong> Disable Nanite.<br/>
+          Nanite fixes memory overheads per mesh! For assets under 2000 triangles, Nanite reduces performance. Rely on standard <code>HISM</code> (Hierarchical Instanced Static Meshes) with Unreal’s Auto-LODs.
         </div>
       </SectionCard>
 
       <SectionCard title="Bucket 3: Hybrid Foliage" icon={Sun} color={COLORS.status.success}>
         <p className="font-semibold text-white mb-2">Trees, Grass, Masks</p>
-        <p className="text-kingfisher-muted">Forest geometry and alpha-masked leaves.</p>
+        <p className="text-kingfisher-muted">Dense forest generation and alpha-masked layers.</p>
         <div className="mt-4 pt-4 border-t border-kingfisher-border/50">
           <strong className="text-amber-400">Rule:</strong> Nanite Trunks + Alpha LOD Leaves.<br/>
-          Alpha-masked transparencies trigger Quad Overdraw on GPUs. Use Nanite strictly on the solid trunks; use hand-optimized traditional meshes with billboards for far leaves.
+          Alpha-masked transparencies trigger Quad Overdraw on GPUs. Use Nanite strictly on solid geometry trunks, and hand-optimized low-poly billboards for far leaves.
         </div>
       </SectionCard>
     </div>
@@ -348,44 +358,53 @@ const LightingTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
       <h2 className="text-2xl font-bold text-white mb-2">Light & Shadows Masterclass</h2>
-      <p className="text-kingfisher-muted">Achieving dynamic mood without paying catastrophic performance penalties.</p>
+      <p className="text-kingfisher-muted">Delivering Lumen GI natively without catastrophic millisecond deficits.</p>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div className="p-4 bg-kingfisher-panel border border-kingfisher-border rounded-xl">
-        <h4 className="font-bold text-white mb-2 text-sm">Direct Lights</h4>
-        <p className="text-sm text-kingfisher-muted">The primary beam hits the environment based on distance from the source actor.</p>
-      </div>
-      <div className="p-4 bg-kingfisher-panel border border-kingfisher-border rounded-xl">
-        <h4 className="font-bold text-white mb-2 text-sm">Crist Shadows (VSM)</h4>
-        <p className="text-sm text-kingfisher-muted">Virtual Shadow Maps calculate shadows. Static meshes are cached; only moving items redraw shadows!</p>
-      </div>
-      <div className="p-4 bg-kingfisher-panel border border-kingfisher-border rounded-xl">
-        <h4 className="font-bold text-white mb-2 text-sm">Indirect Light (Lumen)</h4>
-        <p className="text-sm text-kingfisher-muted">Lumen traces how the light scatters naturally, bleeds color onto adjacent walls, and illuminates darkness.</p>
-      </div>
-      <div className="p-4 bg-kingfisher-panel border border-kingfisher-border rounded-xl">
-        <h4 className="font-bold text-white mb-2 text-sm">Reflections (Lumen)</h4>
-        <p className="text-sm text-kingfisher-muted">Accurately traces reflective bounces across rough surfaces or water realistically.</p>
-      </div>
-    </div>
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+      <SectionCard title="Understanding Lumen" icon={Sun} color={COLORS.kingfisher.warm}>
+        <p className="mb-2"><strong>Lumen Only Computes Indirect Light (GI & Reflections).</strong></p>
+        <p className="text-sm">Lumen does <em>not</em> calculate the primary beam of light or sharp shadow hits. That is handled by Direct Lighting and Virtual Shadow Maps (VSMs). Lumen exclusively mimics indirect bouncing scatter light.</p>
+        
+        <div className="mt-4 flex gap-4 text-xs font-mono bg-black/40 p-2 rounded">
+          <span className="text-blue-400">Directional Light</span> -&gt; 
+          <span className="text-purple-400">VSM Sharp Shadow</span> -&gt; 
+          <span className="text-orange-400">Lumen Ray Trace Bounce</span>
+        </div>
+      </SectionCard>
 
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-      <SectionCard title="Controlling Lumen Selectively" icon={Sun}>
-        <p>Lumen is incredibly GPU-heavy and dynamic. You can micromanage it per light or per area:</p>
-        <ul className="list-disc pl-5 mt-2 space-y-2 text-kingfisher-muted">
-          <li><strong>Per-Light:</strong> The "Affect GI" checkbox. Placed torches cast direct light, but only the player's equipped torch should be granted expensive Lumen bounce.</li>
-          <li><strong>Per-Area:</strong> Post-Process Volumes can localize Lumen to specific puzzle caves, falling back to SSGI globally. (Beware memory allocation hitches upon passing the volume border).</li>
+      <SectionCard title="Controlling Lumen Overhead" icon={Settings} color={COLORS.kingfisher.muted}>
+        <p>Lumen operates as globally "Active" but can be micro-managed radically to save budgets:</p>
+        <ul className="list-disc pl-5 mt-2 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>Per-Light Limits:</strong> Use `Affect Global Illumination` toggles. Minor torches provide direct VSM light, but do not contribute to expensive Lumen scatter.</li>
+          <li><strong>Emissive Trick:</strong> Rather than a Point Light Actor, apply an emissive material. Lumen integrates emissive surfaces via its screen pipeline natively—making it "Free" GI bounce lighting!</li>
         </ul>
       </SectionCard>
 
-      <SectionCard title="Defensive Open World Lighting rules" icon={Zap}>
-        <p>Architect your lighting to scale globally without frame drops:</p>
-        <ol className="list-decimal pl-5 mt-2 space-y-2 text-kingfisher-muted">
-          <li><strong>The "No Shadow" Rule:</strong> Disable casting shadows entirely on 90% of local torches. The aesthetic hit is minor, the performance gain is massive.</li>
-          <li><strong>Aggressive Max Draw Distance:</strong> Fade local lights out to completely zero calculations before city borders end.</li>
-          <li><strong>Weaponize Emissive Materials:</strong> Lumen inherently scatters emissive material light (mushroom glow) screen-space. This is literally "Free" compared to a dedicated Point Light actor.</li>
+      <SectionCard className="lg:col-span-2" title="Defensive Open World Lighting Rules" icon={Zap} color={COLORS.status.success}>
+        <ol className="list-decimal pl-5 space-y-3 text-kingfisher-muted text-sm">
+          <li><strong>Virtual Shadow Maps (VSM) Dominance:</strong> Cached VSM shadow data is imperative for Open Worlds. Shadows are only recalculated if a dynamic skeleton walks through it. Avoid un-cached heavy calculations.</li>
+          <li><strong>The "No Shadow" Approach:</strong> Eliminate ``Cast Shadows`` functionality on 90% of minor environmental lights (sconces, braziers, fireflies). Compute cost plummets.</li>
+          <li><strong>Strict Cull Ranges:</strong> Apply the Max Draw Distance Fade immediately. A village torch 200m away should be phased out entirely before logic evaluation.</li>
         </ol>
+      </SectionCard>
+
+      <SectionCard className="lg:col-span-2" title="Lighting Architecture Alternatives" icon={Sun} color={COLORS.kingfisher.blue}>
+        <p className="mb-4 text-sm text-kingfisher-muted">Lumen is heavy. Choose the architecture that fits your target hardware and gameplay loop:</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-white text-sm">Lumen (Dynamic GI)</strong>
+            <p className="mt-1 text-xs text-kingfisher-muted">Heavy. Handles changing times of day, darkness/cave delving, and dynamic destruction. Requires high-end hardware.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-emerald-500/30">
+            <strong className="text-emerald-400 text-sm">Baked Lighting (Lightmass)</strong>
+            <p className="mt-1 text-xs text-kingfisher-muted">Flawless performance (free GPU cost). However, world is frozen in time—no day/night cycles, and dynamic shadows can break immersion (ghost shadows).</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-blue-500/30">
+            <strong className="text-blue-400 text-sm">SSGI & SSR</strong>
+            <p className="mt-1 text-xs text-kingfisher-muted">Screen Space effects. Very high performance for dynamic scenes, but breaks instantly if the light source or reflecting object is off-screen.</p>
+          </div>
+        </div>
       </SectionCard>
     </div>
   </div>
@@ -394,43 +413,33 @@ const LightingTab = () => (
 const AITab = () => (
   <div className="space-y-6">
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-white mb-2">Massive AI Simulation (5000 NPCs)</h2>
-      <p className="text-kingfisher-muted">Scaling A-Life biomes to process 5000 real-time characters in {"<"} 2.0 milliseconds.</p>
+      <h2 className="text-2xl font-bold text-white mb-2">Dual-State AI Simulation</h2>
+      <p className="text-kingfisher-muted">Scaling A-Life biomes to process massive amounts of NPCs optimally.</p>
     </div>
 
     <HighlightBox type="info">
-      <strong>The Dual-State Architecture:</strong> Never run Blueprints, Navigation Meshes, or 3D Physics underground to "hide" faraway NPCs. The CPU will drown in coordinates. Only loaded environments get 3D math; everything else runs pure numerical simulation loops.
+      <strong>The Dual-State Trap:</strong> Never run Blueprints, Navigation Meshes, or 3D Physics underground to "hide" faraway NPCs. The CPU will drown tracing hidden mesh bounds.
     </HighlightBox>
 
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
       <SectionCard title="Global Simulation State (0.2ms)" icon={Network}>
-        <h4 className="text-white text-sm font-semibold mb-2">4,800 NPCs moving kilometers away:</h4>
-        <p className="mb-4">Global NPCs completely lack actors. They are merely vectors in a Head Manager flat C++ array traveling on Splines.</p>
-        
-        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Cubic Bézier Math:</strong> The Spline handles real, perfect curved coordinates. Extrapolating a continuous position along the mathematical curve demands just ~0.0001 ms per NPC.</li>
-          <li><strong>Terrain Modifications:</strong> Heights (Z-Axis), muddy slowdowns (Multiplier = 0.4x), and highways (Multiplier = 1.0) are calculated purely inside the array formula.</li>
-        </ul>
+        <h4 className="text-white text-sm font-semibold mb-2">Distance: Far (Spline Paths)</h4>
+        <p className="mb-4 text-sm">Global NPCs literally do not exist as Actors. They are math positions processed via the Significance Manager in a flat array, transitioning entirely on continuous mathematical Spline lines (fast C++ formulas).</p>
       </SectionCard>
 
       <SectionCard title="Local 3D State Hand-Off (1.5ms)" icon={Activity}>
-        <h4 className="text-white text-sm font-semibold mb-2">200 NPCs actively near the player:</h4>
-        <p className="mb-4">At 150m away, the Head Manager materializes the array point into a 3D Mesh, locking them into NavMesh ORCA logic, preventing "pop-in" before they enter camera sight.</p>
-        
-        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Adaptive Budget Queue:</strong> We only process a maximum budget (e.g. 5) of complex pathfinding calculations per frame. </li>
-          <li><strong>The Animation Smoothers:</strong> To cover the waiting time for the other 195 NPCs, play a "shock/react" 15-frame animation, or assign them a simple vector-steering "flock ahead" task until their NavMesh calculation finishes.</li>
-        </ul>
+        <h4 className="text-white text-sm font-semibold mb-2">Distance: Near (Complex Tracing)</h4>
+        <p className="mb-4 text-sm">Materializing array points into 3D characters executing Behavior Trees. Employs perception hooks against SightCones and NoiseRadii thresholds, evaluating immediate Navigation Meshes.</p>
       </SectionCard>
 
-      <SectionCard className="lg:col-span-2" title="Analytical Simulation (The Catch-up System)" icon={Clock}>
-        <p><strong>Simulating complete offline living biomes:</strong> A farming village should rot entirely when the player leaves without drawing CPU power forever.</p>
-        <p className="mt-2 text-sm text-kingfisher-muted">
+      <SectionCard className="lg:col-span-2" title="Analytical Simulation (Timestamp Catch-Up)" icon={Clock} color={COLORS.kingfisher.warm}>
+        <p className="mb-2"><strong>Offline Ecosystems:</strong> Never process an unloaded farming village in real time.</p>
+        <p className="mt-2 text-sm text-kingfisher-muted leading-relaxed">
           1. Player unloads Biome; Manager records <strong>`TimeLeft = 12:00 PM`</strong>.<br/>
-          2. The biome ceases all math completely. (Cost = 0.00ms)<br/>
+          2. Biome mathematical execution ceases completely (Cost = 0.00ms).<br/>
           3. Player returns hours later. <strong>`TimeReturn = 2:00 PM`</strong>.<br/>
-          4. Manager executes instant formula: <code className="bg-black/30 px-1 py-0.5 rounded text-kingfisher-warm">CropGrowth = BaseGrowth * 2 Hours</code><br/>
-          5. Visuals populate updated. The ultimate persistent-world illusion.
+          4. Manager evaluates instant O(1) Catch-Up: <code className="bg-black/30 px-1 py-0.5 rounded text-kingfisher-warm">CropGrowth = BaseRate * 2 Hrs</code><br/>
+          5. State resolves and updates Visuals seamlessly.
         </p>
       </SectionCard>
     </div>
@@ -440,214 +449,73 @@ const AITab = () => (
 const BudgetsTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-white mb-2">Hard Budgets & Diagnostic Tools</h2>
-      <p className="text-kingfisher-muted">Sanity checking your open world architecture scaling via concrete benchmarks.</p>
+      <h2 className="text-2xl font-bold text-white mb-2">Hard Budgets & CPU Baselines</h2>
+      <p className="text-kingfisher-muted">Concrete benchmarks ensuring strict memory scaling checks.</p>
     </div>
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <SectionCard title="Commands & Profilers" icon={Activity} color={COLORS.kingfisher.warm}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+      <SectionCard title="Commands & Diagnostics" icon={Activity} color={COLORS.kingfisher.warm}>
         <ul className="space-y-3 text-sm">
-          <li><code className="text-emerald-400">stat Unit</code>: The mandatory overlay breaking down total frame costs (Game vs Draw vs GPU vs Frame total).</li>
-          <li><code className="text-emerald-400">stat GPU</code>: High-detail pipeline breakdown (LumenGis vs ShadowDepths vs BasePass latency).</li>
-          <li><strong>Unreal Insights:</strong> The deepest profiler. Records frame arrays, isolates script spikes, asset streaming hitching, and logic anomalies via timeline.</li>
+          <li><code className="text-emerald-400">stat Unit</code>: The primary overlay tracking exact Ms bottlenecks among threads.</li>
+          <li><code className="text-emerald-400">stat GPU</code>: In-depth visual dissection indexing Lumen, ShadowDepths, BasePass.</li>
+          <li><strong>Unreal Insights:</strong> Deep trace visualization indicating script spikes, GC stalls, and streaming hits.</li>
         </ul>
       </SectionCard>
 
       <SectionCard title="Code CPU Baselines" icon={Cpu} color={COLORS.kingfisher.blue}>
         <ul className="space-y-3 text-sm">
-          <li><strong>Flat Array Struct:</strong> ~16-24 Bytes. (100k instances = 1.6MB).</li>
-          <li><strong>Empty Blueprint:</strong> 150 KB. (Heavy UClass reflection layer overhead).</li>
-          <li><strong>CPU Particles:</strong> 0.05 to 0.2ms MAX. High danger.</li>
-          <li><strong>GPU Particles:</strong> 0.01 to 0.05ms MAX. Safest for 100k counts.</li>
-          <li><strong>GC Healthy Sweep:</strong> 2.0ms to 5.0ms incrementally sliced over frames.</li>
+          <li><strong>Structure:</strong> ~16-24 Bytes. (Extremely optimal cache tracking).</li>
+          <li><strong>Event Blueprint:</strong> ~150 KB+ (Heavy object-reflection penalty!).</li>
+          <li><strong className="text-red-400">Quad Overdraw:</strong> Overlapping translucent smoke particle masks can randomly spike 3.0-5.0ms.</li>
+          <li><strong>CPU vs GPU Particles:</strong> CPU scales up to ~0.2ms max. GPU is practically 0.01ms for vast particle multitudes.</li>
+          <li><strong>GC Healthy Sweep:</strong> ~2.0ms to 5.0ms (Time-sliced cleanly).</li>
         </ul>
       </SectionCard>
 
       <SectionCard title="Visual RAM Targets" icon={Database} color={COLORS.status.warning}>
-        <p className="text-xs text-kingfisher-muted mb-3 border-b border-kingfisher-border/50 pb-2">Assuming an 8GB physical target.</p>
+        <p className="text-xs text-kingfisher-muted mb-3 border-b border-kingfisher-border/50 pb-2">Assuming an 8GB target pool.</p>
         <ul className="space-y-3 text-sm">
-          <li className="flex justify-between"><span>Textures Pool:</span> <strong>~3.5 - 4.5 GB</strong></li>
-          <li className="flex justify-between"><span>Geometry/Nanite:</span> <strong>~1.7 - 2.0 GB</strong></li>
-          <li className="flex justify-between"><span>Characters/LODs:</span> <strong>~1.0 GB</strong></li>
-          <li className="flex justify-between"><span>Code/State Engine:</span> <strong>~1.2 GB</strong></li>
-          <li className="flex justify-between"><span>Audio Package:</span> <strong>~600 MB</strong></li>
+          <li className="flex justify-between"><span>Textures:</span> <strong>~3.5 - 4.5 GB</strong></li>
+          <li className="flex justify-between"><span>Geometry:</span> <strong>~1.7 - 2.0 GB</strong></li>
+          <li className="flex justify-between"><span>Chars/LODs:</span> <strong>~1.0 GB</strong></li>
+          <li className="flex justify-between"><span>State Code:</span> <strong>~1.2 GB</strong></li>
+          <li className="flex justify-between"><span>Audio:</span> <strong>~600 MB</strong></li>
         </ul>
       </SectionCard>
     </div>
   </div>
 );
 
-const ProfilerTab = () => {
-  const [actorCount, setActorCount] = React.useState(10);
-  const [fps, setFps] = React.useState(60);
-  const [cpuUsage, setCpuUsage] = React.useState(15);
-  
-  // Simulated physics: more actors = lower performance
-  React.useEffect(() => {
-    const targetFps = Math.max(15, 60 - Math.floor(actorCount / 10));
-    const targetCpu = Math.min(100, 15 + Math.floor(actorCount / 4));
-    
-    const interval = setInterval(() => {
-      setFps(prev => {
-        const diff = targetFps - prev;
-        return prev + diff * 0.1 + (Math.random() - 0.5) * 2;
-      });
-      setCpuUsage(prev => {
-        const diff = targetCpu - prev;
-        return prev + diff * 0.1 + (Math.random() - 0.5) * 1;
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [actorCount]);
-
-  const handleActorChange = (val: number) => {
-    setActorCount(val);
-  };
-
-  const isWarning = fps < 45;
-  const isCritical = fps < 30;
-
-  return (
-    <div className="space-y-6">
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold text-white mb-2">Interactive Profiler</h2>
-        <p className="text-kingfisher-muted">Tweak the amount of tickable entities manually to view how it affects CPU load, rendering MS, and triggers engine fallbacks (such as culling cascades and scaling resolution).</p>
-      </div>
-      
-      <div className="flex flex-col gap-4 w-full h-[400px] overflow-hidden bg-[#0d1117] p-2 rounded-xl border border-white/5">
-        <div className="flex items-center justify-between px-3 py-1.5 bg-slate-800/40 rounded-lg border border-white/5 shrink-0">
-          <div className="flex items-center gap-2">
-            <Activity className="w-3.5 h-3.5 text-blue-400" />
-            <span className="text-[10px] font-mono text-blue-300 uppercase">FPerformanceManager::TickBudget()</span>
-          </div>
-          <div className="text-[9px] font-mono text-blue-500/70 border border-blue-500/20 px-1.5 rounded bg-blue-500/5">
-            Global Performance Singleton
-          </div>
-        </div>
-
-        <div className="flex-1 flex gap-4 overflow-hidden p-1">
-          {/* State / Control Panel */}
-          <div className="w-[200px] flex flex-col gap-6 p-4 bg-black/40 border border-white/5 rounded-xl shadow-xl shrink-0">
-             <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <div className="flex flex-col">
-                  <span className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5 flex items-center gap-1.5"><Layers className="w-3 h-3 text-gray-500"/> Population</span>
-                  <span className="text-[8px] text-gray-600 font-mono">Simulated actors</span>
-                </div>
-                <span className="text-xl font-mono text-blue-400 font-black tracking-tight">{actorCount}</span>
-              </div>
-              <div className="relative pt-2">
-                <input 
-                  type="range" 
-                  min="1" 
-                  max="500" 
-                  value={actorCount} 
-                  onChange={(e) => handleActorChange(parseInt(e.target.value))}
-                  className="w-full h-1.5 bg-slate-800 rounded-full appearance-none cursor-pointer accent-blue-500 hover:accent-blue-400 outline-none"
-                />
-                <div className="flex justify-between text-[7px] text-gray-600 font-bold uppercase mt-2 px-1">
-                  <span>Optimized</span>
-                  <span className="text-red-500/70">Overload</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2 mt-auto">
-               <div className="p-2 border border-slate-700 bg-slate-800/50 rounded flex items-center justify-between px-3">
-                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">CPU Delta</span>
-                 <span className={`text-[10px] font-mono font-bold ${cpuUsage > 85 ? 'text-red-400' : 'text-blue-400'}`}>{Math.round(cpuUsage)}%</span>
-               </div>
-               <div className={`p-2 border rounded flex items-center justify-between px-3 transition-colors ${isCritical ? 'bg-red-900/20 border-red-900 shadow-[inset_0_0_10px_rgba(239,68,68,0.2)]' : isWarning ? 'bg-yellow-900/20 border-yellow-900' : 'bg-green-900/20 border-green-900'}`}>
-                 <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest">Render MS</span>
-                 <span className={`text-[10px] font-mono font-bold ${isCritical ? 'text-red-400' : isWarning ? 'text-yellow-400' : 'text-green-400'}`}>{Math.max(10, Math.round(1000/fps))}ms</span>
-               </div>
-            </div>
-          </div>
-
-          {/* Presentation Panel */}
-          <div className="flex-1 bg-slate-900 rounded-xl border border-slate-700 overflow-hidden flex flex-col relative shadow-2xl">
-             <div className="absolute top-0 w-full p-2 bg-slate-950/80 border-b border-white/5 flex items-center justify-between z-20 backdrop-blur-sm">
-               <span className="text-[8px] font-bold text-blue-500 uppercase tracking-widest flex items-center gap-2 px-2">
-                 <Zap className="w-3 h-3" /> Presentation Adjustments
-               </span>
-               <span className={`transition-colors text-[10px] px-2 py-0.5 rounded font-mono font-bold ${isCritical ? 'bg-red-500/20 text-red-400 border border-red-500/30' : isWarning ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
-                 {Math.round(fps)} FPS
-               </span>
-             </div>
-             
-             <div className="flex-1 p-6 mt-8 flex flex-col gap-4 relative">
-               <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,118,0.06))] bg-[length:100%_2px,3px_100%] pointer-events-none z-10" />
-               
-               <div className="relative z-20 flex flex-col gap-3 w-full max-w-[280px] mx-auto opacity-90">
-                 <div className={`p-3 border rounded-lg transition-all duration-500 flex flex-col gap-2 relative overflow-hidden ${isCritical ? 'bg-red-950/40 border-red-500/50' : 'bg-green-950/20 border-green-900/50 grayscale opacity-50'}`}>
-                    {isCritical && <motion.div animate={{x: ['-100%', '200%']}} transition={{duration: 2, repeat: Infinity, ease: 'linear'}} className="absolute top-0 w-full h-[1px] bg-red-400 shadow-[0_0_8px_red]" />}
-                    <span className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${isCritical ? 'text-red-400' : 'text-green-500'}`}><EyeOff className="w-3 h-3"/> Culling Active</span>
-                    <span className="text-[10px] font-mono text-gray-400">Shadow Cascades: {isCritical ? '0' : '3'}</span>
-                    <div className="w-full h-1 bg-black rounded overflow-hidden"><motion.div animate={{width: isCritical ? '100%' : '0%'}} className="h-full bg-red-500" /></div>
-                 </div>
-
-                 <div className={`p-3 border rounded-lg transition-all duration-500 flex flex-col gap-2 relative overflow-hidden ${isWarning || isCritical ? 'bg-yellow-950/40 border-yellow-500/50' : 'bg-green-950/20 border-green-900/50 grayscale opacity-50'}`}>
-                    {(isWarning || isCritical) && <motion.div animate={{x: ['-100%', '200%']}} transition={{duration: 3, repeat: Infinity, ease: 'linear'}} className="absolute top-0 w-full h-[1px] bg-yellow-400 shadow-[0_0_8px_yellow]" />}
-                    <span className={`text-[9px] font-bold uppercase tracking-widest flex items-center gap-1.5 ${isWarning || isCritical ? 'text-yellow-400' : 'text-green-500'}`}><BarChart3 className="w-3 h-3"/> Resolution Scaling</span>
-                    <span className="text-[10px] font-mono text-gray-400">Screen %: {isCritical ? '65%' : isWarning ? '85%' : '100%'}</span>
-                    <div className="w-full h-1 bg-black rounded overflow-hidden"><motion.div animate={{width: isCritical ? '35%' : isWarning ? '15%' : '0%'}} className="h-full bg-yellow-500" /></div>
-                 </div>
-
-                 <div className="mt-2 p-3 bg-black/60 rounded border border-gray-800">
-                    <div className="text-[8px] text-gray-500 font-bold uppercase mb-1">Architecture Note</div>
-                    <div className="text-[9px] text-gray-400/80 font-light leading-relaxed">
-                      The engine strictly preserves Simulation State integrity. It reacts to high load by scaling down Presentation, such as culling shadows or reducing render scale, to prevent input latency.
-                    </div>
-                 </div>
-               </div>
-             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const MemoryStateTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-white mb-2">Memory & State Architecture</h2>
-      <p className="text-kingfisher-muted">Techniques to minimize RAM footprint, prevent Garbage Collection hitches, and stream assets efficiently.</p>
+      <h2 className="text-2xl font-bold text-white mb-2">Memory, Saves, & Formats</h2>
+      <p className="text-kingfisher-muted">Techniques to avoid massive GC hitches and stream persistent data architectures efficiently.</p>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Data-Driven Items (USTRUCTs)" icon={Folder} color={COLORS.status.success}>
-        <p className="mb-2"><strong>The Problem:</strong> Creating 1,000 "Object" items is like giving each item its own separate car. It clogs up the road with massive GC overhead.</p>
-        <p className="mb-4"><strong>The Optimization:</strong> We use tiny, efficient "Envelopes" (USTRUCTs).</p>
+      <SectionCard title="Save/Load Binary Patterns" icon={Save} color={COLORS.status.success}>
+        <p className="mb-2 text-sm"><strong>The Problem:</strong> Saving text models like JSON scales awfully string representations trigger monumental alloc hitches.</p>
         <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Lean Memory:</strong> Structs avoid the UObject reflection layer, keeping the per-item footprint {"<"} 64 bytes. Fits within a single CPU Cache Line.</li>
-          <li><strong>FName Lookups:</strong> We use `FName` for ID lookups, turning string comparisons into instant integer checks.</li>
+          <li><strong>FArchive Binary:</strong> Immediate raw byte conversions parsing Mb's into Ms.</li>
+          <li><strong>Delta-Saving Protocol:</strong> Don't serialize base constants, only serialize dynamic permutations from template states!</li>
+          <li><strong>Rolling Buffers:</strong> Prevent save corruption by sequentially allocating multiple internal slots during autosaves against crash faults.</li>
         </ul>
       </SectionCard>
 
-      <SectionCard title="Streaming & Precaching" icon={HardDrive} color={COLORS.kingfisher.blue}>
-        <p className="mb-2"><strong>The Problem:</strong> Hard-referencing assets bloating the Resident Set Size (RSS) and causing startup/traversal stalls.</p>
+      <SectionCard title="Data-Driven Items & State Packs" icon={Folder} color={COLORS.kingfisher.blue}>
+        <p className="mb-2 text-sm">Inventory limits are destroyed by spawning individual <code>UObjects</code> representing thousands of potions. GC sweep crushes game framerates.</p>
         <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Asynchronous Loading:</strong> Use `TSoftObjectPtr` as an "IOU". The game knows where the asset is on disk, but doesn't load its binary data into RAM until you get close.</li>
-          <li><strong>Fluid Cutscenes:</strong> Prerender shadows and pre-cache heavy cinematic Skeletal Meshes *before* the camera starts moving to avoid frame-time spikes and pop-in.</li>
+          <li><strong>USTRUCT Pointers:</strong> Items evaluate as 64-byte blocks mapped to <code>FName</code> static asset references. Lookups bypass heavy strings.</li>
+          <li><strong>Passive Tree Bitmasks:</strong> Entire massive UI progression arrays reduced to pure byte <code>uint32[16]</code> logic, saving monumental networking payloads.</li>
         </ul>
       </SectionCard>
 
-      <SectionCard title="World Partition & HLODs" icon={Layers} color={COLORS.status.warning}>
-        <p className="mb-2"><strong>Grid-Based Streaming:</strong> We divide the planet into a spatial grid and only load the cell you are in, plus the 8 around it.</p>
+      <SectionCard className="md:col-span-2" title="World Partition & Grid HLODs" icon={Layers} color={COLORS.status.warning}>
+        <p className="mb-2 text-sm">Seamless mapping requires dividing the terrain dynamically into cell logic and asynchronously pulling chunks in before viewing.</p>
         <div className="bg-black/20 p-3 rounded border border-amber-500/30 mt-2 text-sm text-kingfisher-muted">
-          <strong className="text-amber-400">HLODs (Hierarchical Level of Detail):</strong> Optimization process that merges 1000 distant trees into 1 single "Fake" 3D proxy mesh. Maintains the visual horizon while drastically dropping the vertex and draw-call count.
+          <strong className="text-amber-400">HLOD System:</strong> Automatic process integrating 1000s of distant mesh instances into one merged Proxy material, resolving extreme Draw Call delays toward visible horizons. Sub-culling occurs directly per node.
         </div>
-      </SectionCard>
-
-      <SectionCard title="Advanced Persistence (Save/Load)" icon={Database} color={COLORS.status.info}>
-        <p className="mb-2"><strong>The Problem:</strong> Saving in text like JSON causes massive heap allocations and slowness.</p>
-        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Binary Archives:</strong> Use `FArchive` for raw computer data that deserializes megabytes in milliseconds.</li>
-          <li><strong>Rolling Buffers:</strong> Stagger autosaves across multiple index slots. If a power outage corrupts a write, the previous slots survive.</li>
-          <li><strong>Delta-Saving:</strong> For open worlds, only save what *changed* from the base template.</li>
-        </ul>
       </SectionCard>
     </div>
   </div>
@@ -656,44 +524,137 @@ const MemoryStateTab = () => (
 const NetworkingPhysicsTab = () => (
   <div className="space-y-6">
     <div className="mb-8">
-      <h2 className="text-2xl font-bold text-white mb-2">Networking, Physics & UI</h2>
-      <p className="text-kingfisher-muted">Scaling systems to support massive multiiplayer, instant hit-detection, and highly responsive UI.</p>
+      <h2 className="text-2xl font-bold text-white mb-2">Networking & Simulation Protocols</h2>
+      <p className="text-kingfisher-muted">Ensuring accurate multiplayer synchronicity while optimizing logic payloads.</p>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Multiplayer Authority & Culling" icon={Globe} color={COLORS.status.info}>
-        <p className="mb-2"><strong>Replication Culling:</strong> The server acts as a Referee. It shouldn't send you movement data for a player located 10 miles away. Distance-based culling saves immense bandwidth.</p>
+      <SectionCard title="Multiplayer Authority & Limits" icon={Globe} color={COLORS.status.info}>
+        <p className="mb-2 text-sm"><strong>Server Logic:</strong> The Server is the absolute Referee evaluating all Client inputs before mutation. Predict client animations visually.</p>
         <div className="bg-black/20 p-3 rounded border border-blue-500/30 mt-2 text-sm text-kingfisher-muted">
-          <strong className="text-blue-400">COND_SkipOwner:</strong> Don't send data back to the person who triggered it. If a client plays a prediction animation, having the server immediately send back the same state causes rubber-banding and wastes packets.
+          <strong className="text-blue-400">COND_SkipOwner Protocol:</strong> Never enforce the server to redundantly reply with a verified stat back to the original client that successfully initiated it. Prevent bandwidth cycle waste.
         </div>
       </SectionCard>
 
-      <SectionCard title="Massive Graph Compression (Bitmasks)" icon={Network} color={COLORS.kingfisher.warm}>
-        <p className="mb-2"><strong>Passive Trees & Quest Objectives:</strong> Storing 500 "Yes/No" node answers as separate bools wastes network payload sizes.</p>
+      <SectionCard title="Massive Graph Compression" icon={Network} color={COLORS.kingfisher.warm}>
+        <p className="mb-2 text-sm"><strong>Bandwidth Optimization:</strong> Don't sync arrays of bool strings over UDP packets.</p>
         <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Bitset Compression:</strong> We store the entire Skill Tree state as bits (0s and 1s) in a `uint32[16]` array. 512 booleans packed perfectly into UDP packets.</li>
-          <li><strong>Graph Traversal (DFS):</strong> Ensures players cannot "cheat" by modifying memory to unlock isolated floating nodes.</li>
+          <li><strong>Bitset Compression:</strong> Entire skill trees, quest steps, and inventory arrays mapped directly into optimized integers representing binary toggles.</li>
+          <li><strong>Graph Validations (BFS/DFS):</strong> The server evaluates input path networks mitigating client "jump" or floating island cheating exploits.</li>
         </ul>
       </SectionCard>
 
-      <SectionCard title="Physics: Traces vs Sub-Stepping" icon={Waves} color={COLORS.status.success}>
+      <SectionCard className="md:col-span-2" title="Physics: Sub-Stepping & Spatial Fog" icon={Waves} color={COLORS.status.success}>
         <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
-          <li><strong className="text-emerald-400">Hitscan (Line Traces):</strong> Instant, invisible, and cheap. Used for fast bullets. Bypasses the heavy collision engine.</li>
-          <li><strong className="text-emerald-400">Sub-Stepping:</strong> For slow, physical spells. If a projectile travels at 5000 units/s, it might pass through a wall between frames. Sub-stepping splices the physics check multiple times per frame so the spell never phases through geometry.</li>
-          <li><strong className="text-emerald-400">Quadtrees for Visibility:</strong> Fog of War utilizes a Quadtree to efficiently cull unseen map tiles instead of O(N^2) pixel checks.</li>
-        </ul>
-      </SectionCard>
-
-      <SectionCard title="Thread-Safety & UMG ViewModels" icon={Settings} color={COLORS.kingfisher.muted}>
-        <p className="mb-2"><strong>Decoupling Systems:</strong></p>
-        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>UMG ViewModels:</strong> Never use "Tick Bindings" allowing a UI to ask "Did health change?" every frame. We push events to a ViewModel. O(1) rendering updates.</li>
-          <li><strong>Anim Worker Threads:</strong> Never lock the Main Thread with bone math. Animation Proxies compute IK and blended walks on asynchronous worker threads.</li>
+          <li><strong className="text-emerald-400">Hitscan Evaluation:</strong> Completely bypass rendering/collision physics bodies via invisible line logic processing for hyper-velocity impacts.</li>
+          <li><strong className="text-emerald-400">Continuous Sub-Stepping:</strong> Slow, dynamic projectiles evaluate logic loops fractions of times a frame to prohibit tunnel/phase glitching against static landscapes.</li>
+          <li><strong className="text-emerald-400">Fog Quadtrees:</strong> Rather than O(N^2) pixel assessments for dynamic FOW, employ hierarchical partition quadrants restricting resolution iteration counts natively.</li>
         </ul>
       </SectionCard>
     </div>
   </div>
 );
 
-export default OptimizationGuide;
+const StorageTab = () => (
+  <div className="space-y-6">
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold text-white mb-2">Disk I/O & Install Size Management</h2>
+      <p className="text-kingfisher-muted">Managing massive SSD footprints caused by Next-Gen rendering and environment architectures.</p>
+    </div>
 
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="The Clean Slate Baseline" icon={HardDrive} color={COLORS.kingfisher.blue}>
+        <p className="mb-2 text-sm"><strong>Empty UE5 Project: ~300 MB to 350 MB</strong></p>
+        <p className="text-sm text-kingfisher-muted">This base weight is purely the engine runtime: physics engine, rendering code, core plugins, and the executable file. It is not empty space; it is the framework itself.</p>
+      </SectionCard>
+
+      <SectionCard title="The Baked Lighting Tax" icon={Sun} color={COLORS.status.warning}>
+        <p className="mb-2 text-sm"><strong>Lightmass Expansion</strong></p>
+        <p className="text-sm text-kingfisher-muted">While Baked Lighting provides flawless GPU framerates, it vastly inflates your final install size. You must export and save tens of thousands of unique, high-resolution Lightmap 2D textures onto the SSD to permanently encode bounce data into surfaces.</p>
+      </SectionCard>
+
+      <SectionCard className="md:col-span-2" title="The High-Poly Assets" icon={Box} color={COLORS.status.error}>
+        <p className="mb-2 text-sm font-semibold text-white">Nanite Geometry Overheads</p>
+        <p className="text-sm text-kingfisher-muted mb-4">Nanite shifts the bottleneck entirely from the GPU to the NVMe SSD bandwidth and physical capacity.</p>
+        
+        <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
+          <li><strong>Standard Approach (Traditional):</strong> A standard low-poly game rock takes ~1 MB to 5 MB on disk, utilizing highly compressed mapping.</li>
+          <li><strong>Cinema Quality (Nanite):</strong> A Quixel Megascans cliff utilizes millions of polygons. It trivially consumes ~100 MB to 500+ MB for a single solitary asset file.</li>
+          <li><strong>Crucial Mitigations:</strong> If you don't aggressively enforce Kitbashing (scaling, rotating, and reusing a small set of identical master assets as instances), blindly enabling Nanite will effortlessly push a small indie world install size completely beyond 100GB.</li>
+        </ul>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const AAAQualityProfilingTab = () => (
+  <div className="space-y-6">
+    <div className="mb-8">
+      <h2 className="text-2xl font-bold text-white mb-2">AAA Quality Optimal Profiling</h2>
+      <p className="text-kingfisher-muted">Deep timeline dissection and diagnostic procedures ensuring an immaculate 99.9% 60fps floor without chaotic micro-adjustments.</p>
+    </div>
+
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <SectionCard title="Immediate Overlay Diagnostics" icon={Activity} color={COLORS.status.success}>
+        <p className="font-semibold text-white mb-2">The built-in stat Unit constraints</p>
+        <p className="text-kingfisher-muted text-sm mb-4">Never guess frame times. Rely on real-time diagnostic outputs.</p>
+        
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>stat Unit:</strong> Reveals exact Ms breakdowns for Game (Frame N), Draw (Frame N-1), and GPU (Frame N-2). You MUST keep threads under ~12ms max (leaving a 4ms buffer for streaming/spikes).</li>
+          <li><strong>stat GPU:</strong> Detailed breakdown showing LumenGis cost, ShadowDepths scaling, and BasePass geometry limits.</li>
+          <li><strong>Thread Wait States:</strong> If the Draw thread shows massive jumps, check if it's accompanied by <code className="text-orange-400">WaitForGPU</code> (GPU bottleneck) or if GPU lays idle at 20% (CPU bottleneck).</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Unreal Insights (Deep Tracking)" icon={EyeOff} color={COLORS.status.warning}>
+        <p className="font-semibold text-white mb-2">The Ultimate Diagnostic Solution</p>
+        <p className="text-kingfisher-muted text-sm mb-4">Standalone tool recording massive timelines of entire application execution sequences to capture single-millisecond hitch anomalies.</p>
+        
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>GC Stall Analysis:</strong> Pinpoint exact Garbage Collection hitches disrupting the Game Thread.</li>
+          <li><strong>Asset Streaming Hitches:</strong> Locate exactly which large 4k texture or unoptimized 3D mesh Hard Reference paused execution.</li>
+          <li><strong>Function Call Precision:</strong> Discover exact Blueprints checking logic in high-density loops dragging thread pace.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard className="lg:col-span-2" title="Baseline 'Sanity Budgets' (What things should cost)" icon={Box} color={COLORS.kingfisher.blue}>
+        <p className="text-sm text-kingfisher-muted mb-4">Veteran baseline metrics so you don't even need a profiler to know if a system design is mathematically sound:</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-emerald-400 text-sm block mb-1">Niagara GPU Particles</strong>
+            <span className="text-white font-mono text-xs">0.01ms - 0.05ms</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Extremely cheap. Hardware mathematical parallelism.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-amber-400 text-sm block mb-1">Niagara CPU Particles</strong>
+            <span className="text-white font-mono text-xs">0.05ms - 0.2ms</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Game Thread must calculate velocity, collision, lifetime. Heavy hazard above 0.5ms.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-blue-400 text-sm block mb-1">Healthy GC Sweep</strong>
+            <span className="text-white font-mono text-xs">2.0ms - 5.0ms</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Incremental sweep split cleanly across 2-3 frames, rendering it practically invisible.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-red-400 text-sm block mb-1">Quad Overdraw</strong>
+            <span className="text-white font-mono text-xs">3.0ms - 5.0ms (Spike)</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Alpha-masked transparencies drawing simultaneously overlapping smoke or leaves.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-purple-400 text-sm block mb-1">Game Thread (CPU) Limit</strong>
+            <span className="text-white font-mono text-xs">&lt; 12.0ms Target</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Mandatory ~4.6ms buffer reserved for intense AI combat or physics spikes.</p>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-kingfisher-border/50">
+            <strong className="text-orange-400 text-sm block mb-1">GPU Target Limit</strong>
+            <span className="text-white font-mono text-xs">&lt; 13.0ms Target</span>
+            <p className="mt-1 text-xs text-kingfisher-muted">Always leave buffer limits for camera-bound sudden environmental light effects.</p>
+          </div>
+        </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+export default OptimizationGuide;
