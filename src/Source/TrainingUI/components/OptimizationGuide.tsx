@@ -4,7 +4,7 @@ import {
   Clock, HardDrive, Zap, LayoutTemplate, Box, Waves, CheckCircle, CircleDashed,
   ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield, Radio,
   Hexagon, Save, Triangle, Image, Palette, Crosshair, Sliders, Music,
-  Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert
+  Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert, Smartphone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
@@ -35,6 +35,10 @@ const TABS = [
   { id: 'storage',          label: 'Disk / Install Storage',   icon: HardDrive },
   { id: 'aaa_profiling',    label: 'AAA Quality Profiling',    icon: Zap },
   { id: 'tools_overview',   label: 'Debug & Test Tools',       icon: Terminal },
+  { id: 'live_memory',      label: 'Live Memory Connect',      icon: Radio },
+  { id: 'debug_overlays',   label: 'Visual Debug Overlays',    icon: EyeOff },
+  { id: 'mobile_guide',     label: 'Mobile Targeting',         icon: Smartphone },
+  { id: 'shader_permutations', label: 'Shader Permutations',   icon: Layers },
 ];
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
@@ -63,6 +67,10 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'storage':          return <StorageTab />;
       case 'aaa_profiling':    return <AAAQualityProfilingTab />;
       case 'tools_overview':   return <ProfilingDebugTestingTab />;
+      case 'live_memory':      return <LiveMemoryTab />;
+      case 'debug_overlays':   return <DebugOverlaysTab />;
+      case 'mobile_guide':     return <MobileGuideTab />;
+      case 'shader_permutations': return <ShaderPermutationsTab />;
       default:                 return null;
     }
   };
@@ -205,6 +213,10 @@ const OverviewTab = () => (
             ['Collision & Traces', 'Simple vs complex collision, trace channels, async trace patterns.'],
             ['Animation & Audio', 'Animation budget, skeletal LOD, audio streaming vs in-memory.'],
             ['Scalability & CVars', 'r.* console variable system, scalability presets, per-platform tuning.'],
+            ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation.'],
+            ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
+            ['Mobile-Specific Guide', 'Different draw call budgets, ES3.1 shader tier, thermal throttling strategies.'],
+            ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction strategies for shipping builds.'],
           ].map(([title, desc]) => (
             <li key={title} className="flex items-start gap-3">
               <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
@@ -214,21 +226,6 @@ const OverviewTab = () => (
         </ul>
       </SectionCard>
     </div>
-    <SectionCard title="Not Yet Implemented (Future Scope)" icon={CircleDashed} color={COLORS.status.warning}>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation.'],
-          ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
-          ['Mobile-Specific Guide', 'Different draw call budgets, ES3.1 shader tier, thermal throttling strategies.'],
-          ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction strategies for shipping builds.'],
-        ].map(([title, desc]) => (
-          <div key={title} className="flex items-start gap-3">
-            <CircleDashed className="w-4 h-4 text-amber-400 shrink-0 mt-1" />
-            <div><strong className="text-white block mb-0.5">{title}</strong><span className="text-kingfisher-muted text-sm">{desc}</span></div>
-          </div>
-        ))}
-      </div>
-    </SectionCard>
   </div>
 );
 
@@ -1336,6 +1333,137 @@ const ProfilingDebugTestingTab = () => (
             </div>
           </div>
         </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const LiveMemoryTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="Live Memory Connect" subtitle="Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation." />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="Architecture Setup" icon={Radio} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">Instead of using Slate/UMG for complex metrics, we embed a lightweight WebSocket server in UE5 C++.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li>Run a WebSocket server via <code className="text-white">IWebSocket</code> module.</li>
+          <li>Serialize tracking data (Memory, Draw Calls, AI counts) to JSON on a background thread.</li>
+          <li>Stream directly to localhost React application.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Implementation Structure" icon={Database} color={COLORS.status.success}>
+        <p className="text-sm mb-3">C++ Header example:</p>
+        <div className="p-3 bg-black/40 rounded border border-kingfisher-border/30 font-mono text-xs text-kingfisher-surface overflow-x-auto whitespace-pre">
+{`void StartStatsServer();
+void BroadcastStats();
+
+// Payload structure
+USTRUCT()
+struct FStatsPayload {
+    GENERATED_BODY()
+    UPROPERTY() float FrameTimeMs;
+    UPROPERTY() int32 DrawCalls;
+    UPROPERTY() int32 PolyCount;
+};`}
+        </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const DebugOverlaysTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="Deep Visual Debug Overlays" subtitle="In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces." />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="DrawDebugHelpers" icon={EyeOff} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">Visualize AI logic and Bitmask states instantly without entering blueprints.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li>Use <code className="text-white">DrawDebugSphere()</code> and <code className="text-white">DrawDebugLine()</code>.</li>
+          <li>Only execute code inside <code className="text-white">#if !UE_BUILD_SHIPPING</code> blocks to ensure zero cost in the final game.</li>
+          <li>Map specific colors to Bitmask states (e.g. Red for attacking, Green for idle).</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Implementation Example" icon={Terminal} color={COLORS.kingfisher.warm}>
+        <p className="text-sm mb-3">Drawing a NavMesh Path:</p>
+        <div className="p-3 bg-black/40 rounded border border-kingfisher-border/30 font-mono text-xs text-kingfisher-surface overflow-x-auto whitespace-pre">
+{`#if !UE_BUILD_SHIPPING
+for (int i = 0; i < Path->PathPoints.Num() - 1; i++) {
+    DrawDebugLine(
+        GetWorld(), 
+        Path->PathPoints[i], 
+        Path->PathPoints[i + 1], 
+        FColor::Green, 
+        false, 0.1f, 0, 5.0f
+    );
+}
+#endif`}
+        </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const MobileGuideTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="Mobile-Specific Guide" subtitle="Different draw call budgets, ES3.1 shader tier, thermal throttling strategies." />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="Mobile Budgets (ES3.1)" icon={Smartphone} color={COLORS.status.warning}>
+        <p className="text-sm mb-3">Mobile targets have dramatically lower thresholds than PC/Console:</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Draw Calls:</strong> Max 300-500. Use aggressive instancing and HISM.</li>
+          <li><strong>Poly Count:</strong> Max 300,000 to 500,000 on screen.</li>
+          <li><strong>Texture Sizes:</strong> Max 1024x1024. PVRTC/ASTC compression only.</li>
+          <li><strong>Post-Processing:</strong> Turn off everything but Bloom and basic color grading.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Thermal Throttling & Power" icon={Flame} color={COLORS.status.error}>
+        <p className="text-sm mb-3">Mobile processors will downclock after 5 minutes of high activity. Plan for this sustained phase, not peak burst speed.</p>
+        <div className="space-y-2 text-sm font-mono mt-3">
+          <div className="flex gap-4 p-2 bg-black/20 rounded">
+            <span className="text-blue-400 w-16">Cap FPS</span><span className="text-kingfisher-muted">Lock to 30 FPS using t.MaxFPS to leave thermal headroom.</span>
+          </div>
+          <div className="flex gap-4 p-2 bg-black/20 rounded">
+            <span className="text-emerald-400 w-16">Quality</span><span className="text-kingfisher-muted">Expose scalability settings to players (Low/Med/High).</span>
+          </div>
+        </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const ShaderPermutationsTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="Shader Permutation Profiling" subtitle="Shader compilation times, permutation reduction strategies for shipping builds." />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="What is a Permutation?" icon={Layers} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">A single Material generates multiple shaders under the hood based on:</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li>Static Switch Parameters (each combination is a separate shader).</li>
+          <li>Usage flags (Used with Skeletal Mesh, Used with Instanced Static Mesh).</li>
+          <li>Lighting scenarios (Point Lights, Directional Lights, CSM).</li>
+        </ul>
+        <HighlightBox type="warning" className="mt-3">
+          1 Material with 3 Static Switches = 2^3 = 8 Permutations. 
+          8 Permutations x 3 Usage Flags = 24 Shaders generated.
+        </HighlightBox>
+      </SectionCard>
+      <SectionCard title="Reduction Strategy" icon={Zap} color={COLORS.status.success}>
+        <p className="text-sm mb-3">Massive permutation counts cause "Compiling Shaders..." delays and bloat game size.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Consolidate:</strong> Uncheck unused Material usage flags.</li>
+          <li><strong>Avoid Static Switches:</strong> Use dynamic branches (lerps) if the shader is relatively cheap, sacrificing minor GPU cycles to save hundreds of permutations.</li>
+          <li><strong>Review:</strong> Check Project Settings &gt; Cooker &gt; Material Shader Permutation count.</li>
+        </ul>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const GeometryTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="GPU Geometry & Nanite" subtitle="Managing high polycount meshes to stay within budget." />
+    <div className="text-kingfisher-muted p-4 bg-black/20 rounded border border-kingfisher-border/30">
+      <SectionCard title="Nanite Optimization" icon={Box} color={COLORS.kingfisher.blue}>
+        <p className="text-sm">Nanite clusters triangles and streams them efficiently. However, overuse of masked materials or excessive overdraw can still hurt performance.</p>
       </SectionCard>
     </div>
   </div>
