@@ -3,8 +3,9 @@ import { Bird, Download } from 'lucide-react';
 import { MainMenu } from './components/MainMenu';
 import { GymTimer } from './components/GymTimer';
 import { CppSchool } from './components/CppSchool';
+import { OptimizationGuide } from './components/OptimizationGuide';
 
-type AppView = 'menu' | 'school' | 'timer';
+type AppView = 'menu' | 'school' | 'timer' | 'optimization';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('menu');
@@ -100,6 +101,10 @@ export default function App() {
           showInstallButton={showInstallButton}
           onInstallClick={handleInstallClick}
         />
+      )}
+
+      {currentView === 'optimization' && (
+        <OptimizationGuide onBack={() => setCurrentView('menu')} />
       )}
     </div>
   );

@@ -1,11 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Play, RotateCcw, Bird, Menu, X, Keyboard, Download, ArrowLeft } from 'lucide-react';
-import { CodeEditorWidget } from './CodeEditorWidget';
-import { DiagnosticsPanelWidget } from './DiagnosticsPanelWidget';
+import React, { useState } from 'react';
+import { Bird, Menu, X, Keyboard, Download, ArrowLeft } from 'lucide-react';
+import { TaskContentWidget } from './TaskContentWidget';
 import { TaskBrowserWidget } from './TaskBrowserWidget';
-import { ConsoleOutputWidget } from './ConsoleOutputWidget';
 import { UnrealShortcutsModal } from './UnrealShortcutsModal';
-import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
 import { COLORS } from '../../../constants/colors';
 
 interface CppSchoolProps {
@@ -15,11 +12,8 @@ interface CppSchoolProps {
 }
 
 export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton, onInstallClick }) => {
-  const [activeBottomPanel, setActiveBottomPanel] = useState<'console' | 'diagnostics'>('diagnostics');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isShortcutsOpen, setIsShortcutsOpen] = useState(false);
-
-  const { currentTask, isCompiling, isTesting, compileAndTest, resetTask } = useTrainingCore();
 
   return (
     <div className="flex flex-col h-full w-full bg-kingfisher-dark text-kingfisher-surface font-sans overflow-hidden">
@@ -66,25 +60,6 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
               <span>Shortcuts</span>
             </button>
           </div>
-          <div className="flex items-center gap-2 border-l border-kingfisher-border pl-4">
-            <button 
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-kingfisher-panel hover:bg-kingfisher-border rounded"
-              onClick={resetTask}
-              disabled={isCompiling || isTesting}
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Reset</span>
-            </button>
-            <button 
-              className="flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-kingfisher-blue text-white rounded hover:bg-opacity-90 disabled:opacity-50"
-              onClick={compileAndTest}
-              disabled={isCompiling || isTesting}
-            >
-              <Play className="w-3.5 h-3.5" fill="currentColor" /> 
-              <span className="hidden sm:inline">
-                {isCompiling ? 'Compiling...' : isTesting ? 'Running...' : 'Compile'}
-              </span>
-            </button>
-          </div>
         </div>
       </header>
 
@@ -118,36 +93,10 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
           />
         )}
 
-        {/* Center: Editor & Bottom Panels */}
+        {/* Center: Reading Content */}
         <main className="flex-1 flex flex-col min-w-0 bg-kingfisher-dark relative">
-          {/* Top Center: Code Editor */}
-          <div className="flex-1 flex flex-col border-b border-kingfisher-border min-h-0">
-            <CodeEditorWidget />
-          </div>
-
-          {/* Bottom Center: Tools Panel */}
-          <div className="h-1/3 md:h-64 flex flex-col bg-kingfisher-panel shrink-0">
-            {/* Panel Tabs */}
-            <div className="flex items-center border-b border-kingfisher-border px-2">
-              <button 
-                className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${activeBottomPanel === 'diagnostics' ? 'border-kingfisher-blue text-white' : 'border-transparent text-kingfisher-muted hover:text-white'}`}
-                onClick={() => setActiveBottomPanel('diagnostics')}
-              >
-                Diagnostics Panel
-              </button>
-              <button 
-                className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${activeBottomPanel === 'console' ? 'border-kingfisher-blue text-white' : 'border-transparent text-kingfisher-muted hover:text-white'}`}
-                onClick={() => setActiveBottomPanel('console')}
-              >
-                Output Console
-              </button>
-            </div>
-            
-            {/* Panel Content */}
-            <div className="flex-1 overflow-hidden relative">
-              {activeBottomPanel === 'diagnostics' && <DiagnosticsPanelWidget />}
-              {activeBottomPanel === 'console' && <ConsoleOutputWidget />}
-            </div>
+          <div className="flex-1 flex flex-col min-h-0">
+            <TaskContentWidget />
           </div>
         </main>
       </div>

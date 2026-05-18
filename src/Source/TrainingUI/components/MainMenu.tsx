@@ -1,10 +1,10 @@
 import React from 'react';
-import { Bird, Timer, GraduationCap, Download } from 'lucide-react';
+import { Bird, Timer, GraduationCap, Download, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 
 interface MainMenuProps {
-  onSelectView: (view: 'school' | 'timer') => void;
+  onSelectView: (view: 'school' | 'timer' | 'optimization') => void;
   isAndroidFirefox?: boolean;
   isStandalone?: boolean;
   showInstallButton?: boolean;
@@ -72,7 +72,18 @@ export const MainMenu: React.FC<MainMenuProps> = ({
               <div className="p-3 md:p-4 bg-kingfisher-panel rounded-full mb-3 md:mb-6 group-hover:bg-kingfisher-blue/20 transition-colors">
                 <GraduationCap className="w-8 h-8 md:w-12 md:h-12 text-kingfisher-blue" />
               </div>
-              <h2 className="text-xl md:text-2xl font-bold text-white">C++ School</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-white text-center">C++ School</h2>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.warm}1A` }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelectView('optimization')}
+              className="flex-1 flex flex-col items-center justify-center p-6 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-3xl transition-colors group"
+            >
+              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-full mb-3 md:mb-6 group-hover:bg-kingfisher-warm/20 transition-colors">
+                <Settings className="w-8 h-8 md:w-12 md:h-12 text-kingfisher-warm" />
+              </div>
+              <h2 className="text-xl md:text-2xl font-bold text-white text-center">Optimization</h2>
             </motion.button>
           </>
         )}

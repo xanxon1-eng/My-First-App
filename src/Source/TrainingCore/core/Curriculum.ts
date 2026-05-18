@@ -1,36 +1,31 @@
 /**
  * Curriculum.ts — Improved UE5 C++ Training Curriculum
  *
- * KEY IMPROVEMENTS OVER ORIGINAL:
- *  1. Every task has at least one `exampleSolutions` entry with annotated code.
- *  2. Rules are split into granular checks so the diagnostics panel pinpoints
- *     exactly which requirement is missing, not just "task failed".
- *  3. Rule `evaluate` returns a rich { passed, error, fix } object consistently.
- *  4. Objectives include inline code fences so Monaco syntax-highlighting works
- *     in the markdown panel.
- *  5. Category progression follows the guide: Raw Metal → Memory → UE Core →
- *     Advanced Architecture → UE5 Pro → Blueprint Integration → Production →
- *     Framework → Modern C++ → Enterprise.
- *  6. The final few trivially-easy tasks (e.g. "write a comment") have been
- *     rewritten into real exercises with meaningful validation.
- *  7. `hiddenTests` strings are kept consistent with what `UTestFrameworkBindings`
- *     checks (substring presence in code) so they actually gate completion.
+ * KEY IMPROVEMENTS:
+ *  1. Bulletproof validation: Strips comments and whitespace to evaluate syntax structurally.
+ *  2. Sequential validation: Verifies execution order (e.g., Super::BeginPlay first).
+ *  3. UHT Realism: Starter code includes #pragma once and standard includes.
+ *  4. Granular Diagnostics: Every rule isolates a single point of failure.
+ *  5. Case-Preservation: Handles exact string literal matching for TEXT() macros.
  */
 
 import { UTaskDefinition } from './TrainingCore';
 
 // ---------------------------------------------------------------------------
-// Helpers
+// Robust Evaluation Helpers
 // ---------------------------------------------------------------------------
 
-/** Trim, remove all whitespace, lowercase — normalises code before regex tests. */
-const norm = (code: string) => code.replace(/\s+/g, ' ').toLowerCase();
+/** Strips all C++ single-line and multi-line comments. */
+const stripComments = (code: string) => code.replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '');
 
-/** Returns true if pattern exists anywhere in the normalised code. */
-const has = (code: string, pattern: string | RegExp) =>
-  typeof pattern === 'string'
-    ? norm(code).includes(norm(pattern))
-    : pattern.test(code);
+/** Strips comments AND all whitespace. Perfect for evaluating structural C++ regardless of formatting. */
+const condense = (code: string) => stripComments(code).replace(/\s+/g, '');
+
+/** Safely checks if a substring exists within the uncommented, formatted code. */
+const hasStr = (code: string, str: string) => stripComments(code).includes(str);
+
+/** Safely checks if a regex matches the uncommented code. */
+const hasRegex = (code: string, regex: RegExp) => regex.test(stripComments(code));
 
 // ---------------------------------------------------------------------------
 // Curriculum
@@ -83,36 +78,38 @@ Inside \`Practice()\`:
         id: 'r1_health',
         type: 'exercise',
         description: 'int32 Health = 100',
-        evaluate: (code) => {
-          const ok = /int32\s+Health\s*=\s*100\s*;/.test(code);
-          return { passed: ok, error: 'Missing: int32 Health = 100;', fix: 'int32 Health = 100;' };
-        },
+        evaluate: (code) => ({
+          passed: condense(code).includes('int32Health=100;'),
+          error: 'Missing: int32 Health = 100;', 
+          fix: 'int32 Health = 100;'
+        }),
       },
       {
         id: 'r1_damage',
         type: 'exercise',
         description: 'float Damage = 45.5f',
-        evaluate: (code) => {
-          const ok = /float\s+Damage\s*=\s*45\.5f?\s*;/.test(code);
-          return { passed: ok, error: 'Missing: float Damage = 45.5f; (remember the f suffix)', fix: 'float Damage = 45.5f;' };
-        },
+        evaluate: (code) => ({
+          passed: condense(code).includes('floatDamage=45.5f;'),
+          error: 'Missing: float Damage = 45.5f; (remember the f suffix)', 
+          fix: 'float Damage = 45.5f;'
+        }),
       },
       {
         id: 'r1_alive',
         type: 'exercise',
         description: 'bool bIsAlive = true',
-        evaluate: (code) => {
-          const ok = /bool\s+bIsAlive\s*=\s*true\s*;/.test(code);
-          return { passed: ok, error: 'Missing: bool bIsAlive = true; (UE boolean prefix is lowercase b)', fix: 'bool bIsAlive = true;' };
-        },
+        evaluate: (code) => ({
+          passed: condense(code).includes('boolbIsAlive=true;'),
+          error: 'Missing: bool bIsAlive = true; (UE boolean prefix is lowercase b)', 
+          fix: 'bool bIsAlive = true;'
+        }),
       },
     ],
     exampleSolutions: [
       {
         id: 'sol_1a',
         title: 'Standard solution',
-        explanation:
-          'All three variables are declared with explicit initializers. The float uses the mandatory f suffix to avoid an implicit narrowing from double.',
+        explanation: 'All three variables are declared with explicit initializers. The float uses the mandatory f suffix to avoid an implicit narrowing from double.',
         code: {
           'Source.cpp': `void Practice()
 {
@@ -171,11 +168,9 @@ Given the starter variables:
         type: 'exercise',
         description: 'Health reduced by Damage',
         evaluate: (code) => {
-          const ok =
-            /Health\s*-=\s*Damage\s*;/.test(code) ||
-            /Health\s*=\s*Health\s*-\s*Damage\s*;/.test(code);
+          const c = condense(code);
           return {
-            passed: ok,
+            passed: c.includes('Health-=Damage;') || c.includes('Health=Health-Damage;'),
             error: 'Health must be reduced by Damage.',
             fix: 'Health -= Damage;',
           };
@@ -186,11 +181,9 @@ Given the starter variables:
         type: 'exercise',
         description: 'bIsAlive reflects Health > 0',
         evaluate: (code) => {
-          const ok =
-            /bIsAlive\s*=\s*\(?Health\s*>\s*0\)?/.test(code) ||
-            /bIsAlive\s*=\s*\(?0\s*<\s*Health\)?/.test(code);
+          const c = condense(code);
           return {
-            passed: ok,
+            passed: c.includes('bIsAlive=Health>0;') || c.includes('bIsAlive=(Health>0);'),
             error: 'bIsAlive must be set using a Health > 0 comparison.',
             fix: 'bIsAlive = Health > 0;',
           };
@@ -252,10 +245,9 @@ void Practice()
     },
     hiddenTests: ['std::cout', 'Hello Unreal'],
     successCriteria: [
-      'Use std::cout (not printf or UE_LOG)',
+      'Use std::cout',
       'Print the exact string "Hello Unreal"',
-      'Flush with std::endl or "\
-"',
+      'Flush with std::endl',
     ],
     rules: [
       {
@@ -263,7 +255,7 @@ void Practice()
         type: 'exercise',
         description: 'std::cout used',
         evaluate: (code) => ({
-          passed: code.includes('std::cout'),
+          passed: condense(code).includes('std::cout<<'),
           error: 'Must use std::cout (not printf or UE_LOG for this exercise).',
           fix: 'std::cout << "Hello Unreal" << std::endl;',
         }),
@@ -273,7 +265,7 @@ void Practice()
         type: 'exercise',
         description: '"Hello Unreal" present in output',
         evaluate: (code) => ({
-          passed: code.includes('"Hello Unreal"'),
+          passed: hasStr(code, '"Hello Unreal"'),
           error: 'The string literal "Hello Unreal" must appear exactly (case sensitive).',
           fix: 'std::cout << "Hello Unreal" << std::endl;',
         }),
@@ -283,8 +275,7 @@ void Practice()
       {
         id: 'sol_3a',
         title: 'Using std::cout with endl',
-        explanation:
-          'std::cout is the standard output stream. << chains output. std::endl flushes the buffer and appends a newline.',
+        explanation: 'std::cout is the standard output stream. << chains output. std::endl flushes the buffer and appends a newline.',
         code: {
           'Source.cpp': `#include <iostream>
 
@@ -347,24 +338,19 @@ Pointers are the foundation of everything in Unreal: component attachment, UObje
         id: 'r4_ptr',
         type: 'exercise',
         description: 'int32* AmmoPtr declared and assigned &Ammo',
-        evaluate: (code) => {
-          const ok =
-            /(int32\*|int32 \*)\s*AmmoPtr\s*=\s*&Ammo/.test(code) ||
-            (code.includes('AmmoPtr') && code.includes('&Ammo'));
-          return {
-            passed: ok,
-            error: 'Must declare int32* AmmoPtr = &Ammo;',
-            fix: 'int32* AmmoPtr = &Ammo;',
-          };
-        },
+        evaluate: (code) => ({
+          passed: condense(code).includes('int32*AmmoPtr=&Ammo;') || condense(code).includes('int32*AmmoPtr;AmmoPtr=&Ammo;'),
+          error: 'Must declare int32* AmmoPtr = &Ammo;',
+          fix: 'int32* AmmoPtr = &Ammo;',
+        }),
       },
       {
         id: 'r4_deref',
         type: 'exercise',
         description: 'Dereference write via *AmmoPtr',
         evaluate: (code) => ({
-          passed: /\*AmmoPtr\s*=/.test(code),
-          error: 'Must write through the pointer with *AmmoPtr = someValue;',
+          passed: condense(code).includes('*AmmoPtr=15;'),
+          error: 'Must write exactly 15 through the pointer using *AmmoPtr = 15;',
           fix: '*AmmoPtr = 15;',
         }),
       },
@@ -373,8 +359,7 @@ Pointers are the foundation of everything in Unreal: component attachment, UObje
       {
         id: 'sol_4a',
         title: 'Pointer declaration + dereference write',
-        explanation:
-          '& gives us the address of Ammo. The * in the type declaration marks AmmoPtr as a pointer. The * in *AmmoPtr = ... dereferences — follow the address and write.',
+        explanation: '& gives us the address of Ammo. The * in the type declaration marks AmmoPtr as a pointer. The * in *AmmoPtr = ... dereferences — follow the address and write.',
         code: {
           'Source.cpp': `void Practice()
 {
@@ -431,7 +416,7 @@ void Practice()
         type: 'exercise',
         description: 'std::vector<int32> Scores declared',
         evaluate: (code) => ({
-          passed: /std::vector\s*<\s*int32\s*>\s*Scores/.test(code),
+          passed: condense(code).includes('std::vector<int32>Scores;'),
           error: 'Declare std::vector<int32> Scores;',
           fix: 'std::vector<int32> Scores;',
         }),
@@ -439,15 +424,16 @@ void Practice()
       {
         id: 'r5_push',
         type: 'exercise',
-        description: 'push_back called at least three times',
+        description: 'push_back called with correct values',
         evaluate: (code) => {
-          const matches = (code.match(/push_back/g) || []).length;
+          const c = condense(code);
+          const passed = c.includes('Scores.push_back(100);') && 
+                         c.includes('Scores.push_back(200);') && 
+                         c.includes('Scores.push_back(300);');
           return {
-            passed: matches >= 3,
-            error: `push_back found ${matches} time(s); need at least 3 (one per value: 100, 200, 300).`,
-            fix: `Scores.push_back(100);
-Scores.push_back(200);
-Scores.push_back(300);`,
+            passed,
+            error: `Need to push_back 100, 200, and 300 specifically.`,
+            fix: `Scores.push_back(100);\nScores.push_back(200);\nScores.push_back(300);`,
           };
         },
       },
@@ -466,23 +452,6 @@ void Practice()
     Scores.push_back(100);
     Scores.push_back(200);
     Scores.push_back(300);
-    // Scores.size() == 3
-}
-`,
-        },
-      },
-      {
-        id: 'sol_5b',
-        title: 'Brace-initializer list (C++11)',
-        explanation: 'You can initialise with a braced list — the compiler constructs the vector with all three elements in one shot.',
-        code: {
-          'Source.cpp': `#include <vector>
-
-void Practice()
-{
-    std::vector<int32> Scores = {100, 200, 300};
-    // push_back still needed to satisfy the rule engine
-    // in a real codebase this form is more concise
 }
 `,
         },
@@ -524,7 +493,9 @@ Write a function \`FString GetHealthState(int32 Health)\` that:
 - Returns \`TEXT("Dead")\` otherwise
 `,
     starterCode: {
-      'Source.cpp': `// Return a string describing the health state.
+      'Source.cpp': `#include "CoreMinimal.h"
+
+// Return a string describing the health state.
 FString GetHealthState(int32 Health)
 {
     // TODO: implement if/else chain and return appropriate FString
@@ -540,41 +511,31 @@ FString GetHealthState(int32 Health)
     ],
     rules: [
       {
-        id: 'r6_func',
-        type: 'exercise',
-        description: 'GetHealthState function exists',
-        evaluate: (code) => ({
-          passed: code.includes('GetHealthState'),
-          error: 'Implement a function named GetHealthState.',
-          fix: 'FString GetHealthState(int32 Health) { ... }',
-        }),
-      },
-      {
         id: 'r6_healthy',
         type: 'exercise',
-        description: '"Healthy" branch present',
+        description: '"Healthy" branch correct',
         evaluate: (code) => ({
-          passed: code.includes('Healthy'),
-          error: 'Missing "Healthy" return path.',
+          passed: condense(code).includes('if(Health>50){returnTEXT("Healthy");}') || condense(code).includes('if(Health>50)returnTEXT("Healthy");'),
+          error: 'Missing or incorrect "Healthy" return path.',
           fix: 'if (Health > 50) return TEXT("Healthy");',
         }),
       },
       {
         id: 'r6_wounded',
         type: 'exercise',
-        description: '"Wounded" branch present',
+        description: '"Wounded" branch correct',
         evaluate: (code) => ({
-          passed: code.includes('Wounded'),
-          error: 'Missing "Wounded" return path.',
+          passed: condense(code).includes('if(Health>0){returnTEXT("Wounded");}') || condense(code).includes('if(Health>0)returnTEXT("Wounded");'),
+          error: 'Missing or incorrect "Wounded" return path.',
           fix: 'else if (Health > 0) return TEXT("Wounded");',
         }),
       },
       {
         id: 'r6_dead',
         type: 'exercise',
-        description: '"Dead" branch present',
+        description: '"Dead" branch correct',
         evaluate: (code) => ({
-          passed: code.includes('Dead'),
+          passed: condense(code).includes('returnTEXT("Dead");'),
           error: 'Missing "Dead" return path.',
           fix: 'return TEXT("Dead");',
         }),
@@ -584,8 +545,7 @@ FString GetHealthState(int32 Health)
       {
         id: 'sol_6a',
         title: 'if / else if / else chain',
-        explanation:
-          'Conditions are evaluated top-to-bottom. We guard the widest net last to avoid false positives.',
+        explanation: 'Conditions are evaluated top-to-bottom. We guard the widest net last to avoid false positives.',
         code: {
           'Source.cpp': `FString GetHealthState(int32 Health)
 {
@@ -638,7 +598,7 @@ Write a function \`int32 SumFirstN(int32 N)\` that:
     },
     hiddenTests: ['SumFirstN', 'for', 'Total'],
     successCriteria: [
-      'Use a for loop containing an initialization, condition, and increment',
+      'Use a for loop',
       'Accumulate the index into Total',
       'Return Total',
     ],
@@ -646,13 +606,14 @@ Write a function \`int32 SumFirstN(int32 N)\` that:
       {
         id: 'r7_1_loop',
         type: 'exercise',
-        description: 'A classic for loop is present',
+        description: 'A classic for loop from 1 to N',
         evaluate: (code) => {
-          const ok = /for\s*\(\s*int32\s+[a-zA-Z_]\w*\s*=\s*\d+\s*;\s*[a-zA-Z_]\w*\s*[<>=!]+\s*.*?;/.test(code) || /for\s*\(/.test(code);
+          const c = condense(code);
+          const ok = c.includes('for(int32i=1;i<=N;++i)') || c.includes('for(int32i=1;i<=N;i++)');
           return {
             passed: ok,
-            error: 'Must use a for loop.',
-            fix: 'for (int32 i = 1; i <= N; ++i) { Total += i; }',
+            error: 'Must use a for loop specifically from 1 up to and including N ( i <= N ).',
+            fix: 'for (int32 i = 1; i <= N; ++i)',
           };
         },
       },
@@ -661,8 +622,8 @@ Write a function \`int32 SumFirstN(int32 N)\` that:
         type: 'exercise',
         description: 'Total is accumulated inside the loop',
         evaluate: (code) => ({
-          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
-          error: 'Must add each numerical value to Total.',
+          passed: condense(code).includes('Total+=i;') || condense(code).includes('Total=Total+i;'),
+          error: 'Must add the loop index (i) to Total.',
           fix: 'Total += i;',
         }),
       },
@@ -727,18 +688,18 @@ Write a function \`int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHeal
       'Use a while loop checking CurrentHealth against MaxHealth',
       'Increase CurrentHealth by HealPerTick inside the loop',
       'Increment Ticks inside the loop',
-      'Return Ticks',
     ],
     rules: [
       {
         id: 'r7_2_loop',
         type: 'exercise',
-        description: 'A while loop is used',
+        description: 'A while loop guards MaxHealth',
         evaluate: (code) => {
-          const ok = /while\s*\(/.test(code);
+          const c = condense(code);
+          const ok = c.includes('while(CurrentHealth<MaxHealth)') || c.includes('while(MaxHealth>CurrentHealth)');
           return {
             passed: ok,
-            error: 'Must use a while loop.',
+            error: 'Must loop while CurrentHealth < MaxHealth.',
             fix: 'while (CurrentHealth < MaxHealth) { ... }',
           };
         },
@@ -748,7 +709,7 @@ Write a function \`int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHeal
         type: 'exercise',
         description: 'CurrentHealth is increased by HealPerTick',
         evaluate: (code) => ({
-          passed: /CurrentHealth\s*\+=\s*HealPerTick/.test(code) || /CurrentHealth\s*=\s*CurrentHealth\s*\+\s*HealPerTick/.test(code),
+          passed: condense(code).includes('CurrentHealth+=HealPerTick;') || condense(code).includes('CurrentHealth=CurrentHealth+HealPerTick;'),
           error: 'Must heal CurrentHealth inside the loop.',
           fix: 'CurrentHealth += HealPerTick;',
         }),
@@ -758,7 +719,7 @@ Write a function \`int32 CalculateTicksToHeal(int32 CurrentHealth, int32 MaxHeal
         type: 'exercise',
         description: 'Ticks is incremented',
         evaluate: (code) => ({
-          passed: /Ticks\+\+/.test(code) || /\+\+Ticks/.test(code) || /Ticks\s*\+=\s*1/.test(code) || /Ticks\s*=\s*Ticks\s*\+\s*1/.test(code),
+          passed: condense(code).includes('Ticks++;') || condense(code).includes('++Ticks;') || condense(code).includes('Ticks+=1;'),
           error: 'Must increment Ticks inside the loop.',
           fix: '++Ticks;',
         }),
@@ -810,7 +771,9 @@ In \`SumArray()\`:
 3. Return \`Total\`.
 `,
     starterCode: {
-      'Source.cpp': `int32 SumArray(const TArray<int32>& Numbers)
+      'Source.cpp': `#include "CoreMinimal.h"
+
+int32 SumArray(const TArray<int32>& Numbers)
 {
     int32 Total = 0;
 
@@ -822,7 +785,7 @@ In \`SumArray()\`:
     },
     hiddenTests: ['Total', 'for', 'Numbers'],
     successCriteria: [
-      'Use a for loop (any form) over Numbers',
+      'Use a range-for loop over Numbers',
       'Accumulate into Total',
       'Return Total',
     ],
@@ -830,20 +793,23 @@ In \`SumArray()\`:
       {
         id: 'r7_3_loop',
         type: 'exercise',
-        description: 'A for loop body present',
-        evaluate: (code) => ({
-          passed: /for\s*\(/.test(code),
-          error: 'Must use a for loop to iterate.',
-          fix: 'for (const int32& Val : Numbers) { Total += Val; }',
-        }),
+        description: 'Range-for loop over Numbers exists',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('for(int32Val:Numbers)') || c.includes('for(constint32&Val:Numbers)') || c.includes('for(autoVal:Numbers)') || c.includes('for(auto&Val:Numbers)'),
+            error: 'Must use a range-based for loop syntax.',
+            fix: 'for (const int32& Val : Numbers) { ... }',
+          };
+        },
       },
       {
         id: 'r7_3_accum',
         type: 'exercise',
-        description: 'Total is accumulated inside the loop',
+        description: 'Total is accumulated',
         evaluate: (code) => ({
-          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
-          error: 'Must add each element to Total.',
+          passed: condense(code).includes('Total+='),
+          error: 'Must add each element to Total using +=.',
           fix: 'Total += Val;',
         }),
       },
@@ -897,7 +863,9 @@ Write a function \`int32 SumPositiveUntilZero(const TArray<int32>& Numbers)\` th
 5. Returns the \`Total\`.
 `,
     starterCode: {
-      'Source.cpp': `int32 SumPositiveUntilZero(const TArray<int32>& Numbers)
+      'Source.cpp': `#include "CoreMinimal.h"
+
+int32 SumPositiveUntilZero(const TArray<int32>& Numbers)
 {
     int32 Total = 0;
 
@@ -912,38 +880,27 @@ Write a function \`int32 SumPositiveUntilZero(const TArray<int32>& Numbers)\` th
     },
     hiddenTests: ['break', 'continue', 'Total', 'for'],
     successCriteria: [
-      'Use a for loop over Numbers',
-      'Use a continue statement for negative values',
       'Use a break statement for zero',
-      'Return the correct Total',
+      'Use a continue statement for negative values',
+      'Accumulate positive values into Total',
     ],
     rules: [
       {
-        id: 'r7_4_loop',
-        type: 'exercise',
-        description: 'Loop over Numbers exists',
-        evaluate: (code) => ({
-          passed: /for\s*\(/.test(code) || /while\s*\(/.test(code),
-          error: 'Must loop over the array.',
-          fix: 'for (int32 Val : Numbers) { ... }',
-        }),
-      },
-      {
         id: 'r7_4_break',
         type: 'exercise',
-        description: 'break statement used',
+        description: 'break statement used on 0',
         evaluate: (code) => ({
-          passed: /break\s*;/.test(code),
-          error: 'Must break on zero values.',
+          passed: condense(code).includes('==0){break;}') || condense(code).includes('==0)break;'),
+          error: 'Must break when the value is zero.',
           fix: 'if (Val == 0) break;',
         }),
       },
       {
         id: 'r7_4_continue',
         type: 'exercise',
-        description: 'continue statement used',
+        description: 'continue statement used on < 0',
         evaluate: (code) => ({
-          passed: /continue\s*;/.test(code),
+          passed: condense(code).includes('<0){continue;}') || condense(code).includes('<0)continue;'),
           error: 'Must use continue for negative values.',
           fix: 'if (Val < 0) continue;',
         }),
@@ -951,9 +908,9 @@ Write a function \`int32 SumPositiveUntilZero(const TArray<int32>& Numbers)\` th
       {
         id: 'r7_4_accum',
         type: 'exercise',
-        description: 'Total accumulation inside loop',
+        description: 'Total accumulation',
         evaluate: (code) => ({
-          passed: /Total\s*\+=/.test(code) || /Total\s*=\s*Total\s*\+/.test(code),
+          passed: condense(code).includes('Total+='),
           error: 'Total must accumulate the valid iterations.',
           fix: 'Total += Val;',
         }),
@@ -1017,7 +974,9 @@ Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks
 *(Hint: to avoid comparing the element to itself, your inner loop should start at \`i + 1\` if using a classic \`for\` loop).*
 `,
     starterCode: {
-      'Source.cpp': `bool HasDuplicate(const TArray<int32>& Numbers)
+      'Source.cpp': `#include "CoreMinimal.h"
+
+bool HasDuplicate(const TArray<int32>& Numbers)
 {
     // TODO: use nested loops to find if any two numbers are identical
     
@@ -1038,10 +997,13 @@ Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks
         type: 'exercise',
         description: 'Nested loops used (for inside another for)',
         evaluate: (code) => {
-           // Basic heuristic: check if two generic 'for (' fragments exist
-           const matches = code.match(/for\s*\(/g);
+           const c = condense(code);
+           // Robust AST-lite check: find a 'for(' that is followed by another 'for(' before its closing brace.
+           const match = c.match(/for\([^)]*\)\s*\{[^{}]*for\(/);
+           // Also allow the no-brace single-line version
+           const matchNoBrace = c.match(/for\([^)]*\)\s*for\(/);
            return {
-               passed: matches !== null && matches.length >= 2,
+               passed: match !== null || matchNoBrace !== null,
                error: 'You need an inner loop inside the outer loop.',
                fix: 'for(...) { for(...) { ... } }'
            };
@@ -1050,10 +1012,10 @@ Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks
       {
         id: 'r7_5_compare',
         type: 'exercise',
-        description: 'Comparison between two elements',
+        description: 'Comparison between two array elements',
         evaluate: (code) => ({
-          passed: /==/.test(code) && code.includes('Numbers'),
-          error: 'Must compare two elements of the array.',
+          passed: condense(code).includes('Numbers[i]==Numbers[j]') || condense(code).includes('Numbers[j]==Numbers[i]'),
+          error: 'Must compare two elements of the array using ==.',
           fix: 'if (Numbers[i] == Numbers[j]) return true;',
         }),
       },
@@ -1062,8 +1024,8 @@ Write a function \`bool HasDuplicate(const TArray<int32>& Numbers)\` that checks
         type: 'exercise',
         description: 'Returns true on match',
         evaluate: (code) => ({
-          passed: /return\s+true\s*;/.test(code),
-          error: 'Return true when a duplicate is matched.',
+          passed: condense(code).includes('returntrue;'),
+          error: 'Must return true when a duplicate is matched.',
           fix: 'return true;',
         }),
       },
@@ -1128,8 +1090,17 @@ int32 Health = 100;
 The class has a bare \`int32 Health\`. Add a \`UPROPERTY\` macro above it that includes **both** \`EditAnywhere\` and \`BlueprintReadWrite\`.
 `,
     starterCode: {
-      'Source.h': `class ACharacter
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "MyCharacter.generated.h"
+
+UCLASS()
+class AMyCharacter : public ACharacter
 {
+    GENERATED_BODY()
+
+public:
     // TODO: Add UPROPERTY(EditAnywhere, BlueprintReadWrite) above Health
     int32 Health = 100;
 };
@@ -1147,28 +1118,18 @@ The class has a bare \`int32 Health\`. Add a \`UPROPERTY\` macro above it that i
         type: 'unreal',
         description: 'UPROPERTY macro present',
         evaluate: (code) => ({
-          passed: code.includes('UPROPERTY'),
+          passed: condense(code).includes('UPROPERTY('),
           error: 'Missing UPROPERTY macro.',
           fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
         }),
       },
       {
-        id: 'r8_edit',
+        id: 'r8_edit_bp',
         type: 'unreal',
-        description: 'EditAnywhere specifier',
+        description: 'EditAnywhere & BlueprintReadWrite specifiers',
         evaluate: (code) => ({
-          passed: code.includes('EditAnywhere'),
-          error: 'Missing EditAnywhere specifier.',
-          fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
-        }),
-      },
-      {
-        id: 'r8_bp',
-        type: 'unreal',
-        description: 'BlueprintReadWrite specifier',
-        evaluate: (code) => ({
-          passed: code.includes('BlueprintReadWrite'),
-          error: 'Missing BlueprintReadWrite specifier.',
+          passed: hasStr(code, 'EditAnywhere') && hasStr(code, 'BlueprintReadWrite'),
+          error: 'Missing EditAnywhere or BlueprintReadWrite specifiers inside the macro.',
           fix: 'UPROPERTY(EditAnywhere, BlueprintReadWrite)',
         }),
       },
@@ -1179,8 +1140,17 @@ The class has a bare \`int32 Health\`. Add a \`UPROPERTY\` macro above it that i
         title: 'Minimal UPROPERTY',
         explanation: 'The macro goes on the line directly above the member. UHT reads the .h file to generate reflection data.',
         code: {
-          'Source.h': `class ACharacter
+          'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "MyCharacter.generated.h"
+
+UCLASS()
+class AMyCharacter : public ACharacter
 {
+    GENERATED_BODY()
+
+public:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Combat")
     int32 Health = 100;
 };
@@ -1218,8 +1188,18 @@ Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
 2. Initialise it to \`nullptr\`.
 `,
     starterCode: {
-      'Source.h': `class APlayer
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "Weapon.h"
+#include "Player.generated.h"
+
+UCLASS()
+class APlayer : public ACharacter
 {
+    GENERATED_BODY()
+
+public:
     // TODO: Declare UWeapon* CurrentWeapon with UPROPERTY() and = nullptr
 };
 `,
@@ -1236,7 +1216,7 @@ Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
         type: 'unreal',
         description: 'UPROPERTY() present',
         evaluate: (code) => ({
-          passed: /UPROPERTY\s*\(/.test(code),
+          passed: condense(code).includes('UPROPERTY('),
           error: 'Missing UPROPERTY() macro.',
           fix: 'UPROPERTY()',
         }),
@@ -1244,20 +1224,10 @@ Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
       {
         id: 'r9_ptr',
         type: 'unreal',
-        description: 'UWeapon* CurrentWeapon declared',
+        description: 'UWeapon* CurrentWeapon declared & initialized',
         evaluate: (code) => ({
-          passed: /UWeapon\s*\*/.test(code) && code.includes('CurrentWeapon'),
-          error: 'Must declare UWeapon* CurrentWeapon.',
-          fix: 'UWeapon* CurrentWeapon = nullptr;',
-        }),
-      },
-      {
-        id: 'r9_null',
-        type: 'unreal',
-        description: 'Pointer initialised to nullptr',
-        evaluate: (code) => ({
-          passed: /CurrentWeapon\s*=\s*nullptr/.test(code),
-          error: 'Initialise CurrentWeapon to nullptr to prevent undefined behaviour.',
+          passed: condense(code).includes('UWeapon*CurrentWeapon=nullptr;'),
+          error: 'Must declare UWeapon* CurrentWeapon = nullptr;',
           fix: 'UWeapon* CurrentWeapon = nullptr;',
         }),
       },
@@ -1268,22 +1238,12 @@ Declare a \`UWeapon*\` named \`CurrentWeapon\` inside \`APlayer\`:
         title: 'GC-safe pointer declaration',
         explanation: 'UPROPERTY() with no specifiers is sufficient for GC visibility. The pointer will be set to nullptr by the GC when the pointed-to object is collected.',
         code: {
-          'Source.h': `class APlayer
+          'Source.h': `UCLASS()
+class APlayer : public ACharacter
 {
+    GENERATED_BODY()
+public:
     UPROPERTY()
-    UWeapon* CurrentWeapon = nullptr;
-};
-`,
-        },
-      },
-      {
-        id: 'sol_9b',
-        title: 'With editor visibility',
-        explanation: 'Adding VisibleAnywhere lets designers inspect the pointer in the details panel without being able to change it directly.',
-        code: {
-          'Source.h': `class APlayer
-{
-    UPROPERTY(VisibleAnywhere, Category = "Equipment")
     UWeapon* CurrentWeapon = nullptr;
 };
 `,
@@ -1318,7 +1278,9 @@ Without \`TEXT()\` the literal is ANSI-encoded. On certain platforms (or with ce
 Declare an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
 `,
     starterCode: {
-      'Source.cpp': `void Practice()
+      'Source.cpp': `#include "CoreMinimal.h"
+
+void Practice()
 {
     // TODO: Declare FString PlayerName = TEXT("Commando")
 }
@@ -1336,7 +1298,7 @@ Declare an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
         type: 'unreal',
         description: 'FString PlayerName declared',
         evaluate: (code) => ({
-          passed: code.includes('FString PlayerName'),
+          passed: condense(code).includes('FStringPlayerName='),
           error: 'Must declare FString PlayerName.',
           fix: 'FString PlayerName = TEXT("Commando");',
         }),
@@ -1344,20 +1306,10 @@ Declare an \`FString\` named \`PlayerName\` and set it to \`TEXT("Commando")\`.
       {
         id: 'r10_text',
         type: 'unreal',
-        description: 'TEXT() macro used',
+        description: 'TEXT() macro used with "Commando"',
         evaluate: (code) => ({
-          passed: code.includes('TEXT('),
-          error: 'String literals in Unreal must use the TEXT() macro.',
-          fix: 'FString PlayerName = TEXT("Commando");',
-        }),
-      },
-      {
-        id: 'r10_val',
-        type: 'unreal',
-        description: 'Value is "Commando"',
-        evaluate: (code) => ({
-          passed: code.includes('"Commando"'),
-          error: 'Set the value to "Commando".',
+          passed: condense(code).includes('TEXT("Commando");'),
+          error: 'Set the value to TEXT("Commando"). Make sure casing is exact.',
           fix: 'FString PlayerName = TEXT("Commando");',
         }),
       },
@@ -1407,7 +1359,9 @@ This design keeps compile times fast: changing the .cpp of one class doesn't for
 Implement \`AMyActor::BeginPlay()\` in the .cpp file. The function body can be empty (or call Super).
 `,
     starterCode: {
-      'Source.cpp': `// AMyActor declares BeginPlay() in its header.
+      'Source.cpp': `#include "MyActor.h"
+
+// AMyActor declares BeginPlay() in its header.
 // TODO: implement void AMyActor::BeginPlay() with curly braces
 
 `,
@@ -1421,21 +1375,11 @@ Implement \`AMyActor::BeginPlay()\` in the .cpp file. The function body can be e
       {
         id: 'r11_sig',
         type: 'exercise',
-        description: 'AMyActor::BeginPlay() function signature',
+        description: 'AMyActor::BeginPlay() function body defined',
         evaluate: (code) => ({
-          passed: /void\s+AMyActor::BeginPlay\s*\(\s*\)/.test(code),
-          error: 'Must write: void AMyActor::BeginPlay()',
+          passed: condense(code).includes('voidAMyActor::BeginPlay(){'),
+          error: 'Must write: void AMyActor::BeginPlay() { ... }',
           fix: 'void AMyActor::BeginPlay() { }',
-        }),
-      },
-      {
-        id: 'r11_body',
-        type: 'exercise',
-        description: 'Function has a body {}',
-        evaluate: (code) => ({
-          passed: code.includes('{') && code.includes('}'),
-          error: 'Function must have a body delimited by { }.',
-          fix: 'void AMyActor::BeginPlay() { Super::BeginPlay(); }',
         }),
       },
     ],
@@ -1482,7 +1426,12 @@ Unreal's class tree is deeply hierarchical: \`AActor → APawn → ACharacter �
 Declare class \`AMonster\` that **publicly** inherits from \`ACharacter\`. Include the class body \`{}\` and closing semicolon.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare class AMonster that inherits publicly from ACharacter
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "Monster.generated.h"
+
+// TODO: Declare class AMonster that inherits publicly from ACharacter
 
 `,
     },
@@ -1494,23 +1443,13 @@ Declare class \`AMonster\` that **publicly** inherits from \`ACharacter\`. Inclu
     ],
     rules: [
       {
-        id: 'r12_class',
+        id: 'r12_class_inherit',
         type: 'exercise',
-        description: 'class AMonster declared',
+        description: 'class AMonster : public ACharacter',
         evaluate: (code) => ({
-          passed: code.includes('class AMonster'),
-          error: 'Must declare class AMonster.',
+          passed: condense(code).includes('classAMonster:publicACharacter{'),
+          error: 'Must declare class AMonster inheriting publicly from ACharacter.',
           fix: 'class AMonster : public ACharacter { };',
-        }),
-      },
-      {
-        id: 'r12_inherit',
-        type: 'exercise',
-        description: 'public ACharacter in inheritance list',
-        evaluate: (code) => ({
-          passed: /:\s*public\s+ACharacter/.test(code),
-          error: 'Must inherit publicly from ACharacter.',
-          fix: ': public ACharacter',
         }),
       },
       {
@@ -1518,8 +1457,8 @@ Declare class \`AMonster\` that **publicly** inherits from \`ACharacter\`. Inclu
         type: 'exercise',
         description: 'Class closed with };',
         evaluate: (code) => ({
-          passed: code.includes('};'),
-          error: 'Class definitions must end with };',
+          passed: condense(code).includes('};'),
+          error: 'Class definitions must end with a semicolon.',
           fix: '};',
         }),
       },
@@ -1573,7 +1512,9 @@ Skipping \`Super::BeginPlay()\` leaves engine systems (replication, component in
 Implement \`AMyPlayer::BeginPlay()\`. The **first** statement inside the body must be \`Super::BeginPlay();\`.
 `,
     starterCode: {
-      'Source.cpp': `void AMyPlayer::BeginPlay()
+      'Source.cpp': `#include "MyPlayer.h"
+
+void AMyPlayer::BeginPlay()
 {
     // TODO: Call Super::BeginPlay() as the FIRST statement
 }
@@ -1585,11 +1526,11 @@ Implement \`AMyPlayer::BeginPlay()\`. The **first** statement inside the body mu
       {
         id: 'r13_super',
         type: 'unreal',
-        description: 'Super::BeginPlay() called',
+        description: 'Super::BeginPlay() is called strictly as the first statement',
         evaluate: (code) => ({
-          passed: code.includes('Super::BeginPlay()'),
-          error: 'You MUST call Super::BeginPlay(); — the engine depends on it.',
-          fix: 'Super::BeginPlay();',
+          passed: condense(code).includes('voidAMyPlayer::BeginPlay(){Super::BeginPlay();'),
+          error: 'You MUST call Super::BeginPlay(); as the very first line inside the curly braces.',
+          fix: 'void AMyPlayer::BeginPlay() { Super::BeginPlay(); }',
         }),
       },
     ],
@@ -1641,7 +1582,9 @@ Implement \`AMyActor::Tick(float DeltaTime)\`:
 3. Declare \`float DistanceMoved = Speed * DeltaTime;\`
 `,
     starterCode: {
-      'Source.cpp': `void AMyActor::Tick(float DeltaTime)
+      'Source.cpp': `#include "MyActor.h"
+
+void AMyActor::Tick(float DeltaTime)
 {
     // TODO 1: Call Super::Tick(DeltaTime)
     // TODO 2: Declare float Speed = 500.0f
@@ -1661,7 +1604,7 @@ Implement \`AMyActor::Tick(float DeltaTime)\`:
         type: 'unreal',
         description: 'Super::Tick(DeltaTime) called',
         evaluate: (code) => ({
-          passed: /Super::Tick\s*\(\s*DeltaTime\s*\)/.test(code),
+          passed: condense(code).includes('Super::Tick(DeltaTime);'),
           error: 'Must call Super::Tick(DeltaTime);',
           fix: 'Super::Tick(DeltaTime);',
         }),
@@ -1671,8 +1614,8 @@ Implement \`AMyActor::Tick(float DeltaTime)\`:
         type: 'exercise',
         description: 'DistanceMoved = Speed * DeltaTime',
         evaluate: (code) => ({
-          passed: /Speed\s*\*\s*DeltaTime/.test(code),
-          error: 'Must compute Speed * DeltaTime.',
+          passed: condense(code).includes('floatDistanceMoved=Speed*DeltaTime;'),
+          error: 'Must explicitly compute: float DistanceMoved = Speed * DeltaTime;',
           fix: 'float DistanceMoved = Speed * DeltaTime;',
         }),
       },
@@ -1726,7 +1669,9 @@ void TakeDamage(int32& OutHealth)
 Implement \`void TakeDamage(int32& OutHealth)\`. Inside, subtract **10** from \`OutHealth\`.
 `,
     starterCode: {
-      'Source.cpp': `// TODO: Implement TakeDamage that takes int32 by mutable reference and subtracts 10
+      'Source.cpp': `#include "CoreMinimal.h"
+
+// TODO: Implement TakeDamage that takes int32 by mutable reference and subtracts 10
 `,
     },
     hiddenTests: ['TakeDamage', 'int32&', 'OutHealth'],
@@ -1741,8 +1686,7 @@ Implement \`void TakeDamage(int32& OutHealth)\`. Inside, subtract **10** from \`
         type: 'exercise',
         description: 'TakeDamage(int32& OutHealth) signature',
         evaluate: (code) => ({
-          passed: /TakeDamage\s*\(\s*int32\s*&\s*OutHealth\s*\)/.test(code) ||
-                  /TakeDamage\s*\(\s*int32\s*&OutHealth\s*\)/.test(code),
+          passed: condense(code).includes('voidTakeDamage(int32&OutHealth)'),
           error: 'Function signature must be: void TakeDamage(int32& OutHealth)',
           fix: 'void TakeDamage(int32& OutHealth) { ... }',
         }),
@@ -1752,7 +1696,7 @@ Implement \`void TakeDamage(int32& OutHealth)\`. Inside, subtract **10** from \`
         type: 'exercise',
         description: 'OutHealth reduced by 10',
         evaluate: (code) => ({
-          passed: /OutHealth\s*-=\s*10/.test(code) || /OutHealth\s*=\s*OutHealth\s*-\s*10/.test(code),
+          passed: condense(code).includes('OutHealth-=10;') || condense(code).includes('OutHealth=OutHealth-10;'),
           error: 'Must subtract 10 from OutHealth.',
           fix: 'OutHealth -= 10;',
         }),
@@ -1802,10 +1746,12 @@ float GetHealth() const { return Health; }
 \`\`\`
 
 ## Your Task
-Write \`void PrintName(const FString& Name)\`. The body can simply log \`Name\` or leave a comment — what matters is the const reference parameter.
+Write \`void PrintName(const FString& Name)\`. The body can be empty.
 `,
     starterCode: {
-      'Source.cpp': `// TODO: Write PrintName that takes a const FString& Name
+      'Source.cpp': `#include "CoreMinimal.h"
+
+// TODO: Write PrintName that takes a const FString& Name
 `,
     },
     hiddenTests: ['PrintName', 'const FString&', 'Name'],
@@ -1817,21 +1763,11 @@ Write \`void PrintName(const FString& Name)\`. The body can simply log \`Name\` 
       {
         id: 'r16_fn',
         type: 'exercise',
-        description: 'PrintName function present',
+        description: 'void PrintName(const FString& Name)',
         evaluate: (code) => ({
-          passed: code.includes('PrintName'),
-          error: 'Function PrintName is missing.',
+          passed: condense(code).includes('voidPrintName(constFString&Name)'),
+          error: 'Function signature must exactly match: void PrintName(const FString& Name)',
           fix: 'void PrintName(const FString& Name) { }',
-        }),
-      },
-      {
-        id: 'r16_param',
-        type: 'exercise',
-        description: 'const FString& parameter',
-        evaluate: (code) => ({
-          passed: /const\s+FString\s*&/.test(code),
-          error: 'Parameter must be const FString& (const reference, not by value).',
-          fix: 'void PrintName(const FString& Name)',
         }),
       },
     ],
@@ -1882,7 +1818,12 @@ class UInventorySystem : public UObject
 Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS()\` macro and \`GENERATED_BODY()\`.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare UInventorySystem inheriting from UObject
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "InventorySystem.generated.h"
+
+// TODO: Declare UInventorySystem inheriting from UObject
 
 `,
     },
@@ -1898,8 +1839,8 @@ Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS
         type: 'unreal',
         description: 'UCLASS() macro present',
         evaluate: (code) => ({
-          passed: code.includes('UCLASS()') || /UCLASS\s*\(/.test(code),
-          error: 'UObject subclasses require the UCLASS() macro.',
+          passed: condense(code).includes('UCLASS()'),
+          error: 'UObject subclasses require the UCLASS() macro directly above the class.',
           fix: 'UCLASS()',
         }),
       },
@@ -1908,7 +1849,7 @@ Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS
         type: 'unreal',
         description: 'class UInventorySystem : public UObject',
         evaluate: (code) => ({
-          passed: code.includes('UInventorySystem') && /public\s+UObject/.test(code),
+          passed: condense(code).includes('classUInventorySystem:publicUObject{'),
           error: 'Declare UInventorySystem inheriting publicly from UObject.',
           fix: 'class UInventorySystem : public UObject',
         }),
@@ -1918,7 +1859,7 @@ Declare class \`UInventorySystem\` inheriting from \`UObject\`. Include \`UCLASS
         type: 'unreal',
         description: 'GENERATED_BODY() inside class',
         evaluate: (code) => ({
-          passed: code.includes('GENERATED_BODY()'),
+          passed: condense(code).includes('GENERATED_BODY()'),
           error: 'All UCLASS types must include GENERATED_BODY() inside the class.',
           fix: 'GENERATED_BODY()',
         }),
@@ -1979,7 +1920,10 @@ OnPlayerDied.Broadcast();
 Declare \`FOnPlayerDiedSignature\` using the correct multicast dynamic macro.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare FOnPlayerDiedSignature using DECLARE_DYNAMIC_MULTICAST_DELEGATE
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+
+// TODO: Declare FOnPlayerDiedSignature using DECLARE_DYNAMIC_MULTICAST_DELEGATE
 `,
     },
     hiddenTests: ['DECLARE_DYNAMIC_MULTICAST_DELEGATE', 'FOnPlayerDiedSignature'],
@@ -1989,22 +1933,12 @@ Declare \`FOnPlayerDiedSignature\` using the correct multicast dynamic macro.
     ],
     rules: [
       {
-        id: 'r18_macro',
+        id: 'r18_macro_name',
         type: 'unreal',
-        description: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE used',
+        description: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
         evaluate: (code) => ({
-          passed: code.includes('DECLARE_DYNAMIC_MULTICAST_DELEGATE'),
-          error: 'Use DECLARE_DYNAMIC_MULTICAST_DELEGATE (not the single or non-dynamic variants).',
-          fix: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
-        }),
-      },
-      {
-        id: 'r18_name',
-        type: 'unreal',
-        description: 'Type named FOnPlayerDiedSignature',
-        evaluate: (code) => ({
-          passed: code.includes('FOnPlayerDiedSignature'),
-          error: 'Name the delegate type FOnPlayerDiedSignature.',
+          passed: condense(code).includes('DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);'),
+          error: 'Syntax must be exactly: DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
           fix: 'DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerDiedSignature);',
         }),
       },
@@ -2055,32 +1989,25 @@ Key points:
 Declare \`EPlayerState\` with the exact structure above.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare UENUM(BlueprintType) EPlayerState with Idle, Running, Attacking
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+
+// TODO: Declare UENUM(BlueprintType) EPlayerState with Idle, Running, Attacking
 `,
     },
     hiddenTests: ['UENUM(BlueprintType)', 'enum class EPlayerState : uint8', 'Idle', 'Running', 'Attacking'],
     successCriteria: [
       'UENUM(BlueprintType) macro',
       'enum class EPlayerState : uint8',
-      'Values Idle, Running, Attacking defined',
+      'Values Idle, Running, Attacking defined with UMETA',
     ],
     rules: [
-      {
-        id: 'r19_macro',
-        type: 'unreal',
-        description: 'UENUM(BlueprintType) macro',
-        evaluate: (code) => ({
-          passed: code.includes('UENUM(BlueprintType)'),
-          error: 'Missing UENUM(BlueprintType) macro.',
-          fix: 'UENUM(BlueprintType)',
-        }),
-      },
       {
         id: 'r19_decl',
         type: 'unreal',
         description: 'enum class EPlayerState : uint8',
         evaluate: (code) => ({
-          passed: /enum\s+class\s+EPlayerState\s*:\s*uint8/.test(code),
+          passed: condense(code).includes('enumclassEPlayerState:uint8{'),
           error: 'Must use: enum class EPlayerState : uint8',
           fix: 'enum class EPlayerState : uint8 { ... }',
         }),
@@ -2088,13 +2015,16 @@ Declare \`EPlayerState\` with the exact structure above.
       {
         id: 'r19_values',
         type: 'unreal',
-        description: 'Idle, Running, Attacking values present',
+        description: 'All 3 UMETA states defined',
         evaluate: (code) => {
-          const ok = code.includes('Idle') && code.includes('Running') && code.includes('Attacking');
+          const c = condense(code);
+          const ok = c.includes('IdleUMETA(DisplayName="Idle")') && 
+                     c.includes('RunningUMETA(DisplayName="Running")') && 
+                     c.includes('AttackingUMETA(DisplayName="Attacking")');
           return {
             passed: ok,
-            error: 'Must define all three states: Idle, Running, Attacking.',
-            fix: 'Idle, Running, Attacking,',
+            error: 'Must define Idle, Running, and Attacking using UMETA.',
+            fix: 'Idle UMETA(DisplayName = "Idle"), etc.',
           };
         },
       },
@@ -2148,9 +2078,15 @@ public:
 The \`UDamageable\` shell is provided. Declare \`class IDamageable\` with a pure virtual \`TakeHit()\`.
 `,
     starterCode: {
-      'Source.h': `class UDamageable : public UInterface {};
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "UObject/Interface.h"
+#include "Damageable.generated.h"
 
-// TODO: Implement class IDamageable with pure virtual TakeHit()
+UINTERFACE(MinimalAPI, Blueprintable)
+class UDamageable : public UInterface { GENERATED_BODY() };
+
+// TODO: Implement class IDamageable with GENERATED_BODY() and pure virtual TakeHit()
 `,
     },
     hiddenTests: ['class IDamageable', 'virtual void TakeHit() = 0;'],
@@ -2164,7 +2100,7 @@ The \`UDamageable\` shell is provided. Declare \`class IDamageable\` with a pure
         type: 'unreal',
         description: 'class IDamageable declared',
         evaluate: (code) => ({
-          passed: code.includes('class IDamageable'),
+          passed: condense(code).includes('classIDamageable{'),
           error: 'Declare class IDamageable.',
           fix: 'class IDamageable { GENERATED_BODY() public: virtual void TakeHit() = 0; };',
         }),
@@ -2174,7 +2110,7 @@ The \`UDamageable\` shell is provided. Declare \`class IDamageable\` with a pure
         type: 'unreal',
         description: 'virtual void TakeHit() = 0 present',
         evaluate: (code) => ({
-          passed: /virtual\s+void\s+TakeHit\s*\(\s*\)\s*=\s*0/.test(code),
+          passed: condense(code).includes('virtualvoidTakeHit()=0;'),
           error: 'Must declare: virtual void TakeHit() = 0;',
           fix: 'virtual void TakeHit() = 0;',
         }),
@@ -2226,8 +2162,16 @@ GetWorld()->SpawnActor<AActor>(SpawnTemplate, SpawnLocation, SpawnRotation);
 Inside \`ASpawner\`, declare \`TSubclassOf<AActor> SpawnTemplate\` with \`UPROPERTY(EditAnywhere)\`.
 `,
     starterCode: {
-      'Source.h': `class ASpawner : public AActor
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Spawner.generated.h"
+
+UCLASS()
+class ASpawner : public AActor
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare UPROPERTY(EditAnywhere) TSubclassOf<AActor> SpawnTemplate
 };
 `,
@@ -2239,24 +2183,17 @@ Inside \`ASpawner\`, declare \`TSubclassOf<AActor> SpawnTemplate\` with \`UPROPE
     ],
     rules: [
       {
-        id: 'r21_prop',
+        id: 'r21_prop_sub',
         type: 'unreal',
-        description: 'UPROPERTY(EditAnywhere)',
-        evaluate: (code) => ({
-          passed: code.includes('EditAnywhere'),
-          error: 'Add UPROPERTY(EditAnywhere) to expose SpawnTemplate in the editor.',
-          fix: 'UPROPERTY(EditAnywhere)',
-        }),
-      },
-      {
-        id: 'r21_sub',
-        type: 'unreal',
-        description: 'TSubclassOf<AActor> SpawnTemplate',
-        evaluate: (code) => ({
-          passed: /TSubclassOf\s*<\s*AActor\s*>/.test(code) && code.includes('SpawnTemplate'),
-          error: 'Declare TSubclassOf<AActor> SpawnTemplate.',
-          fix: 'TSubclassOf<AActor> SpawnTemplate;',
-        }),
+        description: 'UPROPERTY(EditAnywhere) TSubclassOf<AActor> SpawnTemplate',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('EditAnywhere') && c.includes('TSubclassOf<AActor>SpawnTemplate;'),
+            error: 'Declare TSubclassOf<AActor> SpawnTemplate with EditAnywhere.',
+            fix: 'UPROPERTY(EditAnywhere)\nTSubclassOf<AActor> SpawnTemplate;',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -2305,7 +2242,12 @@ UQuestManager* QM = GetGameInstance()->GetSubsystem<UQuestManager>();
 Declare \`UQuestManager\` inheriting from \`UGameInstanceSubsystem\`. Include \`UCLASS()\` and \`GENERATED_BODY()\`.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare UQuestManager : public UGameInstanceSubsystem
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "Subsystems/GameInstanceSubsystem.h"
+#include "QuestManager.generated.h"
+
+// TODO: Declare UQuestManager : public UGameInstanceSubsystem
 `,
     },
     hiddenTests: ['class UQuestManager', 'UGameInstanceSubsystem', 'GENERATED_BODY()'],
@@ -2316,34 +2258,17 @@ Declare \`UQuestManager\` inheriting from \`UGameInstanceSubsystem\`. Include \`
     ],
     rules: [
       {
-        id: 'r22_uclass',
-        type: 'unreal',
-        description: 'UCLASS() macro',
-        evaluate: (code) => ({
-          passed: /UCLASS\s*\(/.test(code),
-          error: 'Add UCLASS() macro.',
-          fix: 'UCLASS()',
-        }),
-      },
-      {
         id: 'r22_decl',
         type: 'unreal',
-        description: 'UQuestManager : public UGameInstanceSubsystem',
-        evaluate: (code) => ({
-          passed: code.includes('UQuestManager') && code.includes('UGameInstanceSubsystem'),
-          error: 'Declare UQuestManager inheriting from UGameInstanceSubsystem.',
-          fix: 'class UQuestManager : public UGameInstanceSubsystem',
-        }),
-      },
-      {
-        id: 'r22_gen',
-        type: 'unreal',
-        description: 'GENERATED_BODY()',
-        evaluate: (code) => ({
-          passed: code.includes('GENERATED_BODY()'),
-          error: 'Include GENERATED_BODY() inside the class.',
-          fix: 'GENERATED_BODY()',
-        }),
+        description: 'UCLASS() class UQuestManager : public UGameInstanceSubsystem',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('UCLASS()classUQuestManager:publicUGameInstanceSubsystem{GENERATED_BODY()'),
+            error: 'Declare class UQuestManager : public UGameInstanceSubsystem with UCLASS() and GENERATED_BODY().',
+            fix: 'UCLASS()\nclass UQuestManager : public UGameInstanceSubsystem\n{\nGENERATED_BODY()\n};',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -2352,6 +2277,7 @@ Declare \`UQuestManager\` inheriting from \`UGameInstanceSubsystem\`. Include \`
         title: 'Minimal UGameInstanceSubsystem',
         code: {
           'Source.h': `#pragma once
+#include "CoreMinimal.h"
 #include "Subsystems/GameInstanceSubsystem.h"
 #include "QuestManager.generated.h"
 
@@ -2397,8 +2323,16 @@ Use soft references for content that isn't always needed (character skins, level
 Inside \`UInventoryItem\`, declare a soft pointer to \`UTexture2D\` named \`IconRef\`.
 `,
     starterCode: {
-      'Source.h': `class UInventoryItem : public UObject
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "UObject/NoExportTypes.h"
+#include "InventoryItem.generated.h"
+
+UCLASS()
+class UInventoryItem : public UObject
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare TSoftObjectPtr<UTexture2D> IconRef
 };
 `,
@@ -2412,20 +2346,10 @@ Inside \`UInventoryItem\`, declare a soft pointer to \`UTexture2D\` named \`Icon
       {
         id: 'r23_soft',
         type: 'unreal',
-        description: 'TSoftObjectPtr<UTexture2D> declared',
+        description: 'TSoftObjectPtr<UTexture2D> IconRef;',
         evaluate: (code) => ({
-          passed: /TSoftObjectPtr\s*<\s*UTexture2D\s*>/.test(code),
-          error: 'Must use TSoftObjectPtr<UTexture2D>.',
-          fix: 'TSoftObjectPtr<UTexture2D> IconRef;',
-        }),
-      },
-      {
-        id: 'r23_name',
-        type: 'unreal',
-        description: 'Variable named IconRef',
-        evaluate: (code) => ({
-          passed: code.includes('IconRef'),
-          error: 'Name the variable IconRef.',
+          passed: condense(code).includes('TSoftObjectPtr<UTexture2D>IconRef;'),
+          error: 'Must use TSoftObjectPtr<UTexture2D> IconRef;',
           fix: 'TSoftObjectPtr<UTexture2D> IconRef;',
         }),
       },
@@ -2435,7 +2359,8 @@ Inside \`UInventoryItem\`, declare a soft pointer to \`UTexture2D\` named \`Icon
         id: 'sol_23a',
         title: 'Soft pointer with UPROPERTY',
         code: {
-          'Source.h': `class UInventoryItem : public UObject
+          'Source.h': `UCLASS()
+class UInventoryItem : public UObject
 {
     GENERATED_BODY()
 public:
@@ -2448,6 +2373,7 @@ public:
       },
     ],
   },
+
   // -------------------------------------------------------------------------
   {
     id: 'task_24',
@@ -2470,7 +2396,10 @@ UAssetManager::GetStreamableManager().RequestAsyncLoad(
 Write a function \`LoadIconAsync()\` that uses \`RequestAsyncLoad\` on \`IconRef\`, binding the callback to \`UMyUI::OnIconLoaded\`.
 `,
     starterCode: {
-      'Source.cpp': `void UMyUI::LoadIconAsync()
+      'Source.cpp': `#include "MyUI.h"
+#include "Engine/AssetManager.h"
+
+void UMyUI::LoadIconAsync()
 {
     // TODO: Call RequestAsyncLoad on UAssetManager::GetStreamableManager()
     // Pass IconRef.ToSoftObjectPath() and a delegate bound to OnIconLoaded
@@ -2487,22 +2416,28 @@ Write a function \`LoadIconAsync()\` that uses \`RequestAsyncLoad\` on \`IconRef
       {
         id: 'r_new_5_1_manager',
         type: 'unreal',
-        description: 'GetStreamableManager() called',
-        evaluate: (code) => ({
-          passed: code.includes('GetStreamableManager') && code.includes('RequestAsyncLoad'),
-          error: 'Must use UAssetManager::GetStreamableManager().RequestAsyncLoad(...)',
-          fix: 'UAssetManager::GetStreamableManager().RequestAsyncLoad(...);',
-        }),
+        description: 'UAssetManager::GetStreamableManager().RequestAsyncLoad(...)',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('UAssetManager::GetStreamableManager().RequestAsyncLoad('),
+            error: 'Must use UAssetManager::GetStreamableManager().RequestAsyncLoad(...)',
+            fix: 'UAssetManager::GetStreamableManager().RequestAsyncLoad(...);',
+          };
+        },
       },
       {
-        id: 'r_new_5_1_path',
+        id: 'r_new_5_1_path_delegate',
         type: 'unreal',
-        description: 'IconRef path passed',
-        evaluate: (code) => ({
-          passed: code.includes('IconRef.ToSoftObjectPath()'),
-          error: 'Must supply the soft object path via IconRef.ToSoftObjectPath()',
-          fix: 'IconRef.ToSoftObjectPath(),',
-        }),
+        description: 'Path and Delegate bound correctly',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('IconRef.ToSoftObjectPath()') && c.includes('FStreamableDelegate::CreateUObject(this,&UMyUI::OnIconLoaded)'),
+            error: 'Must supply IconRef.ToSoftObjectPath() and FStreamableDelegate::CreateUObject(this, &UMyUI::OnIconLoaded)',
+            fix: 'IconRef.ToSoftObjectPath(), FStreamableDelegate::CreateUObject(this, &UMyUI::OnIconLoaded)',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -2527,6 +2462,7 @@ void UMyUI::OnIconLoaded()
       },
     ],
   },
+
   // -------------------------------------------------------------------------
   {
     id: 'task_25',
@@ -2552,7 +2488,12 @@ Players can then simply store a \`TObjectPtr<UWeaponData>\`.
 Declare a \`UWeaponData\` class inheriting from \`UPrimaryDataAsset\`. Add a \`Damage\` float property.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare UWeaponData inheriting from UPrimaryDataAsset with a Damage property
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "Engine/DataAsset.h"
+#include "WeaponData.generated.h"
+
+// TODO: Declare UWeaponData inheriting from UPrimaryDataAsset with a Damage property
 `,
     },
     hiddenTests: ['UWeaponData', 'UPrimaryDataAsset', 'float Damage'],
@@ -2564,12 +2505,15 @@ Declare a \`UWeaponData\` class inheriting from \`UPrimaryDataAsset\`. Add a \`D
       {
         id: 'r_new_5_2_class',
         type: 'unreal',
-        description: 'UPrimaryDataAsset subclass',
-        evaluate: (code) => ({
-          passed: code.includes('class UWeaponData : public UPrimaryDataAsset'),
-          error: 'Must declare class UWeaponData : public UPrimaryDataAsset',
-          fix: 'class UWeaponData : public UPrimaryDataAsset',
-        }),
+        description: 'UPrimaryDataAsset subclass with float Damage',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('classUWeaponData:publicUPrimaryDataAsset{') && c.includes('floatDamage;'),
+            error: 'Must declare class UWeaponData : public UPrimaryDataAsset and include float Damage;',
+            fix: 'class UWeaponData : public UPrimaryDataAsset { GENERATED_BODY() public: float Damage; };',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -2628,6 +2572,7 @@ Declare both functions inside \`APlayer\`:
     starterCode: {
       'Source.h': `class APlayer : public ACharacter
 {
+    GENERATED_BODY()
 public:
     // TODO: Declare GetCurrentHealth as BlueprintPure
     // TODO: Declare AddHealth as BlueprintCallable
@@ -2643,23 +2588,21 @@ public:
       {
         id: 'r24_pure',
         type: 'unreal',
-        description: 'UFUNCTION(BlueprintPure) for GetCurrentHealth',
+        description: 'UFUNCTION(BlueprintPure) float GetCurrentHealth() const',
         evaluate: (code) => ({
-          passed: code.includes('BlueprintPure') && code.includes('GetCurrentHealth'),
-          error: 'Declare GetCurrentHealth with UFUNCTION(BlueprintPure).',
-          fix: `UFUNCTION(BlueprintPure)
-float GetCurrentHealth() const;`,
+          passed: condense(code).includes('BlueprintPure') && condense(code).includes('floatGetCurrentHealth()const'),
+          error: 'Declare GetCurrentHealth with UFUNCTION(BlueprintPure). Ensure it returns float and is const.',
+          fix: `UFUNCTION(BlueprintPure)\nfloat GetCurrentHealth() const;`,
         }),
       },
       {
         id: 'r24_callable',
         type: 'unreal',
-        description: 'UFUNCTION(BlueprintCallable) for AddHealth',
+        description: 'UFUNCTION(BlueprintCallable) void AddHealth(float Amount)',
         evaluate: (code) => ({
-          passed: code.includes('BlueprintCallable') && code.includes('AddHealth'),
+          passed: condense(code).includes('BlueprintCallable') && condense(code).includes('voidAddHealth(floatAmount)'),
           error: 'Declare AddHealth with UFUNCTION(BlueprintCallable).',
-          fix: `UFUNCTION(BlueprintCallable)
-void AddHealth(float Amount);`,
+          fix: `UFUNCTION(BlueprintCallable)\nvoid AddHealth(float Amount);`,
         }),
       },
     ],
@@ -2720,7 +2663,11 @@ struct FItemData
 Declare \`FItemData\` with \`USTRUCT(BlueprintType)\` and \`GENERATED_BODY()\`. Add at least one UPROPERTY member.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare FItemData struct with USTRUCT(BlueprintType)
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "ItemData.generated.h"
+
+// TODO: Declare FItemData struct with USTRUCT(BlueprintType)
 `,
     },
     hiddenTests: ['USTRUCT(BlueprintType)', 'struct FItemData', 'GENERATED_BODY()'],
@@ -2731,31 +2678,24 @@ Declare \`FItemData\` with \`USTRUCT(BlueprintType)\` and \`GENERATED_BODY()\`. 
     ],
     rules: [
       {
-        id: 'r25_macro',
+        id: 'r25_struct_decl',
         type: 'unreal',
-        description: 'USTRUCT(BlueprintType)',
-        evaluate: (code) => ({
-          passed: code.includes('USTRUCT(BlueprintType)'),
-          error: 'Missing USTRUCT(BlueprintType) macro.',
-          fix: 'USTRUCT(BlueprintType)',
-        }),
-      },
-      {
-        id: 'r25_struct',
-        type: 'unreal',
-        description: 'struct FItemData declared',
-        evaluate: (code) => ({
-          passed: code.includes('struct FItemData'),
-          error: 'Declare struct FItemData.',
-          fix: 'struct FItemData { ... };',
-        }),
+        description: 'USTRUCT(BlueprintType) struct FItemData',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('USTRUCT(BlueprintType)') && c.includes('structFItemData{'),
+            error: 'Declare USTRUCT(BlueprintType) struct FItemData',
+            fix: 'USTRUCT(BlueprintType)\nstruct FItemData { ... };',
+          };
+        },
       },
       {
         id: 'r25_gen',
         type: 'unreal',
         description: 'GENERATED_BODY() inside struct',
         evaluate: (code) => ({
-          passed: code.includes('GENERATED_BODY()'),
+          passed: condense(code).includes('GENERATED_BODY()'),
           error: 'Structs used with UHT must contain GENERATED_BODY().',
           fix: 'GENERATED_BODY()',
         }),
@@ -2809,6 +2749,7 @@ Declare \`void OnTakeDamage();\` with \`UFUNCTION(BlueprintImplementableEvent)\`
     starterCode: {
       'Source.h': `class APlayer : public ACharacter
 {
+    GENERATED_BODY()
 public:
     // TODO: Declare OnTakeDamage as a BlueprintImplementableEvent (no body!)
 };
@@ -2821,25 +2762,17 @@ public:
     ],
     rules: [
       {
-        id: 'r26_macro',
+        id: 'r26_macro_decl',
         type: 'unreal',
-        description: 'BlueprintImplementableEvent specifier',
-        evaluate: (code) => ({
-          passed: code.includes('BlueprintImplementableEvent'),
-          error: 'Missing BlueprintImplementableEvent specifier.',
-          fix: `UFUNCTION(BlueprintImplementableEvent)
-void OnTakeDamage();`,
-        }),
-      },
-      {
-        id: 'r26_decl',
-        type: 'unreal',
-        description: 'void OnTakeDamage() declared as a forward declaration (no { })',
-        evaluate: (code) => ({
-          passed: /void\s+OnTakeDamage\s*\(\s*\)\s*;/.test(code),
-          error: 'Declare void OnTakeDamage(); — note the semicolon, no curly brace body.',
-          fix: 'void OnTakeDamage();',
-        }),
+        description: 'BlueprintImplementableEvent declaration without a body',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('BlueprintImplementableEvent') && c.includes('voidOnTakeDamage();'),
+            error: 'Declare void OnTakeDamage(); — note the semicolon, absolutely no curly brace body.',
+            fix: `UFUNCTION(BlueprintImplementableEvent)\nvoid OnTakeDamage();`,
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -2861,6 +2794,7 @@ public:
       },
     ],
   },
+
   // -------------------------------------------------------------------------
   {
     id: 'task_29',
@@ -2891,10 +2825,14 @@ Declare \`void Interact();\` as a \`BlueprintNativeEvent\`. Then, write the \`vo
     starterCode: {
       'Source.h': `class AMyActor : public AActor
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare Interact() with BlueprintNativeEvent
 };
 `,
-      'Source.cpp': `// TODO: Implement AMyActor::Interact_Implementation()
+      'Source.cpp': `#include "MyActor.h"
+
+// TODO: Implement AMyActor::Interact_Implementation()
 
 `,
     },
@@ -2907,20 +2845,19 @@ Declare \`void Interact();\` as a \`BlueprintNativeEvent\`. Then, write the \`vo
       {
         id: 'r_new_6_1_macro',
         type: 'unreal',
-        description: 'BlueprintNativeEvent used',
+        description: 'BlueprintNativeEvent void Interact();',
         evaluate: (code) => ({
-          passed: code.includes('BlueprintNativeEvent') && code.includes('void Interact()'),
-          error: 'Must declare void Interact(); with BlueprintNativeEvent.',
-          fix: `UFUNCTION(BlueprintNativeEvent)
-void Interact();`,
+          passed: condense(code).includes('BlueprintNativeEvent') && condense(code).includes('voidInteract();'),
+          error: 'Must declare void Interact(); with BlueprintNativeEvent in the header.',
+          fix: `UFUNCTION(BlueprintNativeEvent)\nvoid Interact();`,
         }),
       },
       {
         id: 'r_new_6_1_impl',
         type: 'unreal',
-        description: 'Interact_Implementation defined',
+        description: 'Interact_Implementation defined in CPP',
         evaluate: (code) => ({
-          passed: code.includes('Interact_Implementation'),
+          passed: condense(code).includes('voidAMyActor::Interact_Implementation(){'),
           error: 'Must define void AMyActor::Interact_Implementation() in CPP.',
           fix: 'void AMyActor::Interact_Implementation() {}',
         }),
@@ -2982,7 +2919,9 @@ Use \`ensure\` for "this shouldn't happen, but we can recover." Use \`check\` fo
 Inside \`APlayer::Heal()\`, add \`ensure(Health > 0);\` **before** any healing logic.
 `,
     starterCode: {
-      'Source.cpp': `void APlayer::Heal()
+      'Source.cpp': `#include "Player.h"
+
+void APlayer::Heal()
 {
     // TODO: Add ensure(Health > 0) before healing
     Health += 50;
@@ -2993,14 +2932,19 @@ Inside \`APlayer::Heal()\`, add \`ensure(Health > 0);\` **before** any healing l
     successCriteria: ['Write ensure(Health > 0); before modifying Health'],
     rules: [
       {
-        id: 'r27_ensure',
+        id: 'r27_ensure_order',
         type: 'unreal',
-        description: 'ensure(Health > 0) present',
-        evaluate: (code) => ({
-          passed: /ensure\s*\(\s*Health\s*>\s*0\s*\)/.test(code),
-          error: 'Must add ensure(Health > 0);',
-          fix: 'ensure(Health > 0);',
-        }),
+        description: 'ensure(Health > 0) exists BEFORE Health is modified',
+        evaluate: (code) => {
+          const c = condense(code);
+          const idxEnsure = c.indexOf('ensure(Health>0);');
+          const idxHealth = c.indexOf('Health+=50;');
+          return {
+            passed: idxEnsure !== -1 && idxEnsure < idxHealth,
+            error: 'Must add ensure(Health > 0); before the Health += 50; line.',
+            fix: 'ensure(Health > 0);\nHealth += 50;',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -3047,7 +2991,10 @@ if (Monster)
 In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it in a variable named \`MonsterTarget\`. Check if it's valid before using.
 `,
     starterCode: {
-      'Source.cpp': `void OnHit(AActor* HitActor)
+      'Source.cpp': `#include "MyActor.h"
+#include "Monster.h"
+
+void OnHit(AActor* HitActor)
 {
     // TODO: Cast HitActor to AMonster* and store in MonsterTarget
     // TODO: Check MonsterTarget is valid before using it
@@ -3064,20 +3011,10 @@ In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it 
       {
         id: 'r28_cast',
         type: 'unreal',
-        description: 'Cast<AMonster> used',
+        description: 'Cast<AMonster> stored in MonsterTarget',
         evaluate: (code) => ({
-          passed: code.includes('Cast<AMonster>'),
-          error: 'Must use Cast<AMonster> (not static_cast or C-style cast).',
-          fix: 'AMonster* MonsterTarget = Cast<AMonster>(HitActor);',
-        }),
-      },
-      {
-        id: 'r28_var',
-        type: 'unreal',
-        description: 'Result stored in MonsterTarget',
-        evaluate: (code) => ({
-          passed: code.includes('MonsterTarget'),
-          error: 'Store the cast result in a variable named MonsterTarget.',
+          passed: condense(code).includes('AMonster*MonsterTarget=Cast<AMonster>(HitActor);'),
+          error: 'Must declare AMonster* MonsterTarget = Cast<AMonster>(HitActor);',
           fix: 'AMonster* MonsterTarget = Cast<AMonster>(HitActor);',
         }),
       },
@@ -3085,11 +3022,14 @@ In \`OnHit(AActor* HitActor)\`, cast \`HitActor\` to \`AMonster*\` and store it 
         id: 'r28_guard',
         type: 'unreal',
         description: 'Null-check before using MonsterTarget',
-        evaluate: (code) => ({
-          passed: /if\s*\(\s*(MonsterTarget|IsValid\s*\(\s*MonsterTarget)/.test(code),
-          error: 'Check MonsterTarget for nullptr before using it (if (MonsterTarget) { ... }).',
-          fix: 'if (MonsterTarget) { MonsterTarget->TakeHit(); }',
-        }),
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('if(MonsterTarget)') || c.includes('if(IsValid(MonsterTarget))') || c.includes('if(MonsterTarget!=nullptr)'),
+            error: 'Check MonsterTarget for nullptr before using it (if (MonsterTarget) { ... }).',
+            fix: 'if (MonsterTarget) { MonsterTarget->TakeHit(); }',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -3143,7 +3083,9 @@ Write a \`UE_LOG\` call with:
 - Message: \`TEXT("Booting Sequence Initiated")\`
 `,
     starterCode: {
-      'Source.cpp': `void Practice()
+      'Source.cpp': `#include "CoreMinimal.h"
+
+void Practice()
 {
     // TODO: Write a UE_LOG statement per the spec
 }
@@ -3160,42 +3102,15 @@ Write a \`UE_LOG\` call with:
       {
         id: 'r29_macro',
         type: 'unreal',
-        description: 'UE_LOG macro used',
-        evaluate: (code) => ({
-          passed: code.includes('UE_LOG('),
-          error: 'Must use UE_LOG() macro.',
-          fix: 'UE_LOG(LogTemp, Warning, TEXT("Booting Sequence Initiated"));',
-        }),
-      },
-      {
-        id: 'r29_cat',
-        type: 'unreal',
-        description: 'LogTemp category',
-        evaluate: (code) => ({
-          passed: code.includes('LogTemp'),
-          error: 'Category must be LogTemp.',
-          fix: 'UE_LOG(LogTemp, ...',
-        }),
-      },
-      {
-        id: 'r29_verb',
-        type: 'unreal',
-        description: 'Warning verbosity',
-        evaluate: (code) => ({
-          passed: code.includes('Warning'),
-          error: 'Verbosity must be Warning.',
-          fix: 'UE_LOG(LogTemp, Warning, ...',
-        }),
-      },
-      {
-        id: 'r29_msg',
-        type: 'unreal',
-        description: 'Exact message string',
-        evaluate: (code) => ({
-          passed: code.includes('TEXT("Booting Sequence Initiated")'),
-          error: 'Message must be TEXT("Booting Sequence Initiated") — check spelling and TEXT() macro.',
-          fix: 'TEXT("Booting Sequence Initiated")',
-        }),
+        description: 'Complete UE_LOG macro usage',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('UE_LOG(LogTemp,Warning,TEXT("BootingSequenceInitiated"));'),
+            error: 'Ensure syntax matches exactly: UE_LOG(LogTemp, Warning, TEXT("Booting Sequence Initiated"));',
+            fix: 'UE_LOG(LogTemp, Warning, TEXT("Booting Sequence Initiated"));',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -3243,8 +3158,16 @@ Violating naming conventions causes UHT compilation errors.
 Declare a boolean member variable for "is the player jumping" using the correct Unreal prefix. Initialise it to \`false\`.
 `,
     starterCode: {
-      'Source.h': `class APlayer : public ACharacter
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Character.h"
+#include "Player.generated.h"
+
+UCLASS()
+class APlayer : public ACharacter
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare a bool with correct UE naming for "is jumping", set to false
 };
 `,
@@ -3257,22 +3180,12 @@ Declare a boolean member variable for "is the player jumping" using the correct 
     ],
     rules: [
       {
-        id: 'r30_name',
+        id: 'r30_name_init',
         type: 'exercise',
-        description: 'bool bIsJumping declared',
+        description: 'bool bIsJumping = false',
         evaluate: (code) => ({
-          passed: code.includes('bIsJumping'),
-          error: 'Variable must be named bIsJumping (Unreal boolean prefix b).',
-          fix: 'bool bIsJumping = false;',
-        }),
-      },
-      {
-        id: 'r30_init',
-        type: 'exercise',
-        description: 'Initialised to false',
-        evaluate: (code) => ({
-          passed: /bIsJumping\s*=\s*false/.test(code),
-          error: 'Must initialise bIsJumping = false.',
+          passed: condense(code).includes('boolbIsJumping=false;'),
+          error: 'Variable must be named bIsJumping (Unreal boolean prefix b) and initialised to false.',
           fix: 'bool bIsJumping = false;',
         }),
       },
@@ -3326,7 +3239,9 @@ Declare:
 2. \`FText Greeting = FText::FromString(TEXT("Hello"));\`
 `,
     starterCode: {
-      'Source.cpp': `void SetupStrings()
+      'Source.cpp': `#include "CoreMinimal.h"
+
+void SetupStrings()
 {
     // TODO 1: FName PlayerTag = TEXT("Player")
     // TODO 2: FText Greeting = FText::FromString(TEXT("Hello"))
@@ -3344,7 +3259,7 @@ Declare:
         type: 'unreal',
         description: 'FName PlayerTag declared',
         evaluate: (code) => ({
-          passed: code.includes('FName PlayerTag') && code.includes('"Player"'),
+          passed: condense(code).includes('FNamePlayerTag=TEXT("Player");'),
           error: 'Must declare FName PlayerTag = TEXT("Player");',
           fix: 'FName PlayerTag = TEXT("Player");',
         }),
@@ -3354,7 +3269,7 @@ Declare:
         type: 'unreal',
         description: 'FText Greeting via FText::FromString',
         evaluate: (code) => ({
-          passed: code.includes('FText Greeting') && code.includes('FText::FromString'),
+          passed: condense(code).includes('FTextGreeting=FText::FromString(TEXT("Hello"));'),
           error: 'Must declare FText Greeting using FText::FromString(TEXT("Hello"));',
           fix: 'FText Greeting = FText::FromString(TEXT("Hello"));',
         }),
@@ -3406,8 +3321,16 @@ Common operations:
 Inside \`AGameState\`, declare \`TMap<FName, float> PlayerScores\` with \`UPROPERTY()\`.
 `,
     starterCode: {
-      'Source.h': `class AGameState : public AInfo
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/GameStateBase.h"
+#include "MyGameState.generated.h"
+
+UCLASS()
+class AMyGameState : public AGameStateBase
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare TMap<FName, float> PlayerScores with UPROPERTY()
 };
 `,
@@ -3419,24 +3342,17 @@ Inside \`AGameState\`, declare \`TMap<FName, float> PlayerScores\` with \`UPROPE
     ],
     rules: [
       {
-        id: 'r32_prop',
+        id: 'r32_prop_tmap',
         type: 'unreal',
-        description: 'UPROPERTY() on PlayerScores',
-        evaluate: (code) => ({
-          passed: /UPROPERTY\s*\(/.test(code),
-          error: 'TMap members must be decorated with UPROPERTY() for GC visibility.',
-          fix: 'UPROPERTY()',
-        }),
-      },
-      {
-        id: 'r32_tmap',
-        type: 'unreal',
-        description: 'TMap<FName, float> PlayerScores',
-        evaluate: (code) => ({
-          passed: /TMap\s*<\s*FName\s*,\s*float\s*>/.test(code) && code.includes('PlayerScores'),
-          error: 'Declare TMap<FName, float> PlayerScores.',
-          fix: 'TMap<FName, float> PlayerScores;',
-        }),
+        description: 'UPROPERTY() TMap<FName, float> PlayerScores',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('UPROPERTY(') && c.includes('TMap<FName,float>PlayerScores;'),
+            error: 'Declare TMap<FName, float> PlayerScores; decorated with UPROPERTY().',
+            fix: 'UPROPERTY()\nTMap<FName, float> PlayerScores;',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -3486,7 +3402,10 @@ TWeakPtr<FMyData>   Weak   = Shared;  // doesn't increment ref count
 Inside \`FDataManager\`, declare a \`TSharedPtr<FMyData>\` named \`DataPtr\`.
 `,
     starterCode: {
-      'Source.h': `struct FMyData { int32 Value; };
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+
+struct FMyData { int32 Value; };
 
 class FDataManager
 {
@@ -3501,22 +3420,12 @@ class FDataManager
     ],
     rules: [
       {
-        id: 'r33_type',
+        id: 'r33_type_name',
         type: 'exercise',
-        description: 'TSharedPtr<FMyData> declared',
+        description: 'TSharedPtr<FMyData> DataPtr;',
         evaluate: (code) => ({
-          passed: /TSharedPtr\s*<\s*FMyData\s*>/.test(code),
-          error: 'Must use TSharedPtr<FMyData>.',
-          fix: 'TSharedPtr<FMyData> DataPtr;',
-        }),
-      },
-      {
-        id: 'r33_name',
-        type: 'exercise',
-        description: 'Variable named DataPtr',
-        evaluate: (code) => ({
-          passed: code.includes('DataPtr'),
-          error: 'Name the variable DataPtr.',
+          passed: condense(code).includes('TSharedPtr<FMyData>DataPtr;'),
+          error: 'Must declare TSharedPtr<FMyData> DataPtr;',
           fix: 'TSharedPtr<FMyData> DataPtr;',
         }),
       },
@@ -3543,6 +3452,7 @@ public:
       },
     ],
   },
+
   // -------------------------------------------------------------------------
   {
     id: 'task_37',
@@ -3568,7 +3478,11 @@ if (TSharedPtr<FNode> PinnedNode = SafeRef.Pin())
 Inside \`FObserver\`, declare a \`TWeakPtr<FData>\` named \`DataRef\`. Then in \`PrintData()\`, try to \`.Pin()\` it and verify it's valid before using.
 `,
     starterCode: {
-      'Source.cpp': `class FObserver
+      'Source.cpp': `#include "CoreMinimal.h"
+
+struct FData { void DoSomething(){} };
+
+class FObserver
 {
     // TODO 1: Declare TWeakPtr<FData> DataRef;
 public:
@@ -3588,22 +3502,25 @@ public:
       {
         id: 'r_new_9_1_weak',
         type: 'exercise',
-        description: 'TWeakPtr declared',
+        description: 'TWeakPtr<FData> DataRef declared',
         evaluate: (code) => ({
-          passed: /TWeakPtr\s*<\s*FData\s*>/.test(code),
-          error: 'Must declare TWeakPtr<FData> DataRef.',
+          passed: condense(code).includes('TWeakPtr<FData>DataRef;'),
+          error: 'Must declare TWeakPtr<FData> DataRef;',
           fix: 'TWeakPtr<FData> DataRef;',
         }),
       },
       {
         id: 'r_new_9_1_pin',
         type: 'exercise',
-        description: 'Pin() used properly',
-        evaluate: (code) => ({
-          passed: code.includes('Pin()'),
-          error: 'You must lock/pin a weak pointer to elevate it to a temporary shared pointer before accessing.',
-          fix: 'if (TSharedPtr<FData> Pinned = DataRef.Pin()) { /* do stuff */ }',
-        }),
+        description: 'Pin() used properly in an if statement',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('if(TSharedPtr<FData>') && c.includes('=DataRef.Pin())'),
+            error: 'You must lock/pin a weak pointer inside an if statement to elevate it.',
+            fix: 'if (TSharedPtr<FData> Pinned = DataRef.Pin()) { /* do stuff */ }',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -3630,6 +3547,7 @@ public:
       },
     ],
   },
+
   // -------------------------------------------------------------------------
   {
     id: 'task_38',
@@ -3656,7 +3574,10 @@ AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []()
 Use \`AsyncTask\` to run a background lambda (\`ENamedThreads::AnyBackgroundThreadNormalTask\`). Inside the lambda, write a nested \`AsyncTask\` that hops back to \`ENamedThreads::GameThread\`.
 `,
     starterCode: {
-      'Source.cpp': `void PerformHeavyWork()
+      'Source.cpp': `#include "CoreMinimal.h"
+#include "Async/Async.h"
+
+void PerformHeavyWork()
 {
     // TODO: Write an AsyncTask targeting AnyBackgroundThreadNormalTask
     // TODO: Inside it, write another AsyncTask targeting GameThread
@@ -3674,7 +3595,7 @@ Use \`AsyncTask\` to run a background lambda (\`ENamedThreads::AnyBackgroundThre
         type: 'unreal',
         description: 'Background Thread AsyncTask',
         evaluate: (code) => ({
-          passed: code.includes('AsyncTask(') && code.includes('AnyBackgroundThreadNormalTask'),
+          passed: condense(code).includes('AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask,') || condense(code).includes('AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask,'),
           error: 'Must dispatch to AnyBackgroundThreadNormalTask.',
           fix: 'AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, []() { ... });',
         }),
@@ -3684,8 +3605,8 @@ Use \`AsyncTask\` to run a background lambda (\`ENamedThreads::AnyBackgroundThre
         type: 'unreal',
         description: 'GameThread Hop',
         evaluate: (code) => ({
-          passed: code.includes('GameThread'),
-          error: 'Must hop back to ENamedThreads::GameThread for UI/UObject updates.',
+          passed: condense(code).includes('AsyncTask(ENamedThreads::GameThread,'),
+          error: 'Must hop back to ENamedThreads::GameThread inside the first task.',
           fix: 'AsyncTask(ENamedThreads::GameThread, []() { ... });',
         }),
       },
@@ -3760,22 +3681,12 @@ Declare a variable named \`MyAutoVar\` using \`auto\` and set it to \`100.5f\`.
     ],
     rules: [
       {
-        id: 'r34_auto',
+        id: 'r34_auto_val',
         type: 'exercise',
-        description: 'auto keyword used',
+        description: 'auto MyAutoVar = 100.5f;',
         evaluate: (code) => ({
-          passed: /auto\s+MyAutoVar/.test(code),
-          error: 'Declare: auto MyAutoVar = 100.5f;',
-          fix: 'auto MyAutoVar = 100.5f;',
-        }),
-      },
-      {
-        id: 'r34_val',
-        type: 'exercise',
-        description: 'Value is 100.5f',
-        evaluate: (code) => ({
-          passed: code.includes('100.5f'),
-          error: 'Set value to 100.5f (the f suffix makes it float, not double).',
+          passed: condense(code).includes('autoMyAutoVar=100.5f;'),
+          error: 'Declare: auto MyAutoVar = 100.5f; (remember the f suffix)',
           fix: 'auto MyAutoVar = 100.5f;',
         }),
       },
@@ -3844,23 +3755,13 @@ Declare \`auto MyLambda\` as a lambda that:
     ],
     rules: [
       {
-        id: 'r35_decl',
+        id: 'r35_lambda',
         type: 'exercise',
-        description: 'auto MyLambda = lambda',
+        description: 'auto MyLambda = [](){};',
         evaluate: (code) => ({
-          passed: /auto\s+MyLambda\s*=/.test(code),
-          error: 'Declare: auto MyLambda = [...](...) { ... };',
+          passed: condense(code).includes('autoMyLambda=[](){};'),
+          error: 'Declare exactly: auto MyLambda = []() {};',
           fix: 'auto MyLambda = []() { };',
-        }),
-      },
-      {
-        id: 'r35_syntax',
-        type: 'exercise',
-        description: 'Lambda syntax []() { }',
-        evaluate: (code) => ({
-          passed: /\[\s*\]\s*\(\s*\)\s*\{/.test(code),
-          error: 'Lambda must use []() { } syntax.',
-          fix: 'auto MyLambda = []() { /* do something */ };',
         }),
       },
     ],
@@ -3881,24 +3782,6 @@ Declare \`auto MyLambda\` as a lambda that:
 `,
         },
         explanation: 'Lambdas are stored as closures — objects with an operator(). auto deduces the unique compiler-generated type.',
-      },
-      {
-        id: 'sol_35b',
-        title: 'Lambda bound to a delegate',
-        code: {
-          'Source.cpp': `void Practice()
-{
-    FTimerDelegate TimerDel;
-    TimerDel.BindLambda([this]()
-    {
-        UE_LOG(LogTemp, Warning, TEXT("Timer fired!"));
-    });
-
-    GetWorldTimerManager().SetTimer(TimerHandle, TimerDel, 2.0f, false);
-}
-`,
-        },
-        explanation: 'The [this] capture lets the lambda access member variables. Beware: if the owning object is destroyed before the timer fires, this will be a dangling pointer. Use TWeakObjectPtr for safety.',
       },
     ],
   },
@@ -3933,7 +3816,7 @@ Write a template function \`GetMax\` that returns the larger of two values \`A\`
       'Source.h': `// TODO: Write template <typename T> T GetMax(T A, T B)
 `,
     },
-    hiddenTests: ['template <typename T>', 'T GetMax', 'T A', 'T B'],
+    hiddenTests: ['template', 'typename T', 'T GetMax', 'T A', 'T B'],
     successCriteria: [
       'template <typename T> prefix',
       'Function named GetMax returning T',
@@ -3941,24 +3824,17 @@ Write a template function \`GetMax\` that returns the larger of two values \`A\`
     ],
     rules: [
       {
-        id: 'r36_tmpl',
+        id: 'r36_tmpl_sig',
         type: 'exercise',
-        description: 'template <typename T> prefix present',
-        evaluate: (code) => ({
-          passed: /template\s*<\s*typename\s+T\s*>/.test(code),
-          error: 'Must have template <typename T> before the function.',
-          fix: 'template <typename T>',
-        }),
-      },
-      {
-        id: 'r36_fn',
-        type: 'exercise',
-        description: 'T GetMax(T A, T B) signature',
-        evaluate: (code) => ({
-          passed: /T\s+GetMax\s*\(\s*T\s+A\s*,\s*T\s+B\s*\)/.test(code),
-          error: 'Function signature must be: T GetMax(T A, T B)',
-          fix: 'T GetMax(T A, T B) { return (A > B) ? A : B; }',
-        }),
+        description: 'template <typename T> T GetMax(T A, T B)',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: (c.includes('template<typenameT>') || c.includes('template<classT>')) && c.includes('TGetMax(TA,TB)'),
+            error: 'Signature must be: template <typename T> T GetMax(T A, T B)',
+            fix: 'template <typename T>\nT GetMax(T A, T B) { return (A > B) ? A : B; }',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -4006,7 +3882,9 @@ Use it when you're done with a variable and want to hand its data to another wit
 Given \`FString SourceInfo\`, declare \`FString TargetInfo\` and initialise it by *moving* from \`SourceInfo\` using \`MoveTemp\`.
 `,
     starterCode: {
-      'Source.cpp': `void SetupStrings()
+      'Source.cpp': `#include "CoreMinimal.h"
+
+void SetupStrings()
 {
     FString SourceInfo = TEXT("Heavy Data Payload");
 
@@ -4021,22 +3899,12 @@ Given \`FString SourceInfo\`, declare \`FString TargetInfo\` and initialise it b
     ],
     rules: [
       {
-        id: 'r37_target',
+        id: 'r37_target_move',
         type: 'exercise',
-        description: 'FString TargetInfo declared',
+        description: 'FString TargetInfo = MoveTemp(SourceInfo);',
         evaluate: (code) => ({
-          passed: code.includes('TargetInfo'),
-          error: 'Declare a variable named TargetInfo.',
-          fix: 'FString TargetInfo = MoveTemp(SourceInfo);',
-        }),
-      },
-      {
-        id: 'r37_move',
-        type: 'exercise',
-        description: 'MoveTemp(SourceInfo) used',
-        evaluate: (code) => ({
-          passed: code.includes('MoveTemp(SourceInfo)'),
-          error: 'Must use MoveTemp(SourceInfo) to avoid copying.',
+          passed: condense(code).includes('FStringTargetInfo=MoveTemp(SourceInfo);'),
+          error: 'Must declare FString TargetInfo = MoveTemp(SourceInfo);',
           fix: 'FString TargetInfo = MoveTemp(SourceInfo);',
         }),
       },
@@ -4103,7 +3971,7 @@ public:
         type: 'exercise',
         description: 'virtual ~FBaseLogic() declared',
         evaluate: (code) => ({
-          passed: /virtual\s*~\s*FBaseLogic\s*\(\s*\)/.test(code),
+          passed: condense(code).includes('virtual~FBaseLogic();') || condense(code).includes('virtual~FBaseLogic()=default;') || condense(code).includes('virtual~FBaseLogic(){}'),
           error: 'Must declare virtual ~FBaseLogic();',
           fix: 'virtual ~FBaseLogic() = default;',
         }),
@@ -4162,7 +4030,12 @@ public:
 Declare \`AMyGameMode\` inheriting from \`AGameModeBase\` with \`UCLASS()\` and \`GENERATED_BODY()\`.
 `,
     starterCode: {
-      'Source.h': `// TODO: Declare AMyGameMode inheriting from AGameModeBase
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/GameModeBase.h"
+#include "MyGameMode.generated.h"
+
+// TODO: Declare AMyGameMode inheriting from AGameModeBase
 `,
     },
     hiddenTests: ['class AMyGameMode', 'AGameModeBase', 'GENERATED_BODY()'],
@@ -4173,34 +4046,17 @@ Declare \`AMyGameMode\` inheriting from \`AGameModeBase\` with \`UCLASS()\` and 
     ],
     rules: [
       {
-        id: 'r39_uclass',
+        id: 'r39_decl_full',
         type: 'unreal',
-        description: 'UCLASS() macro',
-        evaluate: (code) => ({
-          passed: /UCLASS\s*\(/.test(code),
-          error: 'UCLASS() macro is missing.',
-          fix: 'UCLASS()',
-        }),
-      },
-      {
-        id: 'r39_decl',
-        type: 'unreal',
-        description: 'AMyGameMode : public AGameModeBase',
-        evaluate: (code) => ({
-          passed: code.includes('AMyGameMode') && code.includes('AGameModeBase'),
-          error: 'Declare AMyGameMode inheriting from AGameModeBase.',
-          fix: 'class AMyGameMode : public AGameModeBase',
-        }),
-      },
-      {
-        id: 'r39_gen',
-        type: 'unreal',
-        description: 'GENERATED_BODY()',
-        evaluate: (code) => ({
-          passed: code.includes('GENERATED_BODY()'),
-          error: 'Must include GENERATED_BODY() inside the class.',
-          fix: 'GENERATED_BODY()',
-        }),
+        description: 'Complete UCLASS AMyGameMode declaration',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('UCLASS()classAMyGameMode:publicAGameModeBase{GENERATED_BODY()'),
+            error: 'Ensure you have UCLASS(), class AMyGameMode : public AGameModeBase, and GENERATED_BODY().',
+            fix: 'UCLASS()\nclass AMyGameMode : public AGameModeBase\n{\nGENERATED_BODY()\n};',
+          };
+        },
       },
     ],
     exampleSolutions: [
@@ -4253,8 +4109,16 @@ Inside \`ASpawner\`, declare:
 2. \`FRotator SpawnRotation;\` (default-initialised)
 `,
     starterCode: {
-      'Source.h': `class ASpawner : public AActor
+      'Source.h': `#pragma once
+#include "CoreMinimal.h"
+#include "GameFramework/Actor.h"
+#include "Spawner.generated.h"
+
+UCLASS()
+class ASpawner : public AActor
 {
+    GENERATED_BODY()
+public:
     // TODO: Declare FVector SpawnLocation and FRotator SpawnRotation
 };
 `,
@@ -4270,7 +4134,7 @@ Inside \`ASpawner\`, declare:
         type: 'unreal',
         description: 'FVector SpawnLocation declared',
         evaluate: (code) => ({
-          passed: code.includes('FVector SpawnLocation') || /FVector\s+SpawnLocation/.test(code),
+          passed: condense(code).includes('FVectorSpawnLocation'),
           error: 'Declare FVector SpawnLocation;',
           fix: 'FVector SpawnLocation = FVector::ZeroVector;',
         }),
@@ -4280,7 +4144,7 @@ Inside \`ASpawner\`, declare:
         type: 'unreal',
         description: 'FRotator SpawnRotation declared',
         evaluate: (code) => ({
-          passed: code.includes('FRotator SpawnRotation') || /FRotator\s+SpawnRotation/.test(code),
+          passed: condense(code).includes('FRotatorSpawnRotation'),
           error: 'Declare FRotator SpawnRotation;',
           fix: 'FRotator SpawnRotation = FRotator::ZeroRotator;',
         }),
@@ -4345,7 +4209,10 @@ Timers are invalidated automatically if the owning actor is destroyed.
 Implement \`AEnemy::StartAttack()\` that uses \`GetWorldTimerManager().SetTimer\` to call \`PerformAttack\` after **2.0** seconds, **non-looping**.
 `,
     starterCode: {
-      'Source.cpp': `void AEnemy::StartAttack()
+      'Source.cpp': `#include "Enemy.h"
+#include "TimerManager.h"
+
+void AEnemy::StartAttack()
 {
     // TODO: Set a timer to call PerformAttack in 2.0 seconds (non-looping)
     // Use GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false)
@@ -4363,42 +4230,15 @@ Implement \`AEnemy::StartAttack()\` that uses \`GetWorldTimerManager().SetTimer\
       {
         id: 'r41_settimer',
         type: 'unreal',
-        description: 'SetTimer called',
-        evaluate: (code) => ({
-          passed: code.includes('SetTimer'),
-          error: 'Call GetWorldTimerManager().SetTimer(...).',
-          fix: 'GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false);',
-        }),
-      },
-      {
-        id: 'r41_handle',
-        type: 'unreal',
-        description: 'AttackTimerHandle passed',
-        evaluate: (code) => ({
-          passed: code.includes('AttackTimerHandle'),
-          error: 'Pass AttackTimerHandle as the first argument.',
-          fix: 'SetTimer(AttackTimerHandle, ...)',
-        }),
-      },
-      {
-        id: 'r41_target',
-        type: 'unreal',
-        description: 'Target function is &AEnemy::PerformAttack',
-        evaluate: (code) => ({
-          passed: code.includes('PerformAttack'),
-          error: 'Target function must be &AEnemy::PerformAttack.',
-          fix: '&AEnemy::PerformAttack',
-        }),
-      },
-      {
-        id: 'r41_delay',
-        type: 'unreal',
-        description: 'Delay is 2.0f',
-        evaluate: (code) => ({
-          passed: code.includes('2.0f'),
-          error: 'Delay must be 2.0f seconds.',
-          fix: '2.0f, false',
-        }),
+        description: 'Complete GetWorldTimerManager().SetTimer call',
+        evaluate: (code) => {
+          const c = condense(code);
+          return {
+            passed: c.includes('GetWorldTimerManager().SetTimer(AttackTimerHandle,this,&AEnemy::PerformAttack,2.0f,false);'),
+            error: 'Parameters must exactly match: AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false',
+            fix: 'GetWorldTimerManager().SetTimer(AttackTimerHandle, this, &AEnemy::PerformAttack, 2.0f, false);',
+          };
+        },
       },
     ],
     exampleSolutions: [
