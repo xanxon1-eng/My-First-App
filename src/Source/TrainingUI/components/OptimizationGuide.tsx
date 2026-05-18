@@ -4,7 +4,7 @@ import {
   Clock, HardDrive, Zap, LayoutTemplate, Box, Waves, CheckCircle, CircleDashed,
   ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield, Radio,
   Hexagon, Save, Triangle, Image, Palette, Crosshair, Sliders, Music,
-  Package, Eye, TrendingDown, Flame, GitBranch
+  Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
@@ -34,6 +34,7 @@ const TABS = [
   { id: 'budgets',          label: 'Budgets & Tools',          icon: Database },
   { id: 'storage',          label: 'Disk / Install Storage',   icon: HardDrive },
   { id: 'aaa_profiling',    label: 'AAA Quality Profiling',    icon: Zap },
+  { id: 'tools_overview',   label: 'Debug & Test Tools',       icon: Terminal },
 ];
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
@@ -61,6 +62,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'budgets':          return <BudgetsTab />;
       case 'storage':          return <StorageTab />;
       case 'aaa_profiling':    return <AAAQualityProfilingTab />;
+      case 'tools_overview':   return <ProfilingDebugTestingTab />;
       default:                 return null;
     }
   };
@@ -1207,6 +1209,132 @@ const AAAQualityProfilingTab = () => (
               <div className="text-xs text-kingfisher-muted mt-0.5">{note}</div>
             </div>
           ))}
+        </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const ProfilingDebugTestingTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="Profiling, Debugging & Testing Tools" subtitle="Comprehensive overview of Unreal Engine's toolset: capabilities, limitations, and what you must build manually." />
+    
+    <div className="grid grid-cols-1 gap-6">
+      <SectionCard title="1. Profiling Tools" icon={Zap} color={COLORS.kingfisher.warm}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Unreal Insights</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">The flagship telemetry and profiling suite for UE. Records massive trace logs and presents them on a unified timeline.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Deep CPU/GPU tracing, identify exact thread stalls, trace memory allocations over time (Memory Insights), and profile asset loading/networking bottlenecks.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Deep GPU shader instruction debugging (register pressure, occupancy), and can struggle with parsing multi-hour uncompressed captures without heavy filtering.</li>
+            </ul>
+          </div>
+          
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Stat Commands (stat fps, stat unit)</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">Real-time on-screen performance counters broken down by groups.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Verify immediate bottlenecks. <code>stat unit</code> immediately reveals if you are CPU(Game), CPU(Draw), or GPU bound. Fast, zero-setup, runs in PIE and standalone.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Provide historical timeline graphs. Cannot tell you exactly <em>which</em> C++ line or BP node is causing the cost (just the broad engine category).</li>
+            </ul>
+          </div>
+
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">GPU Visualizer (ProfileGPU)</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">A snapshot diagnostic tool strictly for the render pipeline.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Intercept a single frame and display exactly how much time each render pass (BasePass, Shadows, Lumen) took in milliseconds. Shows exact draw call payload.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Cannot analyze Game or Draw thread CPU execution. Cannot profile dynamically over multiple frames (it's a freeze-frame snapshot).</li>
+            </ul>
+          </div>
+          
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Network Profiler</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">Records network traffic over time into a .nprof file.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Track bandwidth consumption per actor, identify oversized RPC payloads, and analyze replication property costs.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Simulate complex packet loss environments directly inside the profiler view, nor visualize client-side prediction desyncs.</li>
+            </ul>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="2. Debugging Tools" icon={Terminal} color={COLORS.status.info}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Visual Logger (VisLog)</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">A brilliant gameplay and AI debugging tool that records visual states.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Record historical game states. Scroll back through time to see AI perception cones, navigation paths, and state machine decisions rendered visually in the level.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Not a profiler. Cannot tell you the performance cost of the AI, only its logical state.</li>
+            </ul>
+          </div>
+
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Blueprint Debugger / C++ IDE Integration</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">The traditional breakpoints and watch variable workflow.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Halts execution. Lets you step through BP nodes or C++ lines. Inspect raw memory and object references.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Reverse debugging (going backwards in time after missing a condition). Changing C++ class memory layout during Live Coding usually requires a full restart.</li>
+            </ul>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="3. Testing Frameworks" icon={ShieldAlert} color={COLORS.kingfisher.blue}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Automation Testing Framework</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">Embedded testing suite directly inside the engine (Session Frontend).</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Run C++ Unit Tests, execute Functional Tests (spawning actors, verifying coordinates), and perform image comparisons for rendering consistency tests.</li>
+              <li><strong className="text-red-400">Can't do:</strong> Setup is verbose. Not as agile as web testing frameworks (like Jest/Playwright). Cannot automatically generate test coverage mappings.</li>
+            </ul>
+          </div>
+
+          <div className="bg-black/20 p-4 rounded border border-kingfisher-border/30">
+            <strong className="text-white text-base block mb-2">Gauntlet Automation Framework</strong>
+            <p className="text-xs text-kingfisher-muted mb-3">A script-driven orchestration layer (written in C#) for running game tests.</p>
+            <ul className="list-disc pl-5 space-y-1 text-xs text-kingfisher-muted mb-3">
+              <li><strong className="text-emerald-400">Can do:</strong> Launch the game across multiple platforms (PC, Console, Mobile) automatically, spin up a server and N clients, and collect all logs into one report. Ideal for CI/CD integration.</li>
+              <li><strong className="text-red-400">Can't do:</strong> It doesn't write the test logic itself. It only orchestrates deploying the build and triggering the execution commands.</li>
+            </ul>
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="What Unreal Engine DOES NOT Have (Build Manually)" icon={CircleDashed} color={COLORS.status.warning}>
+        <p className="text-sm text-kingfisher-muted mb-4">If you require these capabilities, you must engineer custom solutions or license third-party middleware:</p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="flex items-start gap-3">
+            <div className="p-1 mt-0.5 rounded bg-black/20 shrink-0"><CircleDashed className="w-4 h-4 text-amber-400" /></div>
+            <div>
+              <strong className="text-white text-sm block mb-1">State-Rewind Time-Travel Debugging</strong>
+              <p className="text-xs text-kingfisher-muted">Unlike some proprietary or web engines, UE does not serialize its entire object state out-of-the-box allowing you to "rewind." To get Braid-style or deterministic rewind debugging, you must drastically custom-engineer a deterministic ECS or command-pattern architecture.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-1 mt-0.5 rounded bg-black/20 shrink-0"><CircleDashed className="w-4 h-4 text-amber-400" /></div>
+            <div>
+              <strong className="text-white text-sm block mb-1">Deep Hardware / Shader Execution Profiling</strong>
+              <p className="text-xs text-kingfisher-muted">Unreal tracks "pass duration", but to see why a shader is slow at the hardware register level (occupancy, VGPRs vs SGPRs), UE relies entirely on external vendor tools like PIX (Xbox/Windows), RenderDoc, or NVIDIA Nsight.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-1 mt-0.5 rounded bg-black/20 shrink-0"><CircleDashed className="w-4 h-4 text-amber-400" /></div>
+            <div>
+              <strong className="text-white text-sm block mb-1">Chaos Fuzzing / Bot Swarm Stress Testing</strong>
+              <p className="text-xs text-kingfisher-muted">There is no built-in tool that systematically randomizes inputs or mashes buttons 1,000 times a second to find crashes. You must build custom "Chaos Bots" via AI Behavior Trees to stress-test your own game logic and server limits.</p>
+            </div>
+          </div>
+          <div className="flex items-start gap-3">
+            <div className="p-1 mt-0.5 rounded bg-black/20 shrink-0"><CircleDashed className="w-4 h-4 text-amber-400" /></div>
+            <div>
+              <strong className="text-white text-sm block mb-1">Fleet-Wide Crash Aggregation Dashboard</strong>
+              <p className="text-xs text-kingfisher-muted">UE includes a Crash Reporter client, but no backend to aggregate thousands of player crashes into readable metrics. You must route crash dumps and minidumps to enterprise services like Sentry, Backtrace, or Datadog using custom HTTP plugins.</p>
+            </div>
+          </div>
         </div>
       </SectionCard>
     </div>
