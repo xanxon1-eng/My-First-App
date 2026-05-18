@@ -13,46 +13,76 @@ interface OptimizationGuideProps {
   onBack: () => void;
 }
 
-const TABS = [
-  { id: 'overview',         label: 'Implementation Status',    icon: ClipboardList },
-  { id: 'pipeline',         label: '16.7ms Pipeline',          icon: Activity },
-  { id: 'architecture',     label: 'CPU & RAM Architecture',   icon: Cpu },
-  { id: 'draw_calls',       label: 'Draw Calls & Instancing',  icon: BarChart3 },
-  { id: 'gpu',              label: 'GPU Geometry & Nanite',    icon: Box },
-  { id: 'lod',              label: 'LOD Systems',              icon: Triangle },
-  { id: 'materials',        label: 'Materials & Shaders',      icon: Palette },
-  { id: 'textures',         label: 'Textures & Streaming',     icon: Image },
-  { id: 'lighting',         label: 'Light & Shadows',          icon: Sun },
-  { id: 'postprocess',      label: 'Post-Process & Upscaling', icon: Monitor },
-  { id: 'occlusion',        label: 'Occlusion & Visibility',   icon: Eye },
-  { id: 'collision',        label: 'Collision & Traces',       icon: Crosshair },
-  { id: 'memory_state',     label: 'Memory & State Arch',      icon: Folder },
-  { id: 'network_physics',  label: 'Networking & Physics',     icon: Globe },
-  { id: 'server_protocol',  label: 'Auth Server Protocol',     icon: ShieldAlert },
-  { id: 'deterministic',    label: 'Deterministic Sync',       icon: Clock },
-  { id: 'world_partition',  label: 'World Partition Culling',  icon: Map },
-  { id: 'client_pred',      label: 'Client-Side Prediction',   icon: Zap },
-  { id: 'fast_array',       label: 'Fast Array Serializers',   icon: Layers },
-  { id: 'interest_mgmt',    label: 'Interest Management',      icon: Crosshair },
-  { id: 'asset_manager',    label: 'Asset Manager Chunks',     icon: Database },
-  { id: 'gc_clustering',    label: 'GC Object Clustering',     icon: Trash2 },
-  { id: 'npc',              label: 'World AI Simulation',      icon: Network },
-  { id: 'animation_audio',  label: 'Animation & Audio',        icon: Music },
-  { id: 'scalability',      label: 'Scalability & CVars',      icon: Sliders },
-  { id: 'budgets',          label: 'Budgets & Tools',          icon: Database },
-  { id: 'storage',          label: 'Disk / Install Storage',   icon: HardDrive },
-  { id: 'aaa_profiling',    label: 'AAA Quality Profiling',    icon: Zap },
-  { id: 'tools_overview',   label: 'Debug & Test Tools',       icon: Terminal },
-  { id: 'live_memory',      label: 'Live Memory Connect',      icon: Radio },
-  { id: 'debug_overlays',   label: 'Visual Debug Overlays',    icon: EyeOff },
-  { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
-  { id: 'subsystems',       label: 'Subsystems Architecture',  icon: Database },
-  { id: 'shader_permutations', label: 'Shader Permutations',   icon: Layers },
-  { id: 'ui_umg',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
+const TAB_GROUPS = [
+  {
+    title: 'Status & Overview',
+    tabs: [
+      { id: 'overview',         label: 'Implementation Status',    icon: ClipboardList },
+    ]
+  },
+  {
+    title: 'Architecture & CPU',
+    tabs: [
+      { id: 'pipeline',         label: '16.7ms Pipeline',          icon: Activity },
+      { id: 'architecture',     label: 'CPU & RAM Architecture',   icon: Cpu },
+      { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
+      { id: 'memory_state',     label: 'Memory & State Arch',      icon: Folder },
+      { id: 'gc_clustering',    label: 'GC Object Clustering',     icon: Trash2 },
+      { id: 'asset_manager',    label: 'Asset Manager Chunks',     icon: Database },
+      { id: 'subsystems',       label: 'Subsystems Architecture',  icon: Database },
+    ]
+  },
+  {
+    title: 'Multiplayer & Netcode',
+    tabs: [
+      { id: 'network_physics',  label: 'Networking & Physics',     icon: Globe },
+      { id: 'server_protocol',  label: 'Auth Server Protocol',     icon: ShieldAlert },
+      { id: 'deterministic',    label: 'Deterministic Sync',       icon: Clock },
+      { id: 'client_pred',      label: 'Client-Side Prediction',   icon: Zap },
+      { id: 'fast_array',       label: 'Fast Array Serializers',   icon: Layers },
+      { id: 'interest_mgmt',    label: 'Interest Management',      icon: Crosshair },
+      { id: 'world_partition',  label: 'World Partition Culling',  icon: Map },
+    ]
+  },
+  {
+    title: 'Rendering & Graphics',
+    tabs: [
+      { id: 'draw_calls',       label: 'Draw Calls & Instancing',  icon: BarChart3 },
+      { id: 'gpu',              label: 'GPU Geometry & Nanite',    icon: Box },
+      { id: 'lod',              label: 'LOD Systems',              icon: Triangle },
+      { id: 'materials',        label: 'Materials & Shaders',      icon: Palette },
+      { id: 'shader_permutations', label: 'Shader Permutations',   icon: Layers },
+      { id: 'textures',         label: 'Textures & Streaming',     icon: Image },
+      { id: 'lighting',         label: 'Light & Shadows',          icon: Sun },
+      { id: 'postprocess',      label: 'Post-Process & Upscaling', icon: Monitor },
+    ]
+  },
+  {
+    title: 'Game Systems & Logic',
+    tabs: [
+      { id: 'collision',        label: 'Collision & Traces',       icon: Crosshair },
+      { id: 'occlusion',        label: 'Occlusion & Visibility',   icon: Eye },
+      { id: 'npc',              label: 'World AI Simulation',      icon: Network },
+      { id: 'animation_audio',  label: 'Animation & Audio',        icon: Music },
+      { id: 'ui_umg',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
+    ]
+  },
+  {
+    title: 'Profiling & Tools',
+    tabs: [
+      { id: 'aaa_profiling',    label: 'AAA Quality Profiling',    icon: Zap },
+      { id: 'tools_overview',   label: 'Debug & Test Tools',       icon: Terminal },
+      { id: 'live_memory',      label: 'Live Memory Connect',      icon: Radio },
+      { id: 'debug_overlays',   label: 'Visual Debug Overlays',    icon: EyeOff },
+      { id: 'scalability',      label: 'Scalability & CVars',      icon: Sliders },
+      { id: 'budgets',          label: 'Budgets & Tools',          icon: Database },
+      { id: 'storage',          label: 'Disk / Install Storage',   icon: HardDrive },
+    ]
+  }
 ];
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
-  const [activeTab, setActiveTab] = useState(TABS[0].id);
+  const [activeTab, setActiveTab] = useState(TAB_GROUPS[0].tabs[0].id);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -112,27 +142,35 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 border-r border-kingfisher-border bg-kingfisher-panel/50 flex flex-col p-4 shrink-0 overflow-y-auto">
-          <div className="text-xs font-semibold uppercase tracking-wider text-kingfisher-muted mb-4 pl-2">Topics</div>
-          <nav className="flex flex-col gap-1">
-            {TABS.map(tab => {
-              const isActive = activeTab === tab.id;
-              const Icon = tab.icon;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                    isActive
-                      ? 'bg-kingfisher-blue/20 text-white shadow-sm border border-kingfisher-blue/30'
-                      : 'text-kingfisher-muted hover:bg-kingfisher-panel hover:text-white border border-transparent'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-kingfisher-blue' : ''}`} />
-                  <span className="truncate">{tab.label}</span>
-                </button>
-              );
-            })}
+        <aside className="w-64 border-r border-kingfisher-border bg-kingfisher-panel/50 flex flex-col p-4 shrink-0 overflow-y-auto custom-scrollbar">
+          <nav className="flex flex-col gap-6">
+            {TAB_GROUPS.map((group, groupIdx) => (
+              <div key={groupIdx} className="flex flex-col">
+                <div className="text-xs font-semibold uppercase tracking-wider text-kingfisher-muted mb-2 pl-2">
+                  {group.title}
+                </div>
+                <div className="flex flex-col gap-1">
+                  {group.tabs.map(tab => {
+                    const isActive = activeTab === tab.id;
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                          isActive
+                            ? 'bg-kingfisher-blue/20 text-white shadow-sm border border-kingfisher-blue/30'
+                            : 'text-kingfisher-muted hover:bg-kingfisher-panel hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-kingfisher-blue' : ''}`} />
+                        <span className="truncate">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
         </aside>
 
@@ -204,71 +242,72 @@ const PageHeader = ({ title, subtitle }: { title: string; subtitle: string }) =>
 
 const OverviewTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Implementation Status Overview" subtitle="Deep analysis from extensive documentation and practical technical playground integration." />
+    <PageHeader title="Implementation Status Overview" subtitle="Deep analysis from extensive documentation and practical technical playground integration, with major focus on Multiplayer and Rendering scale." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <SectionCard title="Currently Implemented" icon={CheckCircle} color={COLORS.status.success}>
-        <ul className="space-y-3 pt-1">
-          {[
-            ['Multiplayer Architecture Ready', 'Day-1 Server-Authority structures, replicated states, and decoupled UI layers built for painless future networking.'],
-            ['Architecture Validation', '3-Layer Data-Driven Architecture, Ban Event Tick, Soft References, Object Pooling, Event Bus Decoupling.'],
-            ['Advanced Game Mechanics', 'Passive Tree Bitmasks, Enhanced Input mappings, Inventory USTRUCTs, Item Crafting systems.'],
-            ['Rendering & Profiling', '16.7ms pipeline, Budget allocations, Nanite bucket classifications, Lumen strategy.'],
-            ['Simulation & Logic', 'Quadtree Fog-of-War, Server Culling, Timestamp Catch-Up, Significance Manager.'],
-            ['UI / UMG Architecture & Invalidation', 'Migrating from UMG property binding to purely push-based delegates and Retainer Boxes to alleviate Game Thread tick overhead.'],
-          ].map(([title, desc]) => (
-            <li key={title} className="flex items-start gap-3">
-              <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-              <div><strong className="text-white block mb-0.5">{title}</strong><span className="text-kingfisher-muted text-sm">{desc}</span></div>
-            </li>
-          ))}
-        </ul>
+        <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <ul className="space-y-3 pt-1">
+            {[
+              ['Multiplayer Architecture Ready', 'Day-1 Server-Authority structures, replicated states, and decoupled UI layers built for painless future networking.'],
+              ['Full Authoritative Server Protocol', 'Standalone local auth converted to true Dedicated Server execution models with rollback integration for states.'],
+              ['Deterministic Frame Sync', 'Physics determinism established for tight lockstep syncing and advanced rollback Netcode protocols.'],
+              ['World Partition Sub-Relevancy', 'Implemented sub-hashing for server to aggressively cull network updates across massive open-world grid cells.'],
+              ['Client-Side Prediction Modules', 'Custom generic prediction interpolation added for advanced abilities outside of the standard Character Movement.'],
+              ['Fast Array Serializers', 'Inventory array updated from full standard Replication to delta-synced FFastArraySerializer logic.'],
+              ['Interest Management Culling', 'Implemented Network Dormancy (DORM_Initial) and spatial dependency for heavily clustered interactive actors.'],
+              ['Architecture Validation', '3-Layer Data-Driven Architecture, Ban Event Tick, Soft References, Object Pooling, Event Bus Decoupling.'],
+              ['Advanced Game Mechanics', 'Passive Tree Bitmasks, Enhanced Input mappings, Inventory USTRUCTs, Item Crafting systems.'],
+              ['UI / UMG Architecture & Invalidation', 'Migrating from UMG property binding to purely push-based delegates and Retainer Boxes.'],
+            ].map(([title, desc]) => (
+              <li key={title} className="flex items-start gap-3">
+                <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <div><strong className="text-white block mb-0.5">{title}</strong><span className="text-kingfisher-muted text-sm">{desc}</span></div>
+              </li>
+            ))}
+          </ul>
+        </div>
       </SectionCard>
       <SectionCard title="Newly Added in This Version" icon={CheckCircle} color={COLORS.kingfisher.blue}>
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-        <ul className="space-y-3 pt-1">
-          {[
-            ['Full Authoritative Server Protocol', 'Standalone local auth converted to true Dedicated Server execution models with rollback integration for states.'],
-            ['Deterministic Frame Sync', 'Physics determinism established for tight lockstep syncing and advanced rollback Netcode protocols.'],
-            ['World Partition Sub-Relevancy', 'Implemented sub-hashing for server to aggressively cull network updates across massive open-world grid cells.'],
-            ['Client-Side Prediction Modules', 'Custom generic prediction interpolation added for advanced abilities outside of the standard Character Movement Component.'],
-            ['Fast Array Serializers', 'Inventory array updated from full standard Replication to delta-synced FFastArraySerializer logic.'],
-            ['Interest Management Culling', 'Implemented Network Dormancy (DORM_Initial) and spatial dependency for heavily clustered interactive actors.'],
-            ['Asset Manager Chunk & Async Loading', 'Replaced manual Soft Object pointer loading with explicit Asset Manager Primary/Secondary Chunk distribution.'],
-            ['Garbage Collection Object Clustering', 'Implemented GC clustering to group thousands of related data assets into single reference checks, skipping deep sweeps.'],
-            ['Draw Calls & Instancing', 'HISM/ISM instancing pipeline, 1000-draw-call rule, mesh merging, UV atlasing.'],
-            ['LOD Systems', 'Screen-size thresholds, HLOD vs static LOD, skeletal LOD, Imposter Sprites.'],
-            ['Materials & Shaders', 'Instruction counts, translucency overdraw, dynamic branches, PBR texture packing.'],
-            ['Textures & Streaming', 'Mip mapping, BC compression formats, Virtual Textures, streaming pool tuning.'],
-            ['Post-Process & Upscaling', 'TSR/DLSS/FSR cost analysis, resolution scaling, AA strategy.'],
-            ['Occlusion & Visibility', 'HW occlusion queries, Precomputed Visibility, cull distance volumes.'],
-            ['Collision & Traces', 'Simple vs complex collision, trace channels, async trace patterns.'],
-            ['Animation & Audio', 'Animation budget, skeletal LOD, audio streaming vs in-memory.'],
-            ['Scalability & CVars', 'r.* console variable system, scalability presets, per-platform tuning.'],
-            ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation.'],
-            ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
-            ['Multithreading & Async', 'TaskGraph, FRunnable, ParallelFor vs overhead, avoiding thread locks.'],
-            ['UE Subsystems', 'Engine, GameInstance, LocalPlayer object lifecycle.'],
-            ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction strategies for shipping builds.'],
-          ].map(([title, desc]) => (
-            <li key={title} className="flex items-start gap-3">
-              <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
-              <div><strong className="text-white block mb-0.5">{title}</strong><span className="text-kingfisher-muted text-sm">{desc}</span></div>
-            </li>
-          ))}
-        </ul>
+          <ul className="space-y-3 pt-1">
+            {[
+              ['Asset Manager Chunk & Async Loading', 'Replaced manual Soft Object pointer loading with explicit Asset Manager Primary/Secondary Chunk distribution.'],
+              ['Garbage Collection Object Clustering', 'Implemented GC clustering to group thousands of related data assets into single reference checks, skipping deep sweeps.'],
+              ['Draw Calls & Instancing', 'HISM/ISM instancing pipeline, 1000-draw-call rule, mesh merging, UV atlasing.'],
+              ['LOD Systems', 'Screen-size thresholds, HLOD vs static LOD, skeletal LOD, Imposter Sprites.'],
+              ['Materials & Shaders', 'Instruction counts, translucency overdraw, dynamic branches, PBR texture packing.'],
+              ['Textures & Streaming', 'Mip mapping, BC compression formats, Virtual Textures, streaming pool tuning.'],
+              ['Post-Process & Upscaling', 'TSR/DLSS/FSR cost analysis, resolution scaling, AA strategy.'],
+              ['Occlusion & Visibility', 'HW occlusion queries, Precomputed Visibility, cull distance volumes.'],
+              ['Collision & Traces', 'Simple vs complex collision, trace channels, async trace patterns.'],
+              ['Animation & Audio', 'Animation budget, skeletal LOD, audio streaming vs in-memory.'],
+              ['Scalability & CVars', 'r.* console variable system, scalability presets, per-platform tuning.'],
+              ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD.'],
+              ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
+              ['Multithreading & Async', 'TaskGraph, FRunnable, ParallelFor vs overhead, avoiding thread locks.'],
+              ['UE Subsystems', 'Engine, GameInstance, LocalPlayer object lifecycle.'],
+              ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction.'],
+            ].map(([title, desc]) => (
+              <li key={title} className="flex items-start gap-3">
+                <CheckCircle className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+                <div><strong className="text-white block mb-0.5">{title}</strong><span className="text-kingfisher-muted text-sm">{desc}</span></div>
+              </li>
+            ))}
+          </ul>
         </div>
       </SectionCard>
     </div>
-    <SectionCard className="mt-6" title="Pending / Missing Systems (Multiplayer & Optimization)" icon={CircleDashed} color={COLORS.status.warning}>
+    <SectionCard className="mt-6" title="Pending / Missing Systems (Multiplayer & Scaling)" icon={CircleDashed} color={COLORS.status.warning}>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Major Subsystems</h4>
+          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Major Multiplayer Subsystems</h4>
           <ul className="space-y-3">
             {[
-              ['Replication Graph Refactoring', 'Need to replace standard Actor Channel replication with a custom Replication Graph for MMO-scale actor counts.'],
-              ['Network Relevancy Masking', 'Implement bitmask-driven relevancy rules to selectively filter actor updates per-connection without spatial checks.'],
-              ['Jitter Buffer / De-Sync Correction', 'Implement adaptive jitter buffers and time-warp visual correction for high-latency client inputs.'],
-              ['Scalable Server Microservices', 'Decouple login, chat, and persistence into separate web services, outside the monolithic UE Dedicated Server.'],
+              ['Replication Graph / Iris Refactoring', 'Need to replace standard Actor Channel replication with a custom IRIS Replication Graph for massive MMO-scale actor counts and fast-path variable syncing.'],
+              ['Snapshot Interpolation Module', 'Create rigorous buffer state capture limits (e.g. 5 snapshots trailing latency) to smooth out remote players dropping packets before extrapolation kicks in.'],
+              ['Network Relevancy Masking', 'Implement bitmask-driven relevancy rules to selectively filter actor updates per-connection without doing raw spatial bounding checks.'],
+              ['Jitter Buffer & Time-Warp Correction', 'Adaptive jitter buffers specifically tuning network `MinUpdateDelay` to dynamically absorb lag spikes using fractional frame prediction.'],
+              ['Scalable Server Microservices', 'Decouple login tokens, matchmaking mmr, chat clusters, and inventory persistence into separate Dockerized web services.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -278,14 +317,14 @@ const OverviewTab = () => (
           </ul>
         </div>
         <div>
-          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Minor Subsystems</h4>
+          <h4 className="text-amber-400 font-semibold mb-3 text-sm">Minor Optimizations</h4>
           <ul className="space-y-3">
             {[
-              ['Bandwidth Throttling Profiles', 'Dynamic net update frequency adjustment based on overall connection saturation and player ping.'],
-              ['Replicated Subobjects Optimization', 'Refining UActorComponent replication using the new Push Model to avoid polling entire component graphs.'],
-              ['Anim Node Fast-Path', 'Ensure all animation blueprints are restricted to Fast-Path property access, stripping out VM execution overhead.'],
-              ['Physics Rewind Debugging Tools', 'Visual telemetry tools to display client vs server physics states and debug rollback discrepancy events.'],
-              ['DDoS / Packet Flood Mitigation', 'Custom packet-filtering rules at the socket level before Unreal\'s NetConnection attempts to process them.'],
+              ['Bandwidth Throttling Profiles', 'Dynamic net update frequency adjustment based on overall connection saturation (e.g. throttle distant NPCs to 5hz if hitting 10kb/s limits).'],
+              ['Replicated Subobjects Optimization', 'Refining UActorComponent replication using the Push Model (`MARK_PROPERTY_DIRTY_FROM_NAME`) to strictly avoid polling.'],
+              ['Input Buffer Reconciliation', 'Storing last 15 ticks of player moves in an explicit array. On rollback, client resimulates those 15 inputs natively instead of halting.'],
+              ['Physics Rewind Debugging Tool', 'Visual C++ telemetry overlays to live-display ghosted client vs server physics bounding boxes to debug mismatch events.'],
+              ['Packet Validation & Flood Mitigation', 'Custom packet-filtering rules at the socket level before Unreal NetConnection parses. Malformed reliable packet eviction.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <CircleDashed className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
@@ -1621,19 +1660,24 @@ const ServerProtocolTab = () => (
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
           <li><strong>Headless Mode:</strong> Server runs with no rendering (NullRHI), saving CPU cycles purely for logic.</li>
           <li><strong>Authority Restrictions:</strong> Clients can only submit inputs (RPCs), standard property changes are rejected.</li>
-          <li><strong>Rollback Integration:</strong> Keep a state history to rewind the simulation, apply a late input from a client, and fast-forward to the present.</li>
+          <li><strong>Authoritative Authority:</strong> The Server is the single source of truth. All physics impacts and player deaths are explicitly resolved here.</li>
+          <li><strong>Delta Compression:</strong> Unreal Engine deeply analyzes property trees and only networks variables (deltas) that actually changed compared to the last mutually acknowledged frame, drastically saving bandwidth on large structs.</li>
         </ul>
       </SectionCard>
-      <SectionCard title="RPC Patterns" icon={Globe} color={COLORS.kingfisher.blue}>
+      <SectionCard title="RPC Patterns & Validation" icon={Globe} color={COLORS.kingfisher.blue}>
         <p className="text-sm mb-3">Client-to-Server communication architecture:</p>
         <div className="space-y-2 text-sm mt-3">
           <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
             <strong className="text-white block">Server RPC (Reliable vs Unreliable)</strong>
-            <span className="text-kingfisher-muted text-xs">Use Reliable for critical events (damage, purchase). Unreliable for transient data (look direction).</span>
+            <span className="text-kingfisher-muted text-xs">Use Reliable for critical events (damage, purchase). Unreliable for transient data (look direction). Reliable guarantees delivery but adds latency retries.</span>
           </div>
           <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
-            <strong className="text-white block">Validation Hooks</strong>
-            <span className="text-kingfisher-muted text-xs">Always implement `_Validate` to sanitize client inputs directly on the server to prevent cheating.</span>
+            <strong className="text-white block">Validation Hooks (_Validate)</strong>
+            <span className="text-kingfisher-muted text-xs">Always implement `_Validate` to sanitize client inputs directly on the server. Examples include restricting move distances to physically possible bounds, verifying if a player actually owns the item they are trying to consume.</span>
+          </div>
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-white block">Multi-Cast Caution</strong>
+            <span className="text-kingfisher-muted text-xs">Avoid NetMulticast for persistent game state changes. It only reaches currently connected clients. Use `RepNotify` properties instead, which apply to clients even if they log in moments later.</span>
           </div>
         </div>
       </SectionCard>
@@ -1645,23 +1689,26 @@ const DeterministicSyncTab = () => (
   <div className="space-y-6">
     <PageHeader title="Deterministic Frame Sync" subtitle="Physics determinism established for tight lockstep syncing and advanced rollback Netcode." />
     <HighlightBox type="warning" className="mb-4">
-      <strong>Determinism Warning:</strong> Standard float math and physics in UE5 are NOT naturally deterministic across different hardware/compilers.
+      <strong>Determinism Warning:</strong> Standard float math and physics in UE5 are NOT naturally deterministic across different hardware/compilers. You must enforce it manually.
     </HighlightBox>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <SectionCard title="Fixed Timestep Logic" icon={Clock} color={COLORS.status.info}>
         <p className="text-sm mb-3">To stay synced, the simulation must advance by identical micro-deltas on all clients.</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
-          <li><strong>Decouple from Render:</strong> Simulation ticks at 60Hz fixed, while rendering might run at 144Hz with interpolation.</li>
+          <li><strong>Decouple from Render:</strong> Simulation ticks at 60Hz fixed, while rendering might run at 144Hz with extrapolation.</li>
           <li><strong>Math Libraries:</strong> Use fixed-point math (`int64` representing decimals) instead of IEEE floats to guarantee identical results on AMD vs Intel CPUs.</li>
+          <li><strong>Random Seeds:</strong> Action logic needing randomness must use synchronized explicit RNG seed instances on both ends rather than `FMath::FRand()`.</li>
         </ul>
       </SectionCard>
-      <SectionCard title="Physics Rollback" icon={Activity} color={COLORS.status.warning}>
+      <SectionCard title="Rollback & Reconciliation" icon={Activity} color={COLORS.status.warning}>
         <p className="text-sm text-kingfisher-muted mb-3">
-          If a client receives a state from the server that contradicts their local prediction, they must snap to the server state, inject their un-acknowledged inputs, and re-simulate forward to the present.
+          If a client receives a state from the server that contradicts their local prediction (e.g. they got stunned mid-swing), they must perform Reconciliation.
         </p>
-        <p className="text-sm text-kingfisher-muted">
-          Requires completely decoupling custom movement logic from the default CharacterMovementComponent.
-        </p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Snap and Discard:</strong> Snap the client entity back to the verified Server snapshot location.</li>
+          <li><strong>Input Buffer:</strong> Retain all predictive inputs that occurred after the server's snapshot timestamp in an array buffer.</li>
+          <li><strong>Fast-Forward:</strong> Resimulate all saved physical inputs over the new verified state in one giant jump, rendering the corrected path smoothly via visual interpolation to hide the rubber-banding snap.</li>
+        </ul>
       </SectionCard>
     </div>
   </div>
@@ -1743,11 +1790,11 @@ const InterestManagementTab = () => (
   <div className="space-y-6">
     <PageHeader title="Interest Management Culling" subtitle="Network Dormancy and spatial dependency for heavily clustered interactive actors." />
     <HighlightBox type="success" className="mb-4">
-      <strong>Network Dormancy:</strong> The ultimate server CPU saver. If an actor's state isn't changing, the network subsystem shouldn't even check it.
+      <strong>Network Dormancy:</strong> The ultimate server CPU saver. If an actor's state isn't changing, the network subsystem shouldn't even check it. This is not optional for MMO-scale player counts.
     </HighlightBox>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <SectionCard title="DORM_Initial" icon={Clock} color={COLORS.kingfisher.blue}>
-        <p className="text-sm mb-3">For actors like chests or doors. They spawn, replicate their initial state once to clients, and then go completely dormant.</p>
+        <p className="text-sm mb-3">For actors like chests, doors, or dropped items. They spawn, replicate their initial state once to clients, and then go completely dormant.</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
           <li>They consume absolutely zero server CPU for replication checks while dormant.</li>
           <li>When a player opens the chest, call `FlushNetDormancy()` to temporarily wake it up, send the "Open" state, and put it back to sleep.</li>
@@ -1757,9 +1804,27 @@ const InterestManagementTab = () => (
         <p className="text-sm text-kingfisher-muted mb-3">
           If a weapon is attached to a player, you don't need the server to check relevancy for the weapon independently.
         </p>
-        <p className="text-sm text-kingfisher-muted">
-          Set `bNetUseOwnerRelevancy = true`. If the player is relevant to a remote client, the weapon is automatically relevant. Saves hundreds of bounds-checks per frame.
-        </p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li>Set `bNetUseOwnerRelevancy = true`. If the player is relevant to a remote client, the weapon is automatically relevant. Saves hundreds of bounds-checks per frame.</li>
+          <li>Weapons, projectiles, and particle effects spawned by characters must explicitly inherit relevancy from the instigator actor to prevent disjointed culling edge cases.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Role/Priority Scaling based on Distance" icon={Zap} color={COLORS.kingfisher.warm} className="col-span-1 md:col-span-2">
+        <p className="text-sm mb-3">Not all relevant actors are equally critical to bandwidth.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-emerald-400 block text-xs">Distance-Based Tick Rate</strong>
+            <span className="text-kingfisher-muted text-xs">Players nearest to the camera are evaluated at 60Hz. Players 100m away are dropped to `NetUpdateFrequency = 5` (5Hz) dynamically, saving 90% bandwidth. Client-side interpolation catches the visual slack.</span>
+          </div>
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-amber-400 block text-xs">AlwaysRelevant vs NetCull</strong>
+            <span className="text-kingfisher-muted text-xs">A player's OWN `PlayerState` and `PlayerController` are `bAlwaysRelevant` because their integrity is vital. Everything else relies on `NetCullDistanceSquared`.</span>
+          </div>
+          <div className="bg-black/20 p-2 rounded border border-kingfisher-border/30">
+            <strong className="text-blue-400 block text-xs">Significance Manager</strong>
+            <span className="text-kingfisher-muted text-xs">An external C++ subsystem that groups actors into buckets (critical, normal, background) based on camera view and distance, globally regulating tick rates and anim update frequencies.</span>
+          </div>
+        </div>
       </SectionCard>
     </div>
   </div>
