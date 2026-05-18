@@ -37,7 +37,8 @@ const TABS = [
   { id: 'tools_overview',   label: 'Debug & Test Tools',       icon: Terminal },
   { id: 'live_memory',      label: 'Live Memory Connect',      icon: Radio },
   { id: 'debug_overlays',   label: 'Visual Debug Overlays',    icon: EyeOff },
-  { id: 'mobile_guide',     label: 'Mobile Targeting',         icon: Smartphone },
+  { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
+  { id: 'subsystems',       label: 'Subsystems Architecture',  icon: Database },
   { id: 'shader_permutations', label: 'Shader Permutations',   icon: Layers },
 ];
 
@@ -69,7 +70,8 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'tools_overview':   return <ProfilingDebugTestingTab />;
       case 'live_memory':      return <LiveMemoryTab />;
       case 'debug_overlays':   return <DebugOverlaysTab />;
-      case 'mobile_guide':     return <MobileGuideTab />;
+      case 'multithreading':   return <MultithreadingTab />;
+      case 'subsystems':       return <SubsystemsTab />;
       case 'shader_permutations': return <ShaderPermutationsTab />;
       default:                 return null;
     }
@@ -189,6 +191,7 @@ const OverviewTab = () => (
       <SectionCard title="Currently Implemented" icon={CheckCircle} color={COLORS.status.success}>
         <ul className="space-y-3 pt-1">
           {[
+            ['Multiplayer Architecture Ready', 'Day-1 Server-Authority structures, replicated states, and decoupled UI layers built for painless future networking.'],
             ['Architecture Validation', '3-Layer Data-Driven Architecture, Ban Event Tick, Soft References, Object Pooling, Event Bus Decoupling.'],
             ['Advanced Game Mechanics', 'Passive Tree Bitmasks, Enhanced Input mappings, Inventory USTRUCTs, Item Crafting systems.'],
             ['Rendering & Profiling', '16.7ms pipeline, Budget allocations, Nanite bucket classifications, Lumen strategy.'],
@@ -215,7 +218,8 @@ const OverviewTab = () => (
             ['Scalability & CVars', 'r.* console variable system, scalability presets, per-platform tuning.'],
             ['Live Memory Connect', 'Live WebSocket metrics binding from C++ UE5 Game Process to React HUD representation.'],
             ['Deep Visual Debug Overlays', 'In-game drawing overlays corresponding to Bitmask states or AI NavMesh traces.'],
-            ['Mobile-Specific Guide', 'Different draw call budgets, ES3.1 shader tier, thermal throttling strategies.'],
+            ['Multithreading & Async', 'TaskGraph, FRunnable, ParallelFor vs overhead, avoiding thread locks.'],
+            ['UE Subsystems', 'Engine, GameInstance, LocalPlayer object lifecycle.'],
             ['Shader Permutation Profiling', 'Shader compilation times, permutation reduction strategies for shipping builds.'],
           ].map(([title, desc]) => (
             <li key={title} className="flex items-start gap-3">
@@ -311,6 +315,15 @@ const ArchitectureTab = () => (
           <li><strong className="text-white">3. Presentation (UWidget):</strong> Render mirror only. Zero simulation logic permitted. Reads from State on delegate signal.</li>
         </ul>
       </SectionCard>
+      <SectionCard title="Server-Authoritative Decoupling (Multiplayer Ready)" icon={Globe} color={COLORS.kingfisher.warm}>
+        <p className="font-semibold text-white mb-2">Build for Offline but Prepare for Dedicated Servers</p>
+        <p className="text-sm mb-3">Even for single-player, decouple your UI and Input from actual game state mutation so that adding a Dedicated Server later requires zero refactoring.</p>
+        <ul className="list-disc pl-5 space-y-3 text-sm text-kingfisher-muted">
+          <li><strong className="text-white">Predictive Input:</strong> Actions like "Fire Weapon" immediately play local VFX/Audio (Prediction) but send an RPC to mutate <code>ServerHealth</code>.</li>
+          <li><strong className="text-white">RepNotifys Only:</strong> Bind UI updates solely to <code>OnRep_</code> notifications rather than local variable changes. If it works offline via local RepNotifys, it works natively on a network.</li>
+          <li><strong className="text-white">No UI in Controllers:</strong> Keep UI logic entirely isolated in HUD/UMG. Controllers only route Intent (Input) to the Server.</li>
+        </ul>
+      </SectionCard>
       <SectionCard title="Soft Pointers & Transitive Loading" icon={HardDrive} color={COLORS.status.info}>
         <p className="font-semibold text-white mb-2">Preventing Traversal Stutter</p>
         <p className="text-sm mb-3">Hard Reference to an asset triggers synchronous load holding the Main Thread hostage ("Traversal Hitching").</p>
@@ -382,7 +395,6 @@ const DrawCallsTab = () => (
           ['UI / HUD', '20–100', 'text-blue-400'],
           ['Shadow Passes', '300–800', 'text-amber-400'],
           ['Critical Failure', '>5,000', 'text-red-400'],
-          ['Mobile Target', '<300', 'text-purple-400'],
         ].map(([label, value, color]) => (
           <div key={label} className="bg-black/20 p-3 rounded border border-kingfisher-border/50 text-center">
             <div className={`font-mono text-lg font-bold ${color}`}>{value}</div>
@@ -856,6 +868,14 @@ const CollisionTab = () => (
           <li><strong className="text-white">Custom Channels:</strong> Define "Bullet" channel — only actors that should stop bullets respond. Furniture ignores bullets.</li>
         </ul>
       </SectionCard>
+      <SectionCard title="Multiplayer Hit Validation & Rollback Netcode" icon={ShieldAlert} color={COLORS.status.error}>
+        <p className="text-sm mb-3">If you ever sync combat online, the server must validate hits to prevent cheating, but clients must feel zero latency.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong className="text-white">Client-Side Prediction:</strong> Client instantly plays firing animation, traces locally, and plays blood particle. Sender triggers <code>Server_FireWeapon()</code> RPC.</li>
+          <li><strong className="text-white">Server Rewind:</strong> Server receives RPC. Because of latency, the server rewinds Hitboxes (using an un-linked proxy capsule history) to exactly where they were on the client at the time of firing, checking validity.</li>
+          <li><strong className="text-white">Secure Tracing:</strong> Never pass "Hit Character" from Client to Server. Pass <code>(FVector Origin, FVector Direction)</code> and force the Server to execute the authoritative trace.</li>
+        </ul>
+      </SectionCard>
       <SectionCard title="Async Trace — Never Block the Game Thread" icon={Activity} color={COLORS.status.success}>
         <p className="text-sm mb-3">Synchronous traces (<code>LineTraceSingleByChannel</code>) block the Game Thread until complete. For anything non-critical, use async:</p>
         <div className="space-y-2 text-sm font-mono">
@@ -906,6 +926,14 @@ const MemoryStateTab = () => (
           <li><strong>Passive Tree Bitmasks:</strong> Entire massive UI progression arrays reduced to pure byte uint32[16] logic, saving monumental networking payloads.</li>
         </ul>
       </SectionCard>
+      <SectionCard title="Replication State vs Local Instantiation" icon={Activity} color={COLORS.status.info}>
+        <p className="mb-2 text-sm">Not everything needs server replication. Wasting bandwidth on visual fluff crashes networks.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>Never Replicate Visuals:</strong> Don't replicate Particle Systems, Decals, or Audio. Replicate the <em>Event</em> (e.g., <code>NetMulticast_Explode</code>) and let the localized client spawn the Niagara system locally.</li>
+          <li><strong>Fast Array Serialization:</strong> Standard TArray replication resends the entire array if one index changes. Use <code>FFastArraySerializer</code> for massive arrays (Inventory/Buffs) to only delta-sync changed indexes.</li>
+          <li><strong>Network Dormancy:</strong> For interactive chests or doors, use <code>NetDormancy = DORM_Initial</code>. The Server stops checking them until a player specifically interacts via <code>FlushNetDormancy()</code>.</li>
+        </ul>
+      </SectionCard>
       <SectionCard className="md:col-span-2" title="World Partition & Grid HLODs" icon={Layers} color={COLORS.status.warning}>
         <p className="mb-2 text-sm">Seamless mapping requires dividing the terrain into cell logic and asynchronously pulling chunks in before viewing.</p>
         <div className="bg-black/20 p-3 rounded border border-amber-500/30 mt-2 text-sm text-kingfisher-muted">
@@ -918,26 +946,78 @@ const MemoryStateTab = () => (
 
 const NetworkingPhysicsTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Networking & Simulation Protocols" subtitle="Ensuring accurate multiplayer synchronicity while optimizing logic payloads." />
+    <PageHeader title="AAA Multiplayer Foundations" subtitle="Building a local game with zero-refactor scalability for massive Dedicated Server deployments." />
+    <HighlightBox type="info" className="mb-4">
+      <strong>The "Just-In-Case" Paradox:</strong> Grafting multiplayer onto an existing single-player codebase usually requires a complete 100% rewrite of the logic layer. By adopting <em>Server Authority</em> and <em>RPC decoupling</em> from Day 1—even for offline play—you future-proof your IP, saving years of development while incidentally resulting in cleaner, event-driven single-player code.
+    </HighlightBox>
+    
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Multiplayer Authority & Limits" icon={Globe} color={COLORS.status.info}>
-        <p className="mb-2 text-sm"><strong>Server Logic:</strong> The Server is the absolute Referee evaluating all Client inputs before mutation. Predict client animations visually.</p>
-        <div className="bg-black/20 p-3 rounded border border-blue-500/30 mt-2 text-sm text-kingfisher-muted">
-          <strong className="text-blue-400">COND_SkipOwner Protocol:</strong> Never enforce the server to redundantly reply with a verified stat back to the original client that initiated it. Prevent bandwidth cycle waste.
-        </div>
-      </SectionCard>
-      <SectionCard title="Massive Graph Compression" icon={Network} color={COLORS.kingfisher.warm}>
-        <p className="mb-2 text-sm"><strong>Bandwidth Optimization:</strong> Don't sync arrays of bool strings over UDP packets.</p>
+      <SectionCard title="The Authority Hierarchy" icon={Globe} color={COLORS.kingfisher.blue}>
+        <p className="mb-2 text-sm"><strong>Rule: The client lies. The server governs.</strong> Even offline, pretend a malicious client is trying to cheat.</p>
         <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
-          <li><strong>Bitset Compression:</strong> Entire skill trees, quest steps, and inventory arrays mapped directly into optimized integers representing binary toggles.</li>
-          <li><strong>Graph Validations (BFS/DFS):</strong> The server evaluates input path networks mitigating client "jump" or floating island cheating exploits.</li>
+          <li><strong>Input Only:</strong> PlayerControllers should only capture keystrokes and forward them via <code>Server_</code> RPCs. They never modify <code>Health</code> directly.</li>
+          <li><strong>Simulated Proxies:</strong> All non-player characters are updated by the server. Clients just interpolate their transforms (Smooth Sync).</li>
+          <li><strong>Offline Benefit:</strong> Single-player runs as a "Listen Server". Pushing logic strictly to the GameMode (server only) and PlayerState prevents spaghetti code in character blueprints.</li>
         </ul>
       </SectionCard>
-      <SectionCard className="md:col-span-2" title="Physics: Sub-Stepping & Spatial Fog" icon={Waves} color={COLORS.status.success}>
+      
+      <SectionCard title="RPC (Remote Procedure Call) Taxonomy" icon={Network} color={COLORS.status.warning}>
+        <p className="mb-2 text-sm">How execution jumps between network boundaries.</p>
+        <div className="space-y-2 text-sm">
+          <div className="p-2 bg-amber-950/20 border border-amber-500/20 rounded">
+            <strong className="text-amber-400">Server RPC:</strong> Client asks to do something. <code>Server_EquipWeapon()</code>. Used for inputs, purchases, attacks.
+          </div>
+          <div className="p-2 bg-emerald-900/20 border border-emerald-500/20 rounded">
+            <strong className="text-emerald-400">Client/Owning RPC:</strong> Server tells a specific player something. <code>Client_ShowDamageNumber()</code>.
+          </div>
+          <div className="p-2 bg-purple-900/20 border border-purple-500/20 rounded">
+            <strong className="text-purple-400">NetMulticast:</strong> Server tells everyone nearby. <code>Multicast_PlayExplosion()</code>. Never use for persistent state (late joiners miss it).
+          </div>
+        </div>
+      </SectionCard>
+
+      <SectionCard title="Variable Replication via RepNotify" icon={Layers} color={COLORS.status.success}>
+        <p className="mb-2 text-sm"><strong>The Core State Engine:</strong> Instead of RPCs, sync State via replicated variables.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong>UPROPERTY(ReplicatedUsing):</strong> When the server changes health, the network automatically pushes the new value to all clients and calls <code>OnRep_Health()</code>.</li>
+          <li><strong>VFX Binding:</strong> Bind your UI updates, blood splatters, and screen shakes to the <code>OnRep_</code> function.</li>
+          <li><strong>Offline Benefit:</strong> In standalone, ensure your server-side logic manually calls the <code>OnRep_</code> function after changing the value to synthesize the network cycle. This unifies visual execution logic completely.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard title="Advanced Optimization: Dormancy & Relevancy" icon={ShieldAlert} color={COLORS.kingfisher.warm}>
+        <p className="mb-2 text-sm">In a 100-player AAA map, tracking every object melts the CPU. Culling network traffic is mandatory.</p>
+        <ul className="list-disc pl-5 space-y-2 text-kingfisher-muted text-sm">
+          <li><strong className="text-white">Net Relevancy (Spatial):</strong> Objects over 10,000 units away are culled from a client's network stream. Only replicate what clients can see.</li>
+          <li><strong className="text-white">Net Dormancy (Temporal):</strong> A dropped sword isn't moving. Set to <code>DORM_Initial</code>. The server permanently stops checking it. If picked up, call <code>FlushNetDormancy</code>. Saves monumental CPU cycles vs <code>NetUpdateFrequency=0.1</code>.</li>
+          <li><strong className="text-white">Update Frequency:</strong> Set default Actors to 2-5Hz. Only active Player Pawns need 30-60Hz bandwidth polling.</li>
+        </ul>
+      </SectionCard>
+
+      <SectionCard className="md:col-span-2" title="Character Movement Component (CMC) Protocol" icon={Activity} color={COLORS.status.info}>
+        <p className="mb-2 text-sm"><strong>The gold standard of Unreal Engine Netcode.</strong> The CMC handles lag compensation inherently so clients never feel latency.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
+          <div className="bg-black/20 p-3 rounded border border-blue-500/20 text-sm">
+            <strong className="text-white block mb-1">1. Client Prediction</strong>
+            <span className="text-kingfisher-muted">When moving locally, the client <em>predicts</em> success instantly, moving their mesh without waiting for server permission round-trips.</span>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-amber-500/20 text-sm">
+            <strong className="text-white block mb-1">2. Server Validation</strong>
+            <span className="text-kingfisher-muted">Server receives timestamps and movement vectors. Re-simulates the move. If collision or speedhacks detected, server rejects it.</span>
+          </div>
+          <div className="bg-black/20 p-3 rounded border border-red-500/20 text-sm">
+            <strong className="text-white block mb-1">3. Rubberbanding (Correction)</strong>
+            <span className="text-kingfisher-muted">If server rejects, it forces an authoritative override to the client. The client snaps back (rubberbands) to the server's absolute true position.</span>
+          </div>
+        </div>
+      </SectionCard>
+      
+      <SectionCard className="md:col-span-2" title="Massive Graph & Payload Compression" icon={Database} color={COLORS.status.error}>
+        <p className="mb-2 text-sm"><strong>Bandwidth Optimization (The 1KB/s Target):</strong> Don't sync verbose arrays or strings over UDP.</p>
         <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm">
-          <li><strong className="text-emerald-400">Hitscan Evaluation:</strong> Completely bypass rendering/collision physics bodies via invisible line logic processing for hyper-velocity impacts.</li>
-          <li><strong className="text-emerald-400">Continuous Sub-Stepping:</strong> Slow, dynamic projectiles evaluate logic loops fractions of times a frame to prohibit tunnel/phase glitching against static landscapes.</li>
-          <li><strong className="text-emerald-400">Fog Quadtrees:</strong> Rather than O(N²) pixel assessments for dynamic FOW, employ hierarchical partition quadrants restricting resolution iteration counts natively.</li>
+          <li><strong className="text-white">Bitmask Compression:</strong> Quest steps, passive skill trees, and unlock grids natively mapped into bitwise integers (e.g., <code>uint32 ProgressionFlags</code>). You sync 4 bytes instead of an array of 32 booleans.</li>
+          <li><strong className="text-white">Fast Array Serializer:</strong> Unreal’s <code>FFastArraySerializer</code> is mandatory for inventory management. Instead of re-replicating a generic 100-slot TArray on every change, it generates delta-only diffs for just the mutated index.</li>
+          <li><strong className="text-white">COND_SkipOwner Protocol:</strong> Never enforce the server to redundantly reply with a verified stat back to the original client that initiated it (if that client is confidently predicting it). Prevent cyclical bandwidth waste via <code>ReplicationCondition = COND_SkipOwner</code>.</li>
         </ul>
       </SectionCard>
     </div>
@@ -1122,6 +1202,17 @@ const BudgetsTab = () => (
           <li><strong>CPU vs GPU Particles:</strong> CPU scales to ~0.2ms max. GPU is 0.01ms for vast multitudes.</li>
           <li><strong>GC Healthy Sweep:</strong> ~2.0–5.0ms (Time-sliced cleanly).</li>
         </ul>
+      </SectionCard>
+      <SectionCard title="Absolute Frame Time Budgets" icon={Clock} color={COLORS.kingfisher.blue}>
+        <p className="text-xs text-kingfisher-muted mb-3 border-b border-kingfisher-border/50 pb-2">Concrete 100% accurate time limits per frame.</p>
+        <div className="space-y-1">
+          <StatRow label="240 FPS Target" value="4.17 ms" color="text-red-400" />
+          <StatRow label="144 FPS Target" value="6.94 ms" color="text-orange-400" />
+          <StatRow label="120 FPS Target" value="8.33 ms" color="text-amber-400" />
+          <StatRow label="90 FPS Target" value="11.11 ms" color="text-emerald-400" />
+          <StatRow label="60 FPS Target" value="16.67 ms" color="text-emerald-400" />
+          <StatRow label="30 FPS Target" value="33.33 ms" color="text-blue-400" />
+        </div>
       </SectionCard>
       <SectionCard title="Visual RAM Targets" icon={Database} color={COLORS.status.warning}>
         <p className="text-xs text-kingfisher-muted mb-3 border-b border-kingfisher-border/50 pb-2">Assuming an 8GB VRAM target pool.</p>
@@ -1402,29 +1493,81 @@ for (int i = 0; i < Path->PathPoints.Num() - 1; i++) {
   </div>
 );
 
-const MobileGuideTab = () => (
+const MultithreadingTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Mobile-Specific Guide" subtitle="Different draw call budgets, ES3.1 shader tier, thermal throttling strategies." />
+    <PageHeader title="Multithreading & Async" subtitle="When to use it, built-in vs manual systems, and avoiding race conditions." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Mobile Budgets (ES3.1)" icon={Smartphone} color={COLORS.status.warning}>
-        <p className="text-sm mb-3">Mobile targets have dramatically lower thresholds than PC/Console:</p>
+      <SectionCard title="When to use Multithreading?" icon={Network} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">Not everything needs its own thread. Thread creation/syncing has overhead. Use it when:</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
-          <li><strong>Draw Calls:</strong> Max 300-500. Use aggressive instancing and HISM.</li>
-          <li><strong>Poly Count:</strong> Max 300,000 to 500,000 on screen.</li>
-          <li><strong>Texture Sizes:</strong> Max 1024x1024. PVRTC/ASTC compression only.</li>
-          <li><strong>Post-Processing:</strong> Turn off everything but Bloom and basic color grading.</li>
+          <li><strong>Heavy Math:</strong> Procedural generation, complex AI evaluations, custom physics constraints.</li>
+          <li><strong>Blocking I/O:</strong> Loading files, network requests, saving games to disk.</li>
+          <li><strong>Rule of thumb:</strong> If a task takes longer than ~0.5ms and does not need to affect the very next frame immediately, push it off the Game Thread.</li>
+          <li><strong className="text-red-400">Avoid:</strong> Don't multithread spawning Actors, modifying UObjects directly, or rendering calls — UE requires these on the Game Thread.</li>
         </ul>
       </SectionCard>
-      <SectionCard title="Thermal Throttling & Power" icon={Flame} color={COLORS.status.error}>
-        <p className="text-sm mb-3">Mobile processors will downclock after 5 minutes of high activity. Plan for this sustained phase, not peak burst speed.</p>
+      <SectionCard title="Built-in UE Tooling" icon={Database} color={COLORS.status.success}>
+        <ul className="list-disc pl-5 space-y-4 text-sm text-kingfisher-muted">
+          <li>
+            <strong className="text-emerald-400">UE::Tasks::Launch (TaskGraph system):</strong> 
+            Modern replacement for Async. Short, heavily interdependent tasks. Very low overhead.
+          </li>
+          <li>
+            <strong className="text-emerald-400">ParallelFor:</strong> 
+            Perfect for iterating over massive arrays (e.g., updating 10,000 boids). Blocks the current thread until all iterations finish across worker threads.
+          </li>
+          <li>
+            <strong className="text-emerald-400">FRunnable:</strong> 
+            For long-running, continuous loops (e.g., a custom background server listener, or a procedural world generator loop).
+          </li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Risks of Manual Replacements" icon={Flame} color={COLORS.status.error}>
+        <p className="text-sm mb-3">If you bypass Unreal's thread pool and use raw <code>std::thread</code>:</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Oversubscription:</strong> Unreal already scales its TaskGraph worker threads to the CPU's physical core count. Adding custom threads causes context switching, lowering overall FPS.</li>
+          <li><strong>Garbage Collection:</strong> Standard threads don't know about Unreal's GC. If a UObject is collected while your thread reads it, you crash.</li>
+          <li><strong>Deadlocks:</strong> Manual mutex locks can easily stall the Game Thread if you wait for a background process that is waiting on Game Thread data.</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Safe Data Passing" icon={Database} color={COLORS.kingfisher.warm}>
+        <p className="text-sm text-kingfisher-muted mb-2">How to interact with the Game Thread safely:</p>
         <div className="space-y-2 text-sm font-mono mt-3">
-          <div className="flex gap-4 p-2 bg-black/20 rounded">
-            <span className="text-blue-400 w-16">Cap FPS</span><span className="text-kingfisher-muted">Lock to 30 FPS using t.MaxFPS to leave thermal headroom.</span>
+          <div className="p-3 bg-black/20 rounded border border-kingfisher-border/30">
+            <span className="text-blue-400">{"AsyncTask(ENamedThreads::GameThread, []() { ... });"}</span>
+            <p className="text-kingfisher-muted text-xs mt-1">Schedules UI updates or UObject mutations back on the main thread safely.</p>
           </div>
-          <div className="flex gap-4 p-2 bg-black/20 rounded">
-            <span className="text-emerald-400 w-16">Quality</span><span className="text-kingfisher-muted">Expose scalability settings to players (Low/Med/High).</span>
+          <div className="p-3 bg-black/20 rounded border border-kingfisher-border/30">
+            <span className="text-emerald-400">Pass structs/primitives by value.</span>
+            <p className="text-kingfisher-muted text-xs mt-1">Do not pass UObject pointers to background threads.</p>
           </div>
         </div>
+      </SectionCard>
+    </div>
+  </div>
+);
+
+const SubsystemsTab = () => (
+  <div className="space-y-6">
+    <PageHeader title="UE Subsystems Architecture" subtitle="Lifetime-managed singleton classes for scalable systems." />
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <SectionCard title="What are they?" icon={Layers} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">Subsystems are auto-instantiated classes whose lifetimes match a specific UE core object. They replace singletons and the bloated <code>GameInstance</code> / <code>PlayerController</code> pattern.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong>Engine (UEngineSubsystem):</strong> Lives forever while the app process runs.</li>
+          <li><strong>Editor (UEditorSubsystem):</strong> Only exists in the editor. Good for tooling.</li>
+          <li><strong>GameInstance (UGameInstanceSubsystem):</strong> Lives for the duration of the entire game session. Persists across map loads.</li>
+          <li><strong>World (UWorldSubsystem):</strong> Created for a specific Level/Map instance. Destroyed on map change.</li>
+          <li><strong>LocalPlayer (ULocalPlayerSubsystem):</strong> Created per local player (splitscreen friendly).</li>
+        </ul>
+      </SectionCard>
+      <SectionCard title="Limitations & What to Manually Add" icon={ShieldAlert} color={COLORS.status.warning}>
+        <p className="text-sm mb-3">Subsystems handle their own initialization (via <code>Initialize()</code> and <code>Deinitialize()</code>), but they lack native support for multiplayer replication.</p>
+        <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
+          <li><strong className="text-red-400">No Replication:</strong> Subsystems are local to the machine running them. If your <code>UInventorySubsystem</code> needs to replicate, you must manually proxy the data through the Player Controller or Game State.</li>
+          <li><strong>Context Passing:</strong> World Subsystems easily get the World Context. However, Engine/GameInstance Subsystems often struggle to resolve world contexts when dealing with UI or delayed timers, requiring careful world context pointer passing.</li>
+          <li><strong>Cross-Server Persistence:</strong> Subsystems die when the app closes. For real MMO/live persistence, you must manually hook subsystem DE-initialization to a backend DB call (e.g. via REST/WebSocket).</li>
+        </ul>
       </SectionCard>
     </div>
   </div>
