@@ -398,6 +398,7 @@ const OverviewTab = () => (
               ['Algorithmic Occlusion', 'Added R-Tree boundary clustering for rapid mobile occlusion culling prior to sending calls to weak Android GPUs.'],
               ['Hierarchical Navmesh Pathfinding', 'Replaced raw A* with H-Navmesh logic dropping AI server pathing load by 2.0ms.'],
               ['SIMD Math Vectorization', 'Applied ISPC and SSE/AVX intrinsics to heavy trajectory calculations.'],
+              ['Dynamic Muscle Flexing', 'Integrated GPU-accelerated Pose Space Deformation (PSD) and Normal Map blending to simulate muscle deformation on bone rotation.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -418,7 +419,8 @@ const OverviewTab = () => (
               ['Unreal Engine Feature Matrices', 'Every optimization tab explicitly details what features UE5 provides out-of-the-box, what is missing, and how to use them.'],
               ['A* vs. Flow Fields', 'AI Tabs updated with algorithm comparisons, preferring Flow Fields for crowds and Hierarchical Navmesh for single-target routing.'],
               ['Advanced Spatial Indexing', 'Added deep dives into Octrees, Quadtrees, and Hash Grids vs raw Arrays for collision/interest.'],
-              ['Memory Caching Strategies', 'L1/L2 Cache hit rate impacts quantified in Data-Oriented alignment practices for C++ structures.']
+              ['Memory Caching Strategies', 'L1/L2 Cache hit rate impacts quantified in Data-Oriented alignment practices for C++ structures.'],
+              ['Deformation & Muscle Systems', 'Detailed optimal integration for dynamic skin flexing and muscle systems using Pose Drivers and ML Deformers over heavy CPU morphs.']
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20 transition-colors">
@@ -2177,6 +2179,28 @@ const AnimationAudioTab = () => (
         <div className="p-3 bg-emerald-500/5 rounded border border-emerald-500/20 text-xs">
           Concurrency Limit: 16 voices on mobile. Oldest sounds culled automatically.
         </div>
+      </SectionCard>
+
+      <SectionCard title="Dynamic Muscle Flexing" icon={Activity} color={COLORS.kingfisher.warm} className="md:col-span-2">
+        <p className="text-sm mb-3">Instead of heavy CPU-calculated morph targets for every muscle flex, scale dynamically based on LOD. Use <strong>Pose Space Deformation (PSD)</strong> coupled with GPU normal map blending for ultra-cheap visual flexing.</p>
+        <MultiplayerImpact 
+          gpu="+0.2ms (WPO & Normals) / +0.5ms (ML Deformer)" 
+          cpu="-0.3ms (vs Traditional Morphs)" 
+          ram="+10MB (Deformer Network VRAM)" 
+          latency="0ms (Cosmetic Only)" 
+        />
+        <FeatureMatrix 
+          has={[
+            "Pose Driver Node (AnimGraph)",
+            "Machine Learning (ML) Deformer",
+            "World Position Offset (WPO) in Materials"
+          ]}
+          missing={[
+            "Auto-setup for complex Ziva soft-body simulations",
+            "Cheap 1-click muscle maps (Requires bespoke authoring)"
+          ]}
+          howToUse="Read bone rotation in the AnimGraph via 'Pose Driver' to map joint angles (e.g., bicep curl) to a 0-1 curve. Pass this curve into the material to blend a 'flexed' Normal Map, entirely bypassing CPU mesh morphing. For Heros, use ML Deformer; disable entirely at LOD 2+."
+        />
       </SectionCard>
     </div>
   </div>
