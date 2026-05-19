@@ -276,26 +276,26 @@ export const GymTimer: React.FC<GymTimerProps> = ({ onBack }) => {
         />
       </div>
 
-      <header className="h-14 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
-        <button onClick={onBack} className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium">
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to Menu</span>
+      <header className="h-16 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
+        <button onClick={onBack} className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium p-3 -ml-2">
+          <ArrowLeft className="w-5 h-5 md:w-4 md:h-4" />
+          <span className="hidden xs:inline">Back</span>
         </button>
         <div className="flex items-center gap-2">
           <Timer className="w-5 h-5 text-kingfisher-warm" />
           <span className="font-semibold text-sm">Gym Session</span>
         </div>
-        <button onClick={togglePip} className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium p-2 rounded-lg hover:bg-kingfisher-panel shadow">
-          <PictureInPicture className="w-4 h-4 text-kingfisher-warm" />
+        <button onClick={togglePip} className="flex items-center gap-2 text-kingfisher-muted hover:text-white transition-colors text-sm font-medium p-3 -mr-2 rounded-lg hover:bg-kingfisher-panel shadow">
+          <PictureInPicture className="w-5 h-5 md:w-4 md:h-4 text-kingfisher-warm" />
         </button>
       </header>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-6 relative">
-        <div className="mb-8 flex gap-3 z-10">
-          <button onClick={() => handleSetDuration(90)} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${initialSeconds === 90 ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>1:30 Min</button>
-          <button onClick={() => handleSetDuration(120)} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${initialSeconds === 120 ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>2:00 Min</button>
-          <button onClick={() => setIsEditing(!isEditing)} className={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 ${isEditing ? 'bg-kingfisher-warm text-kingfisher-dark' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>
-            <Settings2 className="w-3 h-3" /> Custom
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 relative">
+        <div className="mb-6 md:mb-8 flex flex-wrap justify-center gap-2 sm:gap-3 z-10 w-full">
+          <button onClick={() => handleSetDuration(90)} className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all min-w-[80px] ${initialSeconds === 90 ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>1:30</button>
+          <button onClick={() => handleSetDuration(120)} className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all min-w-[80px] ${initialSeconds === 120 ? 'bg-kingfisher-warm text-kingfisher-dark shadow-lg' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>2:00</button>
+          <button onClick={() => setIsEditing(!isEditing)} className={`px-4 py-2.5 rounded-full text-xs font-semibold transition-all flex items-center gap-2 min-w-[80px] ${isEditing ? 'bg-kingfisher-warm text-kingfisher-dark' : 'bg-kingfisher-panel text-kingfisher-muted border border-kingfisher-border'}`}>
+            <Settings2 className="w-3.5 h-3.5" /> <span>Edit</span>
           </button>
         </div>
 

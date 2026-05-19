@@ -33,13 +33,13 @@ export function TaskBrowserWidget({ onClose }: { onClose?: () => void }) {
                         selectTask(task);
                         if (onClose) onClose();
                       }}
-                      className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors ${isActive ? 'bg-kingfisher-blue/20 border-l-4 border-kingfisher-blue' : 'border-l-4 border-transparent hover:bg-black/10'}`}
+                      className={`w-full text-left px-4 py-4 flex items-center gap-4 transition-colors ${isActive ? 'bg-kingfisher-blue/20 border-l-4 border-kingfisher-blue' : 'border-l-4 border-transparent hover:bg-black/10'}`}
                     >
-                      {status === 'completed' && <CheckCircle className="shrink-0 w-4 h-4 text-green-500" />}
-                      {status === 'locked' && <Lock className="shrink-0 w-4 h-4 text-kingfisher-muted/50" />}
-                      {status === 'available' && <PlayCircle className="shrink-0 w-4 h-4 text-kingfisher-muted" />}
+                      {status === 'completed' && <CheckCircle className="shrink-0 w-5 h-5 text-green-500" />}
+                      {status === 'locked' && <Lock className="shrink-0 w-5 h-5 text-kingfisher-muted/50" />}
+                      {status === 'available' && <PlayCircle className="shrink-0 w-5 h-5 text-kingfisher-muted" />}
                       
-                      <span className={`text-sm ${isActive ? 'text-white font-medium' : 'text-kingfisher-surface'}`}>{task.title}</span>
+                      <span className={`text-sm md:text-base ${isActive ? 'text-white font-medium' : 'text-kingfisher-surface'}`}>{task.title}</span>
                     </button>
                   </li>
                 );

@@ -18,21 +18,21 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
   return (
     <div className="flex flex-col h-full w-full bg-kingfisher-dark text-kingfisher-surface font-sans overflow-hidden">
       {/* Top Header */}
-      <header className="h-14 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
+      <header className="h-16 border-b border-kingfisher-border bg-kingfisher-panel flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-3">
           <button 
-            className="md:hidden text-kingfisher-muted hover:text-white" 
+            className="md:hidden text-kingfisher-muted hover:text-white p-2 -ml-2" 
             onClick={() => setIsSidebarOpen(true)}
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-6 h-6" />
           </button>
           <button 
             onClick={onBack}
-            className="hidden md:flex items-center gap-2 mr-2 text-kingfisher-muted hover:text-white transition-colors"
+            className="hidden md:flex items-center gap-2 mr-2 text-kingfisher-muted hover:text-white transition-colors p-2"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-5 h-5" />
           </button>
-          <div className="w-8 h-8 bg-kingfisher-deep rounded-md flex items-center justify-center text-white shadow-md">
+          <div className="w-9 h-9 bg-kingfisher-deep rounded-md flex items-center justify-center text-white shadow-md">
             <Bird className="w-5 h-5" />
           </div>
           <h1 className="font-semibold tracking-wide text-sm text-white">
@@ -43,20 +43,20 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
           {showInstallButton && (
             <button 
               onClick={onInstallClick}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-all shadow-sm active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-2.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded transition-all shadow-sm active:scale-95"
               title="Install as App"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Install App</span>
+              <Download className="w-4 h-4" />
+              <span className="hidden sm:inline">Install</span>
             </button>
           )}
           <div className="hidden sm:flex items-center gap-4">
             <button 
               onClick={() => setIsShortcutsOpen(true)}
-              className="flex items-center gap-1.5 text-xs font-medium text-kingfisher-muted hover:text-white transition-colors"
+              className="flex items-center gap-1.5 text-xs font-medium text-kingfisher-muted hover:text-white transition-colors p-2"
               title="Unreal Engine Shortcuts"
             >
-              <Keyboard className="w-4 h-4" />
+              <Keyboard className="w-5 h-5" />
               <span>Shortcuts</span>
             </button>
           </div>
