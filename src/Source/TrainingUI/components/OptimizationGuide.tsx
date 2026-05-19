@@ -25,6 +25,7 @@ const TAB_GROUPS = [
     tabs: [
       { id: 'pipeline',         label: '16.7ms Pipeline',          icon: Activity },
       { id: 'architecture',     label: 'CPU & RAM Architecture',   icon: Cpu },
+      { id: 'head_manager',     label: 'Head Manager Pattern',     icon: Hexagon },
       { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
       { id: 'memory_state',     label: 'Memory & State Arch',      icon: Folder },
       { id: 'gc_clustering',    label: 'GC Object Clustering',     icon: Trash2 },
@@ -97,6 +98,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'overview':         return <OverviewTab />;
       case 'pipeline':         return <PipelineTab />;
       case 'architecture':     return <ArchitectureTab />;
+      case 'head_manager':     return <HeadManagerTab />;
       case 'draw_calls':       return <DrawCallsTab />;
       case 'gpu':              return <GeometryTab />;
       case 'lod':              return <LODTab />;
@@ -335,6 +337,15 @@ const PageHeader = ({ title, subtitle }: { title: string; subtitle: string }) =>
   </div>
 );
 
+const CodeBlock = ({ code, language = 'cpp' }: { code: string; language?: string }) => (
+  <div className="relative">
+    <div className="absolute top-2 right-2 text-[9px] font-mono text-kingfisher-muted/50 uppercase tracking-widest">{language}</div>
+    <pre className="bg-black/50 border border-kingfisher-border/40 rounded-xl p-4 text-xs font-mono text-emerald-300 overflow-x-auto whitespace-pre leading-relaxed">
+      {code.trim()}
+    </pre>
+  </div>
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Tabs
 // ─────────────────────────────────────────────────────────────────────────────
@@ -565,6 +576,534 @@ const StorageTab = () => (
     </div>
   </div>
 );
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HEAD MANAGER TAB — NEW MODULE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const HeadManagerTab = () => (
+  <div className="space-y-6">
+    <PageHeader
+      title="The Head Manager Pattern"
+      subtitle="Data-Oriented Design for AAA-scale systems. Why your CPU idles for 12ms every frame — and how one architectural decision eliminates it entirely."
+    />
+
+    {/* Core Philosophy */}
+    <HighlightBox type="info">
+      <strong>The Core Insight:</strong> The Head Manager is not primarily about saving RAM. Modern games have gigabytes of RAM capacity. The real killer is <em>RAM latency</em> — the time a CPU spends doing nothing while the RAM hunts for scattered data across different memory aisles. The Head Manager eliminates that wait by packing all related data into one unbroken, sequential block that loads directly into the CPU's L1 Cache.
+    </HighlightBox>
+
+    {/* Why it exists — the cache miss problem */}
+    <SectionCard title="The Cache Miss Problem: Why 200 Blueprints Costs 25ms" icon={Cpu} color={COLORS.status.error}>
+      <p className="text-sm mb-3">Consider 200 enemies in a combat zone, each with a Blueprint Actor managing its own poison timer. The CPU needs to process damage every frame. Here is what actually happens in hardware:</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <div className="text-xs font-bold text-red-400 uppercase tracking-wider mb-2">❌ Blueprint Scatter Pattern</div>
+          <CodeBlock language="memory layout" code={`[RAM Aisle 4]   → Enemy1.PoisonTimer = 3.2f
+[RAM Aisle 92]  → Enemy2.PoisonTimer = 1.8f
+[RAM Aisle 203] → Enemy3.PoisonTimer = 0.5f
+... (each Blueprint stores data
+     in a random heap location)
+
+CPU asks for Enemy1 data:
+  → RAM hunts Aisle 4 ... delivers (slow)
+CPU asks for Enemy2 data:
+  → RAM hunts Aisle 92 ... delivers (slow)
+  → CPU idles 400+ clock cycles each time
+
+200 enemies = 200 cache misses
+→ Wasted time: 10-15ms of idle CPU`} />
+        </div>
+        <div className="space-y-2">
+          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">✅ Head Manager Array Pattern</div>
+          <CodeBlock language="memory layout" code={`[RAM Aisle 10] → [P1][P2][P3][P4]...[P200]
+// All 200 poison structs packed
+// in one contiguous memory block
+
+CPU asks for Poison Array:
+  → RAM delivers the ENTIRE block at once
+  → Loaded directly into L1 Cache chip
+
+CPU processes in cache:
+  [P1][P2][P3]... already right there
+  No round-trips to RAM whatsoever
+
+200 enemies = ~0.4ms total`} />
+        </div>
+      </div>
+      <MultiplayerImpact
+        gpu="0ms"
+        cpu="-10ms savings vs scatter"
+        ram="~1.6MB per 100k instances"
+        latency="0ms (Pure Server Logic)"
+      />
+    </SectionCard>
+
+    {/* The Three-Layer Architecture */}
+    <div>
+      <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+        <Hexagon className="w-5 h-5" style={{ color: COLORS.kingfisher.warm }} />
+        The Three-Layer Architecture
+      </h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {[
+          {
+            layer: 'Layer 1',
+            name: 'The Component',
+            subtitle: 'The Mailbox',
+            color: 'border-blue-500/40 bg-blue-500/5',
+            headerColor: 'text-blue-400',
+            icon: '📬',
+            points: [
+              'Sits on each individual enemy Actor.',
+              'Has zero Tick logic — zero CPU cost per frame.',
+              'Registers itself with the Head Manager on BeginPlay.',
+              'Receives callback events when the Head Manager computes results (e.g. OnTakeStatusDamage, ToggleStatusEffectVisual).',
+              'Is purely a data mailbox and a Bridge to the Blueprint visual layer.',
+            ],
+          },
+          {
+            layer: 'Layer 2',
+            name: 'The Worker Structs',
+            subtitle: 'The Middle Managers',
+            color: 'border-amber-500/40 bg-amber-500/5',
+            headerColor: 'text-amber-400',
+            icon: '⚙️',
+            points: [
+              'Plain C++ structs that live inside the Head Manager.',
+              'Each worker owns a flat TArray<FXData> for one system (FPoisonWorker, FBurnWorker, FProjectileWorker).',
+              'Runs its own TickX(DeltaTime) method processing every item in the array in one sequential pass.',
+              'Uses RemoveAtSwap() for O(1) item removal without restructuring the array.',
+              'Sends results directly down to the Component layer, never back up to the Head Manager.',
+            ],
+          },
+          {
+            layer: 'Layer 3',
+            name: 'The Head Manager',
+            subtitle: 'The Orchestrator',
+            color: 'border-emerald-500/40 bg-emerald-500/5',
+            headerColor: 'text-emerald-400',
+            icon: '🧠',
+            points: [
+              'A UWorldSubsystem — auto-created and destroyed by Unreal.',
+              'Holds a TSet<> master registry of all registered enemy components.',
+              'Owns all Worker Structs as plain member variables.',
+              'Runs a single centralized Tick() that calls each worker sequentially.',
+              'Exposes the public API for gameplay code: ApplyPoison(), ApplyBurn(), FireProjectile().',
+            ],
+          },
+        ].map(item => (
+          <div key={item.layer} className={`border ${item.color} rounded-xl p-4`}>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-lg">{item.icon}</span>
+              <div>
+                <div className={`text-[10px] font-bold uppercase tracking-widest ${item.headerColor}`}>{item.layer}</div>
+                <div className="text-white font-semibold text-sm">{item.name}</div>
+                <div className="text-kingfisher-muted text-xs italic">{item.subtitle}</div>
+              </div>
+            </div>
+            <ul className="mt-3 space-y-2">
+              {item.points.map((p, i) => (
+                <li key={i} className="text-xs text-kingfisher-muted flex items-start gap-2">
+                  <span className={`mt-0.5 ${item.headerColor}`}>→</span>
+                  <span>{p}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    {/* Data Flow Diagram */}
+    <SectionCard title="Data Flow: How Information Actually Moves" icon={GitBranch} color={COLORS.kingfisher.blue}>
+      <p className="text-sm text-kingfisher-muted mb-4">A critical misconception is that middle managers "mail info back to the Head Manager." In reality, the flow is strictly <strong>downward and outward</strong>:</p>
+      <div className="bg-black/40 rounded-xl p-4 border border-kingfisher-border/30 font-mono text-xs overflow-x-auto">
+        <div className="space-y-2 text-center min-w-[400px]">
+          <div className="inline-block px-4 py-2 bg-purple-900/40 border border-purple-500/40 rounded-lg text-purple-300">
+            🗡️ Player Weapon / Spell → calls ApplyPoison(Target, DPS, Duration)
+          </div>
+          <div className="text-kingfisher-muted">↓ One function call on the Head Manager</div>
+          <div className="inline-block px-4 py-2 bg-amber-900/30 border border-amber-500/30 rounded-lg text-amber-300">
+            🧠 Head Manager → validates Target exists in registry → adds FPoisonData to FPoisonWorker.ActivePoisonPool
+          </div>
+          <div className="text-kingfisher-muted">↓ Next frame, Head Manager.Tick() fires</div>
+          <div className="inline-block px-4 py-2 bg-blue-900/30 border border-blue-500/30 rounded-lg text-blue-300">
+            ⚙️ FPoisonWorker.TickPoison(DeltaTime) → loops the flat array → deducts health
+          </div>
+          <div className="text-kingfisher-muted">↓ Worker calls down to Component directly</div>
+          <div className="inline-block px-4 py-2 bg-emerald-900/30 border border-emerald-500/30 rounded-lg text-emerald-300">
+            📬 Component.OnTakeStatusDamage() fires → Blueprint displays damage number
+          </div>
+          <div className="text-kingfisher-muted">↓ Worker tells Component to toggle visual</div>
+          <div className="inline-block px-4 py-2 bg-green-900/30 border border-green-500/30 rounded-lg text-green-300">
+            📬 Component.ToggleStatusEffectVisual("Poison", true) → green smoke particle activates
+          </div>
+        </div>
+      </div>
+      <p className="text-xs text-kingfisher-muted mt-3 italic">No upward mail chains. No round-trips. The Head Manager is not a middleman — it is the owner. Workers are its organs, not its colleagues.</p>
+    </SectionCard>
+
+    {/* Core C++ Implementation */}
+    <SectionCard title="Core C++ Implementation" icon={Code} color={COLORS.kingfisher.warm}>
+      <div className="space-y-4">
+        <div>
+          <div className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">Worker Struct (Middle Manager)</div>
+          <CodeBlock code={`// CombatStatusStructures.h
+struct FPoisonData
+{
+    TWeakObjectPtr<UHealthAndStatusComponent> TargetComponent;
+    float DamagePerSecond;
+    float TimeRemaining;
+    // Total size: ~16-24 bytes. 100,000 stacks = only 1.6MB RAM!
+};
+
+struct FPoisonWorker
+{
+    TArray<FPoisonData> ActivePoisonPool;
+
+    void TickPoison(float DeltaTime)
+    {
+        // Loop BACKWARDS so we can safely remove expired items
+        for (int32 i = ActivePoisonPool.Num() - 1; i >= 0; --i)
+        {
+            FPoisonData& Data = ActivePoisonPool[i];
+
+            // Auto-cleanup if the enemy was destroyed elsewhere
+            if (!Data.TargetComponent.IsValid())
+            {
+                ActivePoisonPool.RemoveAtSwap(i); // O(1) — no array restructure
+                continue;
+            }
+
+            Data.TimeRemaining -= DeltaTime;
+            UHealthAndStatusComponent* Comp = Data.TargetComponent.Get();
+            Comp->CurrentHealth -= Data.DamagePerSecond * DeltaTime;
+            Comp->OnTakeStatusDamage(Data.DamagePerSecond * DeltaTime, FName("Poison"));
+
+            if (Data.TimeRemaining <= 0.0f)
+            {
+                Comp->ToggleStatusEffectVisual(FName("Poison"), false);
+                ActivePoisonPool.RemoveAtSwap(i); // Remove expired
+            }
+        }
+    }
+};`} />
+        </div>
+
+        <div>
+          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Head Manager Subsystem</div>
+          <CodeBlock code={`// CombatMasterSubsystem.h
+UCLASS()
+class UCombatMasterSubsystem : public UWorldSubsystem, public FTickableGameObject
+{
+    GENERATED_BODY()
+public:
+    virtual void Tick(float DeltaTime) override;
+    virtual ETickableTickType GetTickableTickType() const override
+        { return ETickableTickType::Conditional; }
+    virtual bool IsTickable() const override { return !IsTemplate(); }
+    virtual TStatId GetStatId() const override
+        { RETURN_QUICK_DECLARE_CYCLE_STAT(UCombatMasterSubsystem, STATCAT_Advanced); }
+
+    void RegisterEnemy(UHealthAndStatusComponent* Enemy);
+    void UnregisterEnemy(UHealthAndStatusComponent* Enemy);
+
+    UFUNCTION(BlueprintCallable, Category="Combat")
+    void ApplyPoison(UHealthAndStatusComponent* Target, float DPS, float Duration);
+
+private:
+    TSet<TWeakObjectPtr<UHealthAndStatusComponent>> MasterEnemyRegistry;
+
+    FPoisonWorker PoisonWorker;
+    // FBurnWorker  BurnWorker;  // Add more workers here — zero refactor needed!
+    // FProjectileWorker ProjectileWorker;
+};
+
+// CombatMasterSubsystem.cpp
+void UCombatMasterSubsystem::Tick(float DeltaTime)
+{
+    PoisonWorker.TickPoison(DeltaTime);
+    // BurnWorker.TickBurn(DeltaTime);
+}
+
+void UCombatMasterSubsystem::ApplyPoison(
+    UHealthAndStatusComponent* Target, float DPS, float Duration)
+{
+    if (!Target || !MasterEnemyRegistry.Contains(Target)) return;
+
+    // Refresh if already poisoned instead of stacking duplicates
+    for (FPoisonData& Existing : PoisonWorker.ActivePoisonPool)
+    {
+        if (Existing.TargetComponent.Get() == Target)
+        {
+            Existing.TimeRemaining = FMath::Max(Existing.TimeRemaining, Duration);
+            return;
+        }
+    }
+
+    FPoisonData NewPoison{ Target, DPS, Duration };
+    PoisonWorker.ActivePoisonPool.Add(NewPoison);
+    Target->ToggleStatusEffectVisual(FName("Poison"), true);
+}`} />
+        </div>
+      </div>
+    </SectionCard>
+
+    {/* Context 2: Projectile / Ballistics Manager */}
+    <SectionCard title="Context 2: Projectile & Ballistics Manager" icon={Zap} color={COLORS.status.info}>
+      <p className="text-sm mb-3">If 50 arrows are each separate AActor instances with collision components, the CPU explodes. A Projectile Head Manager manages all ballistics as pure math in a flat array, then feeds positions to a single Instanced Static Mesh Component (ISMC) — one GPU draw call for all 50 arrows simultaneously.</p>
+      <CodeBlock code={`struct FProjectileData
+{
+    FVector  Position;
+    FVector  Velocity;
+    float    Gravity;       // e.g. -980.0f (cm/s²)
+    float    LifeRemaining;
+    int32    InstigatorID;
+    float    BaseDamage;
+};
+
+// In the ProjectileWorker::Tick():
+Data.Position   += Data.Velocity * DeltaTime;
+Data.Velocity.Z += Data.Gravity  * DeltaTime; // arc
+
+// Then push all transforms to the ISMC in one batch:
+ProjectileMeshISMC->UpdateInstanceTransforms(TransformArray, true);
+// → Single draw call. 50 arrows. 0.01ms GPU cost.`} />
+      <div className="mt-4 p-3 bg-blue-900/20 border border-blue-500/20 rounded-lg text-xs text-kingfisher-muted">
+        <strong className="text-blue-300">Multiplayer Note:</strong> The server runs the math worker authoritatively. Clients receive position snapshots and interpolate visually. Never trust the client for projectile hit detection — always validate on the server's math array.
+      </div>
+    </SectionCard>
+
+    {/* Context 3: Spatial Ground Hazard Manager */}
+    <SectionCard title="Context 3: Spatial Grid Hazard Manager" icon={Map} color={COLORS.status.warning}>
+      <p className="text-sm mb-3">Area-of-effect zones (fire fields, oil puddles, blizzard areas) should never use <code className="text-amber-300">OnComponentBeginOverlap</code> — per-frame overlap checks on dozens of zones melt the physics thread. Instead, use a spatial grid hash.</p>
+      <CodeBlock code={`// The world map is divided into an invisible 2D grid
+// e.g. 256x256 grid cells, each 200x200 cm
+
+// When a fire storm hits the ground:
+FIntPoint GridCell = WorldToGrid(ImpactLocation); // ~O(1) math
+HazardGrid[GridCell] = EHazardType::Fire;
+
+// Every 0.5 seconds (not every frame!) the worker checks
+// which registered characters occupy flagged cells:
+FIntPoint CharCell = WorldToGrid(Comp->GetLocation());
+if (HazardGrid.Contains(CharCell))
+{
+    ApplyBurnToTarget(Comp, BurnDPS, 3.0f);
+}
+// Cost: ~0.1ms for 500 entities vs 5-8ms via collision overlap events`} />
+      <div className="mt-4 p-3 bg-amber-900/20 border border-amber-500/20 rounded-lg text-xs text-kingfisher-muted">
+        <strong className="text-amber-300">Multiplayer Note:</strong> The grid state is owned exclusively by the server. Clients only receive visual confirmation (particle systems) via NetMulticast when a hazard is placed or expires. The tick rate can be server-throttled to 10Hz without any player-facing quality loss.
+      </div>
+    </SectionCard>
+
+    {/* Context 4: NPC World Simulation */}
+    <SectionCard title="Context 4: Global NPC World Simulation (The 4,800 Merchants)" icon={Users} color={COLORS.kingfisher.warm}>
+      <p className="text-sm mb-3">The most powerful Head Manager application is simulating an <em>entire living world</em> — merchants traveling between towns, bandits patrolling roads, caravans following trade routes — without spawning a single 3D Actor for distant entities.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <div className="p-3 bg-black/20 rounded-lg border border-kingfisher-border/30">
+          <div className="text-xs font-bold text-emerald-400 mb-2">4,800 Global NPCs as Pure Data</div>
+          <CodeBlock code={`struct FWorldNPCData
+{
+    int32     NPCID;
+    FVector   CurrentPosition;  // World-space
+    float     CurrentDistance;  // Progress along spline
+    int32     CurrentSplineIdx; // Which road segment
+    float     MovementSpeed;
+    float     TerrainMultiplier; // 1.0=road, 0.4=swamp
+};
+// One flat TArray in the World Head Manager
+// ~60 bytes × 4,800 NPCs = only 280 KB RAM`} />
+        </div>
+        <div className="p-3 bg-black/20 rounded-lg border border-kingfisher-border/30">
+          <div className="text-xs font-bold text-blue-400 mb-2">Per-Frame Math (Full World Tick)</div>
+          <CodeBlock code={`void FWorldNPCWorker::TickNPCs(float DeltaTime)
+{
+    for (FWorldNPCData& NPC : ActiveNPCPool)
+    {
+        // Advance along spline using terrain speed
+        float AdvanceDist = NPC.MovementSpeed
+            * NPC.TerrainMultiplier * DeltaTime;
+        NPC.CurrentDistance += AdvanceDist;
+
+        // Evaluate true Bézier curve position
+        NPC.CurrentPosition =
+            RoadSplines[NPC.CurrentSplineIdx]
+            ->GetLocationAtDistanceAlongSpline(
+                NPC.CurrentDistance,
+                ESplineCoordinateSpace::World);
+    }
+    // Cost: ~0.4-0.6ms for 4,800 NPCs
+}`} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        {[
+          { title: 'Spawn Threshold', desc: 'When the player enters 200m of an NPC data entry, the Head Manager spawns a 3D Actor and hands it the current position. The data entry becomes "tracked by actor" and stops updating in the array.', color: 'border-emerald-500/30 text-emerald-400' },
+          { title: 'Terrain Speed', desc: 'Each road segment has a terrain multiplier float. Highways = 1.0x. Muddy swamps = 0.4x. Mountain passes = 0.6x. The math is one multiply per NPC — negligible.', color: 'border-blue-500/30 text-blue-400' },
+          { title: 'Time Skip Math', desc: 'Player was offline 2 hours? Instead of simulating 7,200 frames, run one equation: NewDistance = OldDistance + (Speed × TerrainMult × 7200). The world catches up instantly.', color: 'border-amber-500/30 text-amber-400' },
+        ].map(item => (
+          <div key={item.title} className={`p-3 rounded-lg border ${item.color} bg-black/10`}>
+            <div className={`text-xs font-bold ${item.color.split(' ')[1]} mb-1`}>{item.title}</div>
+            <p className="text-xs text-kingfisher-muted leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 p-3 bg-purple-900/20 border border-purple-500/20 rounded-lg text-xs text-kingfisher-muted">
+        <strong className="text-purple-300">Multiplayer Note:</strong> The global NPC simulation is server-authoritative. Clients only receive the spawned 3D Actor data when within relevancy range. The 4,800 data entries never replicate — only spawned Actors do, and only when relevant to at least one player connection.
+      </div>
+    </SectionCard>
+
+    {/* Context 5: Multiplayer & Server */}
+    <SectionCard title="Context 5: Head Manager in a Multiplayer Server Context" icon={Globe} color={COLORS.status.success}>
+      <p className="text-sm mb-3">In a dedicated server deployment, the Head Manager runs exclusively on the server. This is the correct architecture — the server owns all game-state math, clients only visualize results via replicated variables and RPCs.</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2">Server-Side Head Manager</div>
+          <ul className="space-y-2 text-xs text-kingfisher-muted">
+            <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span> Runs all math workers (Poison, Burn, Projectile, Hazard)</li>
+            <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span> Holds all entity registries</li>
+            <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span> Calls Component events (OnTakeStatusDamage) which trigger RepNotify replicated variables</li>
+            <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span> Has zero GPU footprint — runs headless</li>
+            <li className="flex items-start gap-2"><span className="text-emerald-400 mt-0.5">✓</span> Can tick at 30Hz or 60Hz independently of the render pipeline</li>
+          </ul>
+        </div>
+        <div>
+          <div className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-2">Client Receives (Visuals Only)</div>
+          <ul className="space-y-2 text-xs text-kingfisher-muted">
+            <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span> Replicated Health float → OnRep_Health() updates UI</li>
+            <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span> NetMulticast_PlayHitFX → spawns local particle effect</li>
+            <li className="flex items-start gap-2"><span className="text-blue-400 mt-0.5">✓</span> Status effect visual toggling via BlueprintImplementableEvent</li>
+            <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span> Never touches the math arrays directly</li>
+            <li className="flex items-start gap-2"><span className="text-red-400 mt-0.5">✗</span> Never calls ApplyPoison() — that is a server-only API</li>
+          </ul>
+        </div>
+      </div>
+      <CodeBlock code={`// The replicated bridge between server math and client visuals:
+// In UHealthAndStatusComponent:
+
+UPROPERTY(ReplicatedUsing = OnRep_Health)
+float CurrentHealth = 100.0f;
+
+UFUNCTION()
+void OnRep_Health()
+{
+    // Fires automatically on every client when server changes the value
+    // This is where you trigger damage numbers, screen shake, UI bar update
+    UpdateHealthBar();
+    if (CurrentHealth <= 0.f) PlayDeathVFX();
+}
+
+// The Server Head Manager modifies CurrentHealth directly:
+Comp->CurrentHealth -= Data.DamagePerSecond * DeltaTime;
+// Unreal's replication system picks up the dirty property and pushes
+// the delta to all relevant clients automatically.`} />
+    </SectionCard>
+
+    {/* When to Use / Not Use */}
+    <SectionCard title="Decision Matrix: When to Use the Head Manager" icon={CheckCircle} color={COLORS.kingfisher.blue}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+          <div className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">✅ Use Head Manager When:</div>
+          <ul className="space-y-2 text-xs text-kingfisher-muted">
+            {[
+              'System affects 20+ entities simultaneously (status effects, projectiles, hazards)',
+              'Math must run every frame with low ms cost (ballistics, world simulation)',
+              'You need O(1) removal without array restructuring (combat with rapid state changes)',
+              'Building action RPGs (Diablo/Path of Exile style, 100+ on-screen enemies)',
+              'Simulating a living world: merchants, patrols, caravans (4,800+ data NPCs)',
+              'Server-side game state that clients only visualize (multiplayer-first)',
+            ].map((p, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-emerald-400 mt-0.5 shrink-0">→</span>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+          <div className="text-xs font-bold text-red-400 uppercase tracking-wider mb-3">❌ Skip Head Manager When:</div>
+          <ul className="space-y-2 text-xs text-kingfisher-muted">
+            {[
+              'Slow-paced games with 3-4 enemies maximum (Dark Souls, Witcher style)',
+              'One-off interactions: quest NPCs, dialogue, shop transactions',
+              'Door/chest/lever logic (simple OnInteract Blueprint is fine)',
+              'UI systems — Slate/UMG are single-thread only, cannot be passed to workers',
+              'Animation state machines — engine already optimizes these internally',
+              'Any system running < 10x per game session (not worth the architectural complexity)',
+            ].map((p, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <span className="text-red-400 mt-0.5 shrink-0">✗</span>
+                <span>{p}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+      <div className="mt-4 p-3 bg-amber-900/20 border border-amber-500/20 rounded-lg text-xs text-kingfisher-muted">
+        <strong className="text-amber-300">The Alternative (Slow-Paced Games):</strong> Use the <em>Component-Driven Passive</em> pattern instead. Give enemies a lightweight C++ component whose Tick runs at 0.1Hz when far away, ramping to full speed when the player is close. You get 90% of the performance benefit with 30% of the Head Manager's architectural complexity.
+      </div>
+    </SectionCard>
+
+    {/* Downsides */}
+    <SectionCard title="Honest Downsides & Trade-offs" icon={ShieldAlert} color={COLORS.status.error}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {[
+          {
+            title: 'Cognitive Overhead',
+            severity: 'High',
+            color: 'text-red-400',
+            desc: 'In a Blueprint, poisoning an enemy is three nodes. In the Head Manager, you must bridge Data (worker array) ↔ Visuals (component callbacks). Expect 3-4x more code per feature during initial setup.',
+          },
+          {
+            title: 'Rigid Rule Exceptions',
+            severity: 'Medium',
+            color: 'text-amber-400',
+            desc: 'Adding "Chain Poison to Beast-type enemies at night" forces you to expose world state (time of day, monster type flags) into your pure math manager. Complex conditional rules fight the flat-data philosophy.',
+          },
+          {
+            title: 'Server-Visual Split',
+            severity: 'High',
+            color: 'text-red-400',
+            desc: 'If you mix math and visuals in the same manager initially, converting to multiplayer requires violent surgery: one manager becomes two (server math + client visuals). Design the split from day one.',
+          },
+        ].map(item => (
+          <div key={item.title} className="p-3 bg-black/20 rounded-lg border border-kingfisher-border/30">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-white font-semibold text-sm">{item.title}</span>
+              <span className={`text-[9px] font-bold uppercase ${item.color}`}>{item.severity}</span>
+            </div>
+            <p className="text-xs text-kingfisher-muted leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </SectionCard>
+
+    {/* Performance summary */}
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {[
+        { label: '200 Blueprint enemies (status tick)', value: '10–15ms', color: 'text-red-400', sub: 'CPU Game Thread' },
+        { label: '200 Head Manager entries (status tick)', value: '~0.4ms', color: 'text-emerald-400', sub: 'CPU Game Thread' },
+        { label: '4,800 NPC world simulation', value: '~0.5ms', color: 'text-emerald-400', sub: 'CPU per frame' },
+        { label: '50 arrow ISMC draw call', value: '1 call', color: 'text-emerald-400', sub: 'GPU draw calls' },
+      ].map(item => (
+        <div key={item.label} className="bg-kingfisher-panel/60 border border-kingfisher-border/40 rounded-xl p-4">
+          <div className={`text-xl font-mono font-bold ${item.color}`}>{item.value}</div>
+          <div className="text-[10px] text-kingfisher-muted uppercase mt-1">{item.sub}</div>
+          <div className="text-xs text-white mt-2 leading-tight">{item.label}</div>
+        </div>
+      ))}
+    </div>
+
+    <HighlightBox type="success">
+      <strong>The Bottom Line:</strong> The Head Manager does not save RAM capacity — it saves CPU time by preventing the processor from idling while RAM hunts for scattered data. You trade a small amount of extra code complexity for up to a 30× reduction in per-frame combat calculation cost. For action RPGs, open-world simulations, or any multiplayer game where the server must process hundreds of simultaneous entities, it is not optional — it is the architectural foundation everything else builds on.
+    </HighlightBox>
+  </div>
+);
+
 
 const ArchitectureTab = () => (
   <div className="space-y-6">
