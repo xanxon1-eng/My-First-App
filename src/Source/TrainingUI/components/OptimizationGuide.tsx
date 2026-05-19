@@ -4,7 +4,7 @@ import {
   Clock, HardDrive, Zap, LayoutTemplate, Box, Waves, CheckCircle, CircleDashed,
   ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield, Radio,
   Hexagon, Save, Triangle, Image, Palette, Crosshair, Sliders, Music,
-  Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert, Smartphone, Map, Trash2, Code, Menu, X, Users
+  Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert, Smartphone, Map, Trash2, Code, Menu, X, Users, Grid
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
@@ -62,6 +62,7 @@ const TAB_GROUPS = [
   {
     title: 'Game Systems & Logic',
     tabs: [
+      { id: 'optimal_algorithms', label: 'Optimal Algorithms',       icon: GitBranch },
       { id: 'collision',        label: 'Collision & Traces',       icon: Crosshair },
       { id: 'occlusion',        label: 'Occlusion & Visibility',   icon: Eye },
       { id: 'npc',              label: 'World AI Simulation',      icon: Network },
@@ -133,6 +134,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
       case 'subsystems':       return <SubsystemsTab />;
       case 'shader_permutations': return <ShaderPermutationsTab />;
       case 'ui_umg':           return <UIUMGTab />;
+      case 'optimal_algorithms': return <OptimalAlgorithmsTab />;
       default:                 return null;
     }
   };
@@ -392,6 +394,7 @@ const OverviewTab = () => (
               ['Multi-Platform HUD', 'Adaptive layout strategy ensuring information parity on narrow Android screens and wide Desktop monitors.'],
               ['Binary WebSocket Telemetry', 'Live 30Hz performance feed from C++ backends to React frontend with < 0.1ms overhead.'],
               ['Cache-Coherent C++ Constructs', 'Utilizing Data-Oriented TInlineAllocator and Struct Padding optimization reducing L1 misses by 25%.'],
+              ['Optimal Algorithms Module', 'Added robust do-es for Spatial Partitioning, Pathfinding, Fast Math, and AI execution architectures over multiplayer nets.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -416,6 +419,8 @@ const OverviewTab = () => (
               ['Profiling & Telemetry Depth', 'Expanded "Live Memory Connect" and "Profiling Tools" with exact C++ byte-alignment and async WebSocket threading guidance.'],
               ['Scalability & Budget Mapping', 'Strict per-platform budgets (Android, Console, PC) mapping exact milliseconds to hardware tiers.'],
               ['Optimal C++ Practices Module', 'Added dedicated section for memory-aligned, cache-friendly, and multiplayer-optimized C++ paradigms.'],
+              ['Algorithmic Optimization Matrix', 'Focuses heavily on concrete Spatial Partitioning and AI algorithms utilizing UE-native SIMD and navigation meshes.'],
+              ['Multithreading & Collision Enhancements', 'Added precise CPU/VRAM logic costs and missing features breakdown for async queries and task graphs.']
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20 transition-colors">
@@ -442,6 +447,7 @@ const OverviewTab = () => (
               ['Bitmask Relevancy Filtering', 'Replacing spatial radius checks with bitmask-driven "Interest Channels" for global events. Reduces Server O(N) complexity.'],
               ['Decoupled Inventory Microservice', 'Moving inventory mutation out of the Game Server into a NodeJS/Postgres persistence layer to prevent DB hitches from stalling the tick.'],
               ['SIMD C++ Math Vectorization', 'Applying ISPC and SSE/AVX intrinsics to heavy trajectory calculations, aiming to drop Server CPU load by 0.5ms per tick.'],
+              ['Deterministic Lockstep Engine', 'Implementing a true deterministic fixed-point math library globally for unshakeable cross-platform physics locking.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
@@ -461,6 +467,7 @@ const OverviewTab = () => (
               ['Push-Model RepNotify', 'Refining component replication using MARK_PROPERTY_DIRTY to strictly avoid polling overhead (Saves ~0.2ms CPU).'],
               ['Physics Rewind Ghosting', 'Visual debug tool to display "Server Ghost" actors on the Client to debug prediction drift in real-time.'],
               ['Socket-Level Flood Guard', 'Custom packet-filtering rules at the socket level to prevent DDoS stalling of the Main Thread.'],
+              ['Delta-compressed Spatial Grids', 'Lowering network bandwidth by delta-compressing chunked spatial partition updates (target: 95% bandwidth drop).']
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
@@ -579,6 +586,101 @@ const StorageTab = () => (
         <p className="text-sm mb-3">High-poly assets consume disk space, not just GPU.</p>
       </SectionCard>
     </div>
+  </div>
+);
+
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OPTIMAL ALGORITHMS TAB — NEW MODULE
+// ─────────────────────────────────────────────────────────────────────────────
+
+const OptimalAlgorithmsTab = () => (
+  <div className="space-y-6">
+    <PageHeader
+      title="Optimal Game Algorithms"
+      subtitle="Most optimal approaches for critical game loops. Stop writing brute-force arrays. Focus on data-oriented and spatial algorithms."
+    />
+
+    <HighlightBox type="info">
+      <strong>The Optimization Mindset (Multiplayer Focus):</strong> Instead of focusing on what NOT to do, focus on the structures that inherently prevent bottlenecks. In multiplayer, algorithms must gracefully scale memory vs. CPU tradeoffs without blowing up bandwidth.
+    </HighlightBox>
+
+    <SectionCard title="1. Spatial Partitioning: The Hash Grid" icon={Grid} color={COLORS.status.success}>
+      <p className="text-sm mb-3"><strong>Do: Use implicit Hash Grids or Octrees for proximity.</strong> Instead of O(N²) array checks to see "who is near me" for AOE damage or AI aggro, store entity IDs in a spatial grid. You instantly know who is in the same cell.</p>
+      <CodeBlock code={`// Spatial Hash Grid (O(1) insertion, O(K) lookup)
+int32 GetCellID(FVector Position, float CellSize) {
+    return FMath::FloorToInt(Position.X / CellSize) * 73856093 ^
+           FMath::FloorToInt(Position.Y / CellSize) * 19349663;
+}
+
+// In Tick: Get only players in the current and adjacent cells
+TArray<AActor*> NearbyEnemies = SpatialGrid.GetActorsInRadius(GetCellID(MyPos), Radius);`} />
+      <MultiplayerImpact gpu="0ms" cpu="-4.5ms (Scales 10x better than arrays)" ram="+1.2MB (Grid Memory)" latency="0ms" />
+      <FeatureMatrix 
+        has={[
+          "Unreal MassEntity (Mass Spatial Hash)",
+          "Collision Octrees (`UWorld::FindPositions`)",
+          "World Partition Grid (Streaming)"
+        ]}
+        missing={[
+          "Out-of-the-box non-physics logical spatial grids (Must write custom Hash Grid)",
+          "Native delta-sync for massive client cell networks"
+        ]}
+        howToUse="When writing custom serverside rules (e.g. 'are 50 players standing in poison?'), DO NOT use physics overlapping spheres. Calculate the grid hash mathematics mathematically!"
+      />
+    </SectionCard>
+
+    <SectionCard title="2. Navigation & Pathfinding: Hierarchical NavMesh" icon={Map} color={COLORS.kingfisher.blue}>
+      <p className="text-sm mb-3"><strong>Do: Use Hierarchical NavMesh queries instead of raw A* Grids.</strong> Voxel Pathfinding (raw A*) explodes in memory and CPU in 3D open worlds. Navmesh reduces walking areas into gigantic polygons. H-Navmesh adds 'rooms/chunks', turning 50,000 nodes into 50 chunks.</p>
+      <MultiplayerImpact gpu="0ms" cpu="-2.0ms per 100 AI" ram="+50MB per Sq Km" latency="0ms" />
+      <FeatureMatrix 
+        has={[
+          "Recast & Detour Navmesh integration",
+          "NavMesh Bounds Volumes",
+          "Hierarchical Pathfinding (Enabled via Recast Project Settings)"
+        ]}
+        missing={[
+          "True 3D Volume Pathfinding (Flying/Swimming is lacking)",
+          "Fully Deterministic Navmesh generation across clients"
+        ]}
+        howToUse="Enable `bEnableDrawingHierarchicalPath` in Editor to debug. Only run 'Find Path' asynchronously using `UNavigationSystemV1::FindPathAsync`, never block the Main Thread for 100 NPCs at once."
+      />
+    </SectionCard>
+
+    <SectionCard title="3. Rapid Math: High-Speed Vectors & SIMD" icon={Cpu} color={COLORS.status.warning}>
+      <p className="text-sm mb-3"><strong>Do: Batch math logic using Vectorized SIMD & Intrinsics.</strong> In multiplayer, you often calculate trajectories for 500 bullets. Don't process them 1 by 1. Use SIMD (Single Instruction, Multiple Data) to process 4 or 8 vectors simultaneously on the CPU register.</p>
+      <CodeBlock code={`// Using UE's VectorRegister math (SIMD)
+// Processes 4 float calculations in a single CPU instruction!
+VectorRegister A = VectorLoadAligned(ArrayA);
+VectorRegister B = VectorLoadAligned(ArrayB);
+VectorRegister Result = VectorAdd(A, B);
+VectorStoreAligned(Result, ArrayOut);
+`} />
+      <MultiplayerImpact gpu="0ms" cpu="-1.5ms (4x speedup on pure math)" ram="0ms" latency="0ms" />
+      <FeatureMatrix 
+        has={[
+          "GlobalMath.h and UnrealMath.h optimizations",
+          "VectorRegister types (FVector4 optimizations)",
+          "ISPC (Intel Implicit SPMD Program Compiler) integration"
+        ]}
+        missing={[
+          "Easy Blueprint wrappers for SIMD math blocks",
+          "Automated fallback if CPU lacks AVX512 (you must handle branching)"
+        ]}
+        howToUse="When doing massive calculations (like custom wind physics on 10,000 grass blades), wrap it in an ISPC kernel or use VectorRegister types."
+      />
+    </SectionCard>
+
+    <SectionCard title="4. Logic State Machines: Behavior Trees over Tick" icon={GitBranch} color={COLORS.kingfisher.warm}>
+      <p className="text-sm mb-3"><strong>Do: Event-Driven Behavior Trees.</strong> A standard 'Switch' statement in a Tick function wastes CPU running the check every frame. Behavior Trees sleep natively until a Blackboard condition explicitly wakes them up.</p>
+      <CodeBlock code={`// Blackboards act as event dispatchers
+// AI only recalculates pathing when TargetLocation actively changes
+BlackboardComp->SetValueAsVector("TargetLocation", NewLocation); // Wakes up the BT instantly!
+`} />
+      <MultiplayerImpact gpu="0ms" cpu="-2.5ms (Waking instead of polling)" ram="+200KB per AI" latency="0ms" />
+    </SectionCard>
+
   </div>
 );
 
@@ -1713,35 +1815,38 @@ const CollisionTab = () => (
   <div className="space-y-6">
     <PageHeader title="Collision & Traces" subtitle="Physics queries are CPU operations that block the Game Thread." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="Query Performance" icon={Crosshair} color={COLORS.status.warning}>
-        <p className="text-sm mb-3">Collision is the largest CPU sink in physicalized multiplayer games.</p>
+      <SectionCard title="Query Performance & Traces" icon={Crosshair} color={COLORS.status.warning}>
+        <p className="text-sm mb-3">Collision is the largest CPU sink in physicalized multiplayer games. The goal is to aggressively minimize complex mesh collision checks.</p>
         <MultiplayerImpact 
           gpu="0ms" 
-          cpu="High (PhysX/Chaos)" 
-          ram="+50MB (Colliders)" 
-          latency="+1.5ms Query Stall" 
+          cpu="-3.5ms (if swapped to Async)" 
+          ram="+35MB (Physics Data)" 
+          latency="+1.5ms Query Stall (if synchronous)" 
         />
         <FeatureMatrix 
           has={[
-            "Chaos Physics Engine",
-            "Async Line Traces",
-            "Collision Filtering (Channels)"
+            "Chaos Physics Engine (Rigid Bodies)",
+            "Async Line Traces (Off Thread)",
+            "Collision Filtering (Channels / Profiles)"
           ]}
           missing={[
-            "Native Rollback Collision State",
+            "Native Rollback Collision State (Client Prediction relies on saving historical Chaos states)",
             "GPU-driven Collision Queries",
-            "Automated Collision Mesh Simplification"
+            "Automated Collision Mesh Simplification (requires manual LOD physics proxy creation)"
           ]}
-          howToUse="Always use `AsyncLineTraceByChannel` for non-critical AI logic to prevent blocking the Main Thread."
+          howToUse="For multiplayer projectiles, NEVER use blocking sphere sweeps on the Game Thread. Queue `AsyncLineTraceByChannel` and receive the callback asynchronously a frame later."
         />
       </SectionCard>
 
-      <SectionCard title="Simple vs Complex" icon={ShieldAlert} color={COLORS.kingfisher.blue}>
-        <div className="space-y-1 text-xs text-kingfisher-muted">
-          <StatRow label="Simple Collision (Capsule)" value="~0.002ms" color="text-emerald-400" />
-          <StatRow label="Complex Collision (Poly)" value="~0.150ms" color="text-red-400" />
-          <p className="mt-2 text-[10px] italic">Using complex collision on 100 players = 15ms frame spike. Forbidden.</p>
+      <SectionCard title="Simple vs Complex & Broadphase" icon={ShieldAlert} color={COLORS.kingfisher.blue}>
+        <div className="space-y-1 text-xs text-kingfisher-muted mb-4">
+          <StatRow label="Simple Collision (Capsule/Sphere)" value="~0.002ms" color="text-emerald-400" />
+          <StatRow label="Complex Collision (Per-Poly)" value="~0.150ms" color="text-red-400" />
         </div>
+        <p className="text-sm mb-2 text-white font-semibold">Do: Use Broadphase filtering first.</p>
+        <p className="text-sm text-kingfisher-muted">By splitting your trace into Object Channels (e.g., 'Overlap Only Players'), Chaos Physics entirely skips querying the millions of polygons in the environment, checking ONLY the 5 player capsules nearby.</p>
+
+        <p className="mt-2 text-[10px] italic">Using complex collision on 100 players = 15ms frame spike. Forbidden.</p>
       </SectionCard>
     </div>
   </div>
@@ -2290,30 +2395,31 @@ for (int i = 0; i < Path->PathPoints.Num() - 1; i++) {
 
 const MultithreadingTab = () => (
   <div className="space-y-6">
-    <PageHeader title="Multithreading & Async" subtitle="When to use it, built-in vs manual systems, and avoiding race conditions." />
+    <PageHeader title="Multithreading & Async" subtitle="Using UE-native concurrency models to keep the Game Thread perfectly clean." />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <SectionCard title="When to use Multithreading?" icon={Network} color={COLORS.kingfisher.blue}>
-        <p className="text-sm mb-3">Not everything needs its own thread. Thread creation/syncing has overhead. Use it when:</p>
+      <SectionCard title="When to use Multithreading? (Do's)" icon={Network} color={COLORS.kingfisher.blue}>
+        <p className="text-sm mb-3">Not everything needs its own thread. Use Task Graphs organically when:</p>
         <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted">
-          <li><strong>Heavy Math:</strong> Procedural generation, complex AI evaluations, custom physics constraints.</li>
-          <li><strong>Blocking I/O:</strong> Loading files, network requests, saving games to disk.</li>
-          <li><strong>Rule of thumb:</strong> If a task takes longer than ~0.5ms and does not need to affect the very next frame immediately, push it off the Game Thread.</li>
-          <li><strong className="text-red-400">Avoid:</strong> Don't multithread spawning Actors, modifying UObjects directly, or rendering calls — UE requires these on the Game Thread.</li>
+          <li><strong>Heavy Server Math:</strong> Trajectory prediction, custom rule validation, or procedurally calculating nav-graphs.</li>
+          <li><strong>Batch Array Processing:</strong> Looping over 10,000 grid nodes. Use `ParallelFor`.</li>
+          <li><strong>Rule of thumb:</strong> If a task takes longer than ~0.5ms and its results aren't strictly required to render the very next frame, push it to an Async Task.</li>
+          <li><strong className="text-red-400">Avoid:</strong> Modifying `UObjects` directly or calling `SpawnActor` on async threads. Always pipe results back to the Game Thread via `FFunctionGraphTask::CreateAndDispatchWhenReady`.</li>
         </ul>
+        <MultiplayerImpact gpu="0ms" cpu="-6.0ms (Game Thread offloaded to Worker threads)" ram="+1MB (Task queues)" latency="0ms" />
       </SectionCard>
-      <SectionCard title="Built-in UE Tooling" icon={Database} color={COLORS.status.success}>
+      <SectionCard title="UE Native Architectures (Do's)" icon={Database} color={COLORS.status.success}>
         <ul className="list-disc pl-5 space-y-4 text-sm text-kingfisher-muted">
           <li>
-            <strong className="text-emerald-400">UE::Tasks::Launch (TaskGraph system):</strong> 
-            Modern replacement for Async. Short, heavily interdependent tasks. Very low overhead.
+            <strong className="text-emerald-400">UE::Tasks::Launch (Modern TaskGraph):</strong> 
+            Modern replacement for Async. Short, heavily interdependent tasks. Very low thread-spawning overhead.
           </li>
           <li>
-            <strong className="text-emerald-400">ParallelFor:</strong> 
-            Perfect for iterating over massive arrays (e.g., updating 10,000 boids). Blocks the current thread until all iterations finish across worker threads.
+            <strong className="text-emerald-400">ParallelFor (O(n) Scalability):</strong> 
+            Perfect for iterating over massive arrays (e.g., updating 5,000 simulation actors). Blocks the current thread until all chunked iterations finish across worker cores.
           </li>
           <li>
             <strong className="text-emerald-400">FRunnable:</strong> 
-            For long-running, continuous loops (e.g., a custom background server listener, or a procedural world generator loop).
+            For infinite, continuous loops (e.g., a custom background WebSocket server or chunk loader).
           </li>
         </ul>
       </SectionCard>
