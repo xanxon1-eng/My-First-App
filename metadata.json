@@ -1,6 +1,6 @@
 {
   "name": "Kingfisher App",
-  "description": "A refined mobile application experience with a focus on simplicity and utility.",
+  "description": "Comprehensive AAA-scale Unreal Engine optimization guide and curriculum for open-world 3D RPGs inspired by The Witcher 3, Path of Exile, and Baldur's Gate 3.",
   "requestFramePermissions": ["picture-in-picture"],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
