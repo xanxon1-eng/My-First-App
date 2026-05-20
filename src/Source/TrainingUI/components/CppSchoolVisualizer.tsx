@@ -3,6 +3,106 @@ import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
 import { Bird, Play, Zap, Shield, Heart, HelpCircle, Activity, RefreshCw, Cpu, Award, HardDrive, CheckCircle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
+// Generic Universal Visualizer Component
+const UniversalTaskVisualizer = ({ task, documents, session }: { task: any, documents: any[], session: any }) => {
+  const [extractedVars, setExtractedVars] = useState<{type: string, name: string, value: string}[]>([]);
+  const [isCompiling, setIsCompiling] = useState(false);
+  
+  useEffect(() => {
+    if (session?.compileStatus === 'compiling') {
+      setIsCompiling(true);
+    } else {
+      setTimeout(() => setIsCompiling(false), 800);
+    }
+  }, [session?.compileStatus]);
+
+  useEffect(() => {
+    // Basic structural variable parser simulating AST reflection
+    const cppCode = documents.find(d => d.filePath.endsWith('.cpp'))?.textBuffer || '';
+    const hCode = documents.find(d => d.filePath.endsWith('.h'))?.textBuffer || '';
+    const code = hCode + '\n' + cppCode;
+
+    const vars: {type: string, name: string, value: string}[] = [];
+    
+    // Catch common variable assignments or declarations
+    const regex = /(int32|float|bool|FString|int|auto)\s+([a-zA-Z0-9_]+)\s*(?:=\s*([^;]+))?;/g;
+    let match;
+    let fallbackCount = 0;
+    while ((match = regex.exec(code)) !== null) {
+      if (fallbackCount++ > 15) break; 
+      vars.push({
+        type: match[1],
+        name: match[2],
+        value: match[3] ? match[3].trim() : 'Uninitialized (GC risk)'
+      });
+    }
+
+    setExtractedVars(vars);
+  }, [documents, task]);
+
+  return (
+    <div className="flex-1 flex flex-col items-center justify-center w-full px-6 py-4 animate-fade-in relative overflow-hidden text-sm">
+      <div className="flex flex-col items-center justify-center text-center mb-6 z-10 w-full relative">
+        <div className="absolute top-1/2 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-y-1/2" />
+        <div className="relative inline-flex items-center gap-2 px-4 py-2 bg-black/60 backdrop-blur-md rounded-full border border-white/10 shadow-lg mb-2">
+          <Activity className="w-4 h-4 text-emerald-400 animate-pulse" />
+          <span className="font-mono font-bold text-white text-xs uppercase tracking-widest">
+            {task.title}
+          </span>
+        </div>
+        <p className="text-[10px] font-mono text-zinc-400 mt-2 max-w-sm leading-relaxed px-4 py-2 bg-black/40 rounded border border-white/5 shadow-inner">
+          {task.objective || "Interactive Live Debugger Sandbox. Success criteria verified safely via Clang AST."}
+        </p>
+      </div>
+
+      <div className="w-full max-w-lg bg-black/60 rounded-xl border border-kingfisher-border/30 p-5 shadow-2xl flex flex-col relative z-10 overflow-hidden font-mono group transition-colors hover:border-emerald-500/30">
+        <div className="flex justify-between items-center border-b border-white/10 pb-3 mb-4">
+          <div className="flex items-center gap-2 text-zinc-300">
+             <Cpu className="w-4 h-4 text-kingfisher-warm" />
+             <span className="text-[10px] uppercase font-bold tracking-widest">Virtual Context Inspector</span>
+          </div>
+          <div className="text-[9px] uppercase tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+             {task.category || 'Sandbox Module'}
+          </div>
+        </div>
+        
+        {isCompiling ? (
+          <div className="flex-1 flex flex-col items-center justify-center py-10 space-y-3">
+             <div className="w-8 h-8 rounded-full border-t-2 border-l-2 border-emerald-400 animate-spin" />
+             <span className="text-zinc-500 text-[10px] uppercase tracking-widest font-bold animate-pulse">Running GCC Fast-Compile...</span>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+            {extractedVars.length > 0 ? (
+              extractedVars.map((v, i) => (
+                <div key={i} className="flex flex-col sm:flex-row sm:items-center justify-between p-2 rounded bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest w-12">{v.type}</span>
+                    <span className="text-xs text-indigo-300 font-bold">{v.name}</span>
+                  </div>
+                  <div className="text-xs text-emerald-400 bg-black/40 px-2 py-0.5 rounded border border-emerald-500/20 font-bold truncate max-w-[150px]" title={v.value}>
+                    {v.value}
+                  </div>
+                </div>
+              ))
+            ) : (
+                <div className="flex flex-col items-center justify-center p-8 text-center text-zinc-500">
+                  <span className="text-2xl mb-2 opacity-50">✦</span>
+                  <span className="text-[10px] uppercase tracking-wider font-bold">Initializing architectural memory context</span>
+                </div>
+            )}
+          </div>
+        )}
+        
+        <div className="mt-4 pt-3 border-t border-white/10 text-[9px] text-zinc-500 leading-normal flex items-start gap-2">
+          <Info className="w-3 h-3 text-zinc-400 shrink-0" />
+          <span>Dynamically traces architectural variables mapped in the active structural block via simulated AST Reflection pointers.</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export function CppSchoolVisualizer() {
   const { currentTask, documents, currentSession } = useTrainingCore();
 
@@ -11,7 +111,6 @@ export function CppSchoolVisualizer() {
   const [simMaxHealth, setSimMaxHealth] = useState(100);
   const [simDamage, setSimDamage] = useState(45.5);
   const [simAlive, setSimAlive] = useState(true);
-  const [activeTab, setActiveTab] = useState<'simulation' | 'mem_graph'>('simulation');
 
   // Task-specific simulator states
   const [strikeCount, setStrikeCount] = useState(0);
@@ -272,25 +371,6 @@ export function CppSchoolVisualizer() {
             UViewportClient::Render
           </span>
         </div>
-
-        <div className="flex bg-black/40 p-1 rounded-md border border-white/5">
-          <button
-            onClick={() => setActiveTab('simulation')}
-            className={`px-3 py-1 text-[9px] font-mono font-bold tracking-wider rounded uppercase transition-all ${
-              activeTab === 'simulation' ? 'bg-kingfisher-blue/20 text-white shadow-sm' : 'text-kingfisher-muted hover:text-white'
-            }`}
-          >
-            Virtual Game Window
-          </button>
-          <button
-            onClick={() => setActiveTab('mem_graph')}
-            className={`px-3 py-1 text-[9px] font-mono font-bold tracking-wider rounded uppercase transition-all ${
-              activeTab === 'mem_graph' ? 'bg-kingfisher-blue/20 text-white shadow-sm' : 'text-kingfisher-muted hover:text-white'
-            }`}
-          >
-            HEX RAM Layout
-          </button>
-        </div>
       </div>
 
       {/* Render selected tab */}
@@ -307,8 +387,6 @@ export function CppSchoolVisualizer() {
           </div>
         )}
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'simulation' ? (
             <motion.div
               key="sim"
               initial={{ opacity: 0, scale: 0.98 }}
@@ -688,67 +766,11 @@ export function CppSchoolVisualizer() {
                 </div>
               )}
 
-              {/* Fallback general template for remaining / advanced tasks */}
-              {!currentTask.id.startsWith('task_') && (
-                <div className="flex-1 flex flex-col justify-center items-center text-center">
-                  <Award className="w-10 h-10 text-kingfisher-warm mb-3 animate-bounce" />
-                  <span className="font-mono text-xs text-white font-bold">{currentTask.title}</span>
-                  <p className="text-[10px] font-mono text-zinc-500 mt-1 max-w-xs leading-normal">
-                    Gameplay Sandbox generated compiled binary module. Success criteria verified safely via AST Bridge and Clangd evaluation.
-                  </p>
-                </div>
+              {/* Universal Interactive Virtual Explanation for all missing tutorials */}
+              {!['task_1', 'task_2', 'task_3', 'task_4', 'task_5', 'task_6', 'task_7_5'].includes(currentTask.id) && (
+                <UniversalTaskVisualizer task={currentTask} documents={documents} session={currentSession} />
               )}
             </motion.div>
-          ) : (
-            // HEX RAM Memory Layout tab
-            <motion.div
-              key="hex"
-              initial={{ opacity: 0, scale: 0.98 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.98 }}
-              className="flex-1 w-full bg-black/80 rounded-xl border border-kingfisher-border/30 p-4 flex flex-col min-h-[300px] shadow-2xl font-mono overflow-auto"
-            >
-              <div className="text-[10px] border-b border-white/5 pb-2 uppercase tracking-wider text-zinc-500 mb-3 flex justify-between items-center">
-                <span>Kernel RAM Map (Hex blocks)</span>
-                <span className="text-zinc-600">64-Bit Addressing</span>
-              </div>
-
-              {/* Memory block lines */}
-              <div className="space-y-2.5 text-xs text-zinc-400">
-                <div className="flex gap-4 p-1 rounded hover:bg-white/5 border border-transparent">
-                  <span className="text-zinc-600 font-semibold">0x7FFEE3C0</span>
-                  <span className="text-indigo-400 font-bold">[ 100 ]</span>
-                  <span className="text-zinc-500">int32 Health variable stack segment</span>
-                </div>
-                <div className="flex gap-4 p-1 rounded hover:bg-white/5 border border-transparent">
-                  <span className="text-zinc-600 font-semibold">0x7FFEE3C4</span>
-                  <span className="text-amber-400 font-bold">[ 45.50 ]</span>
-                  <span className="text-zinc-500">float Damage variable stack segment</span>
-                </div>
-                <div className="flex gap-4 p-1 rounded hover:bg-white/5 border border-transparent">
-                  <span className="text-zinc-600 font-semibold">0x7FFEE3C8</span>
-                  <span className="text-emerald-400 font-bold">[ true ]</span>
-                  <span className="text-zinc-500">bool bIsAlive variable stack segment</span>
-                </div>
-                <div className="flex gap-4 p-1 rounded hover:bg-white/5 border border-transparent">
-                  <span className="text-zinc-600 font-semibold">0x7FFEE3D0</span>
-                  <span className="text-white font-bold">[ 0x7FFEE3C0 ]</span>
-                  <span className="text-zinc-500">int32* AmmoPtr pointing to Address 0x7FFEE3C0</span>
-                </div>
-                <div className="flex gap-4 p-1 rounded hover:bg-white/5 border border-transparent">
-                  <span className="text-zinc-600 font-semibold">0x7FFEE3F0</span>
-                  <span className="text-indigo-400 font-bold">[ Vector array capacity(8) ]</span>
-                  <span className="text-zinc-500">A heap buffer tracking int32 vectors</span>
-                </div>
-              </div>
-
-              <div className="mt-auto p-3 bg-zinc-900/40 border border-zinc-800 rounded text-[9px] text-zinc-500 leading-normal">
-                <span className="text-zinc-400 font-bold uppercase block mb-1">Architecture Reflection Point</span>
-                When Unreal compiles, UProperty references are scanned so that pointers are indexed. Any bare pointer has no reflection reference block in Kernel RAM and risks being garbage collected.
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
     </div>
   );

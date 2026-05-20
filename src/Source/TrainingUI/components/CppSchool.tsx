@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Bird, Menu, X, Keyboard, Download, ArrowLeft, BookOpen, Code, Trophy } from 'lucide-react';
 import { TaskContentWidget } from './TaskContentWidget';
 import { TaskBrowserWidget } from './TaskBrowserWidget';
-import { CppSchoolEditor } from './CppSchoolEditor';
 import { CppSchoolVisualizer } from './CppSchoolVisualizer';
 import { UnrealShortcutsModal } from './UnrealShortcutsModal';
 import { COLORS } from '../../../constants/colors';
@@ -13,7 +12,7 @@ interface CppSchoolProps {
   onInstallClick: () => void;
 }
 
-type WorkspaceTab = 'theory' | 'editor' | 'sandbox';
+type WorkspaceTab = 'theory' | 'sandbox';
 
 export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton, onInstallClick }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -116,17 +115,6 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
                 <BookOpen className="w-3.5 h-3.5" />
                 <span>Theory & Task</span>
               </button>
-              <button
-                onClick={() => setActiveTab('editor')}
-                className={`flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold rounded-md transition-all ${
-                  activeTab === 'editor' 
-                    ? 'bg-kingfisher-blue/20 text-white shadow-inner font-bold' 
-                    : 'text-kingfisher-muted hover:text-white hover:bg-black/10'
-                }`}
-              >
-                <Code className="w-3.5 h-3.5" />
-                <span>C++ Code Editor</span>
-              </button>
               
               {/* Only show Sandbox tab trigger in responsive / smaller screens */}
               <button
@@ -150,18 +138,13 @@ export const CppSchool: React.FC<CppSchoolProps> = ({ onBack, showInstallButton,
 
           {/* Flexible Multi-Column Panel */}
           <div className="flex-1 flex overflow-hidden min-h-0 bg-kingfisher-dark select-none">
-            {/* LEFT / CENTER PANEL: Houses Lesson Theory or Monaco Code Editor depending on selection */}
+            {/* LEFT / CENTER PANEL: Houses Lesson Theory depending on selection */}
             <div className={`flex-1 flex flex-col min-w-0 h-full border-r border-kingfisher-border/30 ${
               activeTab === 'sandbox' && 'hidden lg:flex'
             }`}>
               {activeTab === 'theory' && (
                 <div className="flex-1 overflow-y-auto">
                   <TaskContentWidget />
-                </div>
-              )}
-              {(activeTab === 'editor' || (activeTab === 'sandbox' && typeof window !== 'undefined' && window.innerWidth >= 1024)) && (
-                <div className="flex-1 flex flex-col min-h-0">
-                  <CppSchoolEditor />
                 </div>
               )}
             </div>
