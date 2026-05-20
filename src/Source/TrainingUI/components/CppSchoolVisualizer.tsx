@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
-import { Bird, Play, Zap, Shield, Heart, HelpCircle, Activity, RefreshCw, Cpu, Award, HardDrive, CheckCircle, Info, Eye, EyeOff, AlertTriangle, Search, Database, Layers, Sliders, Globe, Server, Link, Trash2 } from 'lucide-react';
+import { Bird, Play, Zap, Shield, Heart, HelpCircle, Activity, RefreshCw, Cpu, Award, HardDrive, CheckCircle, Info, Eye, EyeOff, AlertTriangle, Search, Database, Layers, Sliders, Globe, Server, Link, Trash2, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 // Generic Universal Visualizer Component
@@ -579,7 +579,7 @@ export function CppSchoolVisualizer() {
   }, [tickerFps, useDeltaTime]);
 
   // Determine lesson group mode
-  const getTaskGroup = (taskId: string): 'combat' | 'console' | 'pointers' | 'arrays' | 'control_flow' | 'loops' | 'nested_loops' | 'actor_lifecycle' | 'reflection_bp' | 'assets_pro' => {
+  const getTaskGroup = (taskId: string): 'combat' | 'console' | 'pointers' | 'arrays' | 'control_flow' | 'loops' | 'nested_loops' | 'actor_lifecycle' | 'reflection_bp' | 'assets_pro' | 'optimization_pro' => {
     if (taskId === 'task_1' || taskId === 'task_2') return 'combat';
     if (['task_3', 'task_10', 'task_32', 'task_34'].includes(taskId)) return 'console';
     if (['task_4', 'task_9', 'task_15', 'task_16', 'task_31', 'task_36', 'task_37', 'task_39', 'task_42', 'task_43'].includes(taskId)) return 'pointers';
@@ -589,6 +589,7 @@ export function CppSchoolVisualizer() {
     if (taskId.startsWith('task_7')) return 'loops';
     if (['task_13', 'task_14', 'task_45', 'task_46'].includes(taskId)) return 'actor_lifecycle';
     if (['task_8', 'task_11', 'task_12', 'task_17', 'task_18', 'task_20', 'task_26', 'task_27', 'task_28', 'task_29', 'task_33', 'task_44'].includes(taskId)) return 'reflection_bp';
+    if (['task_NEW_LIGHTING', 'task_opt_1', 'task_opt_2', 'task_opt_3', 'task_opt_4', 'task_opt_5', 'task_opt_6'].includes(taskId)) return 'optimization_pro';
     return 'assets_pro';
   };
 
@@ -693,6 +694,15 @@ export function CppSchoolVisualizer() {
           ueFeatures: ['Unreal Header Tool (UHT) macros generating metadata', 'Multicast dynamic delegate bindings'],
           missingFeatures: ['Dynamic delegate compile-time type-safety warnings (fails at runtime unless properly bound)']
         };
+      case 'optimization_pro':
+        const tid = currentTask?.id;
+        if (tid === 'task_NEW_LIGHTING') return { gpu: '-4.5ms (Shadow Map bounds locking)', cpu: '0.12ms', ram: '45MB', vram: '-120MB', ping: 'None', info: 'Hardware Lumen raytracing bypassed via dynamic bounds.', ueFeatures: ['Virtual Shadow Maps', 'Distance Fields'], missingFeatures: ['Dynamic probe cache culling'] };
+        if (tid === 'task_opt_1') return { gpu: '0.0ms', cpu: '-3.2ms (Contiguous memory iteration)', ram: '-15MB (Struct padding)', vram: '0.0ms', ping: 'None', info: 'Optimal L1/L2 cache hits through data-oriented arrays.', ueFeatures: ['TArray', 'Fast TMap operations'], missingFeatures: ['Built-in struct padding analyzers'] };
+        if (tid === 'task_opt_2') return { gpu: '0.0ms', cpu: '-5.8ms (GameThread bypass)', ram: '12MB (Worker queues)', vram: '0.0ms', ping: 'None', info: 'Offloading pathfinding to TaskGraph workers.', ueFeatures: ['TaskGraph', 'FAsyncTask'], missingFeatures: ['Automated atomic locking'] };
+        if (tid === 'task_opt_3') return { gpu: '0.0ms', cpu: '-8.5ms (Mass Entity updates)', ram: '-120MB (No UObject overhead)', vram: '0.0ms', ping: 'None', info: '10,000 active entities ticking securely in ECS.', ueFeatures: ['MassEntity', 'Fragments'], missingFeatures: ['Visual ECS debugger tool'] };
+        if (tid === 'task_opt_4') return { gpu: '0.0ms', cpu: '-2.4ms (Retained Slate widgets)', ram: '8MB', vram: '4MB', ping: 'None', info: 'Manual invalidation prevents Slate pre-pass loops.', ueFeatures: ['Retainer Box', 'Invalidation Box'], missingFeatures: ['Auto-dirtying bindings'] };
+        if (tid === 'task_opt_5') return { gpu: '0.0ms', cpu: '-4.6ms (Replication prioritization)', ram: '110MB', vram: '0.0ms', ping: '<25ms (Stable!)', info: 'IRIS and NetDormancy strip replication bandwidth.', ueFeatures: ['IRIS Repl', 'NetDormancy'], missingFeatures: ['Automated replication stress testing'] };
+        return { gpu: '-6.2ms (PSO and ISM batching)', cpu: '-3.5ms (Draw Thread limits)', ram: '48MB', vram: '-250MB (Shared textures)', ping: 'None', info: 'Baking PSOs and instancing saves draw calls.', ueFeatures: ['HISM', 'PSO Cache'], missingFeatures: ['Automatic shader permutation cullers'] };
       default:
         return {
           gpu: '1.85ms (LOD and shader caches evaluation)',
@@ -1618,10 +1628,50 @@ export function CppSchoolVisualizer() {
                 </div>
               )}
 
-              {/* Keep task_7_1-7_4 simulation inside if selected */}
-              {currentTask && !['task_1', 'task_2', 'task_3', 'task_4', 'task_5', 'task_6', 'task_7_5'].includes(currentTask.id) && !currentTask.id.startsWith('task_7') && (
-                <div className="mt-4 pt-4 border-t border-white/10 shrink-0">
-                  <UniversalTaskVisualizer task={currentTask} documents={documents} session={currentSession} />
+              {/* 11. AAA OPTIMIZATION PRO (Tasks 47-53) */}
+              {mode === 'optimization_pro' && (
+                <div className="flex-1 flex flex-col justify-between text-xs font-mono">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-2 mb-3">
+                    <span className="text-[10px] text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+                       <Zap className="w-3 h-3 text-emerald-400" />
+                       AAA Enterprise Optimization Profiler
+                    </span>
+                  </div>
+
+                  <div className="flex-1 flex flex-col items-center justify-center p-6 bg-black/40 rounded-xl border border-white/5 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-scanlines opacity-20 pointer-events-none" />
+                    <div className="w-full flex items-center justify-between mb-8">
+                       <div className="flex flex-col items-center">
+                          <Cpu className="w-8 h-8 text-amber-400 mb-2" />
+                          <span className="text-[9px] uppercase text-zinc-500">Game Thread Process</span>
+                       </div>
+                       <div className="flex-1 h-px bg-gradient-to-r from-amber-500/0 via-emerald-500/50 to-blue-500/0 mx-4 relative animate-pulse">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 px-2 bg-black text-[8px] text-emerald-400 border border-emerald-500/30 rounded">
+                            {currentTask?.id === 'task_opt_2' ? 'ASYNC THREAD DISPATCH' : 'OPTIMAL PIPELINE'}
+                          </div>
+                       </div>
+                       <div className="flex flex-col items-center">
+                          <Monitor className="w-8 h-8 text-blue-400 mb-2" />
+                          <span className="text-[9px] uppercase text-zinc-500">Render Hardware</span>
+                       </div>
+                    </div>
+                    
+                    <div className="w-full bg-zinc-950/80 border border-white/10 p-4 rounded text-center">
+                       <span className="text-emerald-400 font-bold block text-sm mb-2">{currentTask?.title}</span>
+                       <span className="text-zinc-400 text-[10px]">{currentTask?.objective?.substring(0, 150)}...</span>
+                    </div>
+
+                    <div className="mt-4 grid grid-cols-2 gap-4 w-full">
+                       <div className="border border-emerald-500/20 bg-emerald-950/20 p-2 rounded text-center">
+                         <span className="block text-[8px] text-emerald-500 tracking-widest uppercase mb-1">Engine Solution</span>
+                         <span className="text-[9px] text-zinc-300 font-bold">{diagnostics.ueFeatures[0]}</span>
+                       </div>
+                       <div className="border border-amber-500/20 bg-amber-950/20 p-2 rounded text-center">
+                         <span className="block text-[8px] text-amber-500 tracking-widest uppercase mb-1">Impact Vectors</span>
+                         <span className="text-[10px] text-white font-bold">{diagnostics.cpu} / {diagnostics.gpu}</span>
+                       </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </motion.div>
