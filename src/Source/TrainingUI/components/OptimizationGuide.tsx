@@ -11,7 +11,54 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, PipelineTab, AAAQualityProfilingTab, ProfilingDebugTestingTab, LiveMemoryTab, StorageTab, OptimalAlgorithmsTab, CppOptimalTab, HeadManagerTab, ArchitectureTab, UIUMGTab, DrawCallsTab, LODTab, MaterialsTab, TexturesTab, LightingTab, PostProcessTab, OcclusionTab, CollisionTab, MemoryStateTab, NetworkingPhysicsTab, AITab, AnimationAudioTab, ScalabilityTab, BudgetsTab, ServerProtocolTab, DeterministicSyncTab, WorldPartitionTab, ClientPredictionTab, FastArrayTab, InterestManagementTab, AssetManagerTab, GCClusteringTab, DebugOverlaysTab, MultithreadingTab, SubsystemsTab, ShaderPermutationsTab, GeometryTab, MassEntityTab, DecoupledBackendTab, IrisReplicationTab, RewindPhysicsTab, BoidsFlockingTab, GICachingTab, ProjectApplicationTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab } from "./optimization_tabs";
+import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
+
+const TAB_TO_COMPONENT_NAME: Record<string, string> = {
+  pipeline: 'PipelineTab',
+  architecture: 'ArchitectureTab',
+  mass_entity: 'MassEntityTab',
+  cpp_optimal: 'CppOptimalTab',
+  head_manager: 'HeadManagerTab',
+  draw_calls: 'DrawCallsTab',
+  gpu: 'GeometryTab',
+  lod: 'LODTab',
+  materials: 'MaterialsTab',
+  textures: 'TexturesTab',
+  lighting: 'LightingTab',
+  postprocess: 'PostProcessTab',
+  gi_caching: 'GICachingTab',
+  occlusion: 'OcclusionTab',
+  collision: 'CollisionTab',
+  memory_state: 'MemoryStateTab',
+  network_physics: 'NetworkingPhysicsTab',
+  rewind_physics: 'RewindPhysicsTab',
+  iris_replication: 'IrisReplicationTab',
+  server_protocol: 'ServerProtocolTab',
+  decoupled_backend: 'DecoupledBackendTab',
+  deterministic: 'DeterministicSyncTab',
+  world_partition: 'WorldPartitionTab',
+  client_pred: 'ClientPredictionTab',
+  fast_array: 'FastArrayTab',
+  interest_mgmt: 'InterestManagementTab',
+  asset_manager: 'AssetManagerTab',
+  gc_clustering: 'GCClusteringTab',
+  boids_flocking: 'BoidsFlockingTab',
+  npc: 'AITab',
+  animation_audio: 'AnimationAudioTab',
+  scalability: 'ScalabilityTab',
+  budgets: 'BudgetsTab',
+  storage: 'StorageTab',
+  aaa_profiling: 'AAAQualityProfilingTab',
+  tools_overview: 'ProfilingDebugTestingTab',
+  live_memory: 'LiveMemoryTab',
+  debug_overlays: 'DebugOverlaysTab',
+  multithreading: 'MultithreadingTab',
+  subsystems: 'SubsystemsTab',
+  shader_permutations: 'ShaderPermutationsTab',
+  ui_umg: 'UIUMGTab',
+  optimal_algorithms: 'OptimalAlgorithmsTab'
+};
 
 interface OptimizationGuideProps {
   onBack: () => void;
@@ -107,54 +154,14 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
   };
 
   const renderContent = () => {
-    switch (activeTab) {
-      case 'overview':         return <OverviewTab onNavigate={setActiveTab} />;
-      case 'project_appl':     return <ProjectApplicationTab />;
-      case 'pipeline':         return <PipelineTab />;
-      case 'architecture':     return <ArchitectureTab />;
-      case 'mass_entity':      return <MassEntityTab />;
-      case 'cpp_optimal':      return <CppOptimalTab />;
-      case 'head_manager':     return <HeadManagerTab />;
-      case 'draw_calls':       return <DrawCallsTab />;
-      case 'gpu':              return <GeometryTab />;
-      case 'lod':              return <LODTab />;
-      case 'materials':        return <MaterialsTab />;
-      case 'textures':         return <TexturesTab />;
-      case 'lighting':         return <LightingTab />;
-      case 'postprocess':      return <PostProcessTab />;
-      case 'gi_caching':       return <GICachingTab />;
-      case 'occlusion':        return <OcclusionTab />;
-      case 'collision':        return <CollisionTab />;
-      case 'memory_state':     return <MemoryStateTab />;
-      case 'network_physics':  return <NetworkingPhysicsTab />;
-      case 'rewind_physics':   return <RewindPhysicsTab />;
-      case 'iris_replication': return <IrisReplicationTab />;
-      case 'server_protocol':  return <ServerProtocolTab />;
-      case 'decoupled_backend':return <DecoupledBackendTab />;
-      case 'deterministic':    return <DeterministicSyncTab />;
-      case 'world_partition':  return <WorldPartitionTab />;
-      case 'client_pred':      return <ClientPredictionTab />;
-      case 'fast_array':       return <FastArrayTab />;
-      case 'interest_mgmt':    return <InterestManagementTab />;
-      case 'asset_manager':    return <AssetManagerTab />;
-      case 'gc_clustering':    return <GCClusteringTab />;
-      case 'boids_flocking':   return <BoidsFlockingTab />;
-      case 'npc':              return <AITab />;
-      case 'animation_audio':  return <AnimationAudioTab />;
-      case 'scalability':      return <ScalabilityTab />;
-      case 'budgets':          return <BudgetsTab />;
-      case 'storage':          return <StorageTab />;
-      case 'aaa_profiling':    return <AAAQualityProfilingTab />;
-      case 'tools_overview':   return <ProfilingDebugTestingTab />;
-      case 'live_memory':      return <LiveMemoryTab />;
-      case 'debug_overlays':   return <DebugOverlaysTab />;
-      case 'multithreading':   return <MultithreadingTab />;
-      case 'subsystems':       return <SubsystemsTab />;
-      case 'shader_permutations': return <ShaderPermutationsTab />;
-      case 'ui_umg':           return <UIUMGTab />;
-      case 'optimal_algorithms': return <OptimalAlgorithmsTab />;
-      default:                 return null;
+    if (activeTab === 'overview') return <OverviewTab onNavigate={setActiveTab} />;
+    if (activeTab === 'project_appl') return <ProjectApplicationTab />;
+    
+    const componentName = TAB_TO_COMPONENT_NAME[activeTab];
+    if (componentName) {
+        return <DynamicTab tabId={componentName} />;
     }
+    return null;
   };
 
   return (
@@ -247,70 +254,20 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
         </aside>
 
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 custom-scrollbar bg-kingfisher-dark/50">
-          <motion.div
-            key={activeTab}
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="max-w-6xl mx-auto"
-          >
-            {renderContent()}
-          </motion.div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className="max-w-6xl mx-auto"
+            >
+              {renderContent()}
+            </motion.div>
+          </AnimatePresence>
         </main>
       </div>
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper Components
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// Tabs
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// OPTIMAL C++ PRACTICES TAB
-// ─────────────────────────────────────────────────────────────────────────────
-// ─────────────────────────────────────────────────────────────────────────────
-// HEAD MANAGER TAB — NEW MODULE
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Collapsible section for the new additions
-const Collapsible = ({ title, icon: Icon, color, badge, children }: any) => {
-  const [open, setOpen] = useState(true);
-  return (
-    <div className="border border-kingfisher-border/50 rounded-2xl overflow-hidden shadow-sm bg-kingfisher-panel/30 mb-4">
-      <button
-        onClick={() => setOpen(o => !o)}
-        className="w-full flex items-center justify-between px-5 py-4 bg-black/30 hover:bg-black/50 transition-colors border-b border-kingfisher-border/30"
-      >
-        <div className="flex items-center gap-3">
-          {Icon && <Icon className="w-5 h-5" style={{ color }} />}
-          <span className="text-white font-bold text-base">{title}</span>
-          {badge && (
-            <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded flex items-center justify-center bg-black/60 shadow-inner" style={{ color }}>
-              {badge}
-            </span>
-          )}
-        </div>
-        <div className="p-1 rounded bg-black/40 border border-white/5">
-        {open ? (
-          <ChevronDown className="w-4 h-4 text-kingfisher-muted" />
-        ) : (
-          <ChevronRight className="w-4 h-4 text-kingfisher-muted" />
-        )}
-        </div>
-      </button>
-      <AnimatePresence>
-        {open && (
-           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-             <div className="p-5 space-y-4">
-               {children}
-             </div>
-           </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 };

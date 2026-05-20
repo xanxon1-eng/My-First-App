@@ -2,37 +2,42 @@
 import React, { useState } from 'react';
 import { CheckCircle, X, Monitor, Cpu, Database, HardDrive, Radio, GitBranch, Shield, CircleDashed, Smartphone, Activity, Zap, LayoutTemplate, Box, Waves, ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Hexagon, Save, Triangle, Image, Palette, Crosshair, Sliders, Music, Package, Eye, TrendingDown, Flame, Terminal, ShieldAlert, Map, Trash2, Code, Server, Shuffle, Wind, Lock, Wifi, Navigation, Sword, Trees, Droplets, Mountain, ChevronDown, ChevronRight, Users, Clock, Sun, Settings, Grid, Network } from 'lucide-react';
 import { COLORS } from '../../../../constants/colors';
-export const FeatureMatrix = ({ has, missing, howToUse }: { has: string[]; missing: string[]; howToUse: string }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-    <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
-      <div className="flex items-center gap-2 mb-2 text-emerald-400 font-bold text-[10px] uppercase">
-        <CheckCircle className="w-3 h-3" /> UE Built-in Features
+export const FeatureMatrix = ({ has = [], missing = [], howToUse }: { has?: string[]; missing?: string[]; howToUse: string }) => {
+  const safeHas = Array.isArray(has) ? has : [];
+  const safeMissing = Array.isArray(missing) ? missing : [];
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+      <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
+        <div className="flex items-center gap-2 mb-2 text-emerald-400 font-bold text-[10px] uppercase">
+          <CheckCircle className="w-3 h-3" /> UE Built-in Features
+        </div>
+        <ul className="space-y-1">
+          {safeHas.map((item, i) => (
+            <li key={i} className="text-xs text-kingfisher-muted flex items-start gap-2">
+              <span className="text-emerald-500 mt-1">•</span> {item}
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="space-y-1">
-        {has.map((item, i) => (
-          <li key={i} className="text-xs text-kingfisher-muted flex items-start gap-2">
-            <span className="text-emerald-500 mt-1">•</span> {item}
-          </li>
-        ))}
-      </ul>
-    </div>
-    <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
-      <div className="flex items-center gap-2 mb-2 text-red-400 font-bold text-[10px] uppercase">
-        <X className="w-3 h-3" /> Missing / Needs Custom
+      <div className="p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+        <div className="flex items-center gap-2 mb-2 text-red-400 font-bold text-[10px] uppercase">
+          <X className="w-3 h-3" /> Missing / Needs Custom
+        </div>
+        <ul className="space-y-1">
+          {safeMissing.map((item, i) => (
+            <li key={i} className="text-xs text-kingfisher-muted flex items-start gap-2">
+              <span className="text-red-500 mt-1">•</span> {item}
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="space-y-1">
-        {missing.map((item, i) => (
-          <li key={i} className="text-xs text-kingfisher-muted flex items-start gap-2">
-            <span className="text-red-500 mt-1">•</span> {item}
-          </li>
-        ))}
-      </ul>
+      <div className="md:col-span-2 p-3 rounded-lg bg-kingfisher-blue/5 border border-kingfisher-blue/20 text-xs text-kingfisher-surface italic">
+        <strong>Implementation:</strong> {howToUse}
+      </div>
     </div>
-    <div className="md:col-span-2 p-3 rounded-lg bg-kingfisher-blue/5 border border-kingfisher-blue/20 text-xs text-kingfisher-surface italic">
-      <strong>Implementation:</strong> {howToUse}
-    </div>
-  </div>
-);
+  );
+};
 export const MultiplayerImpact = ({ gpu, cpu, ram, vram, latency }: { gpu: string; cpu: string; ram: string; vram?: string; latency: string }) => (
   <div className={`grid grid-cols-2 ${vram ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-3 mt-4`}>
     {[
@@ -55,7 +60,7 @@ export const MultiplayerImpact = ({ gpu, cpu, ram, vram, latency }: { gpu: strin
 export const SectionCard = ({ title, icon: Icon, color = COLORS.kingfisher.blue, children, className = '' }: any) => (
   <div className={`bg-kingfisher-panel/80 border border-kingfisher-border rounded-xl p-6 shadow-md ${className}`}>
     <div className="flex items-center gap-3 mb-4">
-      {Icon && <div className="p-2 rounded-lg bg-black/20"><Icon className="w-5 h-5" style={{ color }} /></div>}
+      {Icon && <div className="p-2 rounded-lg bg-black/20"><Icon className="w-5 h-5" color={color} /></div>}
       <h3 className="font-semibold text-white text-lg tracking-wide">{title}</h3>
     </div>
     <div className="text-sm text-kingfisher-surface space-y-4 leading-relaxed">{children}</div>
@@ -107,7 +112,7 @@ export const Collapsible = ({ title, icon: Icon, color, badge, children }: any) 
         className="w-full flex items-center justify-between px-5 py-4 bg-black/30 hover:bg-black/50 transition-colors border-b border-kingfisher-border/30"
       >
         <div className="flex items-center gap-3">
-          {Icon && <Icon className="w-5 h-5" style={{ color }} />}
+          {Icon && <Icon className="w-5 h-5" color={color} />}
           <span className="text-white font-bold text-base">{title}</span>
           {badge && (
             <span className="text-[9px] font-bold uppercase tracking-widest px-2 py-0.5 rounded flex items-center justify-center bg-black/60 shadow-inner" style={{ color }}>
