@@ -420,7 +420,8 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
               ['Interactive Hyperlinked Exporter', 'Zero-canvas direct-vector PDF compilations featuring fully searchable text, clickable TOC internal page target links, and collapsible left-side tree hierarchical navigation bookmark panes.'],
               ['Asynchronous Threaded Physics', 'Decoupled physical collision, sub-stepped sweeps, and dynamic joint animations executing on safe worker threads, dropping Game Thread load by 3.8ms.'],
               ['Vulkan & DX12 PSO Cache Compilers', 'Mitigates 250ms render frame spikes during spellcasts or fast exploration by baking Pipeline State Objects during initial map loading screens.'],
-              ['MetaSound Auditory Priority Engines', 'Real-time procedural mixing pipelines that dynamically cull/mute obscured and distant mob combat SFX to recover 1.4ms of CPU audio tick thread processing.']
+              ['MetaSound Auditory Priority Engines', 'Real-time procedural mixing pipelines that dynamically cull/mute obscured and distant mob combat SFX to recover 1.4ms of CPU audio tick thread processing.'],
+              ['UObject Sandbox Null-Pointer Safety', 'Guarded the live component diagnostics and UI visualizer dashboards with robust optional chaining to handle null task contexts gracefully and prevent application runtime crashes.']
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -436,6 +437,8 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Robust Task Null-Pointer Defenses', 'Hardened <CppSchoolVisualizer> with comprehensive optional-chaining boundaries to handle empty or transitionary task states gracefully, correcting client-side runtime crashes while maintaining fluid 16.7ms layout operations.'],
+              ['Unified Interactive C++ Simulation Suite', 'Complete rewrite of the core interactive sandbox with 10 tailormade simulations mapping all 47 syllabus topics (combat mesh rigs, FName-vs-FString type memory caches, real-time GC reference sweep tracers, O(1) TMap hashing, check() crash dumps, DeltaTime frame independent movement and multicast delegates).'],
               ['Dynamic Vector Visualizer Engine', 'Integrated 4 newly designed tailored vector blueprints (electronic logic gates, array cache blocks, stack/heap dereference vectors, and reflection metadata class shapes) in searchable formats.'],
               ['C++ Regex Structural Variable Parser', 'Programmatically parses lesson files for actual variables to map them dynamically to real hex registers inside generated PDF files.'],
               ['100-Year Offline Interactive Emulator Sandbox', 'Integrated complete offline-proof 3D RPG emulator, active layout viewport, code editor, and live Hex memory address registry blocks embedded directly inside PDF formats (perfectly durable for 100 years offline!).'],
