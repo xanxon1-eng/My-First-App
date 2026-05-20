@@ -209,6 +209,27 @@ export const OPTIMIZATION_KNOWLEDGE_BASE: OptimizationTopic[] = [
     concreteMsNumber: "Saves 4.2ms of Game Thread CPU and reduces local RAM consumption by 1.2GB in open terrain."
   },
   {
+    id: "gi_caching",
+    title: "Global Dynamic GI Caching",
+    category: "Rendering & Graphics",
+    description: "Building an offline probe grid system combined with runtime irradiance caching to bypass Lumen hardware raytracing costs. This is critical for scaling an open-world RPG like The Witcher 3 or Baldur's Gate 3 down to lower-end hardware and solo dev scopes. Pros: Reclaims massive GPU budgets, enabling 60fps on mid-range hardware. Cons: Requires authoring offline light builds and sacrifices real-time dynamic time-of-day accuracy.",
+    gpuImpact: "Reduces Lumen raytracing overhead by up to -6.0ms on standard terrains.",
+    cpuImpact: "Adds minor Game Thread overhead (+0.2ms) for interpolation probe fetching loops.",
+    ramImpact: "Increases system heap by +65MB to hold static irradiance vectors.",
+    vramImpact: "Requires +120MB allocation to store baked spherical harmonic texture grids.",
+    latencyImpact: "Ensures smoother frame pacing by eliminating hardware ray traversal stalls.",
+    hasFeatures: [
+      "Lightmass static baking built-in for rigid offline environments.",
+      "Precomputed Visibility Volumes natively mapping localized static bounds."
+    ],
+    missingFeatures: [
+      "Dynamic day/night cycle integrations over pre-baked grids (custom probe blending algorithms must be authored).",
+      "Seamless blending between Lumen high-end profiles and pre-cached irradiance fallbacks."
+    ],
+    howToUse: "Bake indirect lighting onto a sparse Volumetric Lightmap using CPU Lightmass. Switch dynamic objects to sample lighting from interpolation probes at runtime rather than executing hardware raytracing.",
+    concreteMsNumber: "Restores -6.0ms GPU budget by replacing Lumen Hardware Raytracing with cached probe sampling in dense open environments."
+  },
+  {
     id: "draw_calls",
     title: "Draw Calls & Instancing",
     category: "Rendering & Graphics",
