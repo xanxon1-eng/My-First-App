@@ -46,9 +46,6 @@ const UniversalTaskVisualizer = ({ task, documents, session }: { task: any, docu
             {task.title}
           </span>
         </div>
-        <p className="text-[10px] font-mono text-zinc-400 mt-2 max-w-sm leading-relaxed px-4 py-2 bg-black/40 rounded border border-white/5 shadow-inner">
-          {task.objective || "Interactive Live Debugger Sandbox. Success criteria verified safely via Clang AST."}
-        </p>
       </div>
 
       <div className="w-full max-w-lg bg-black/60 rounded-xl border border-white/10 p-5 shadow-2xl flex flex-col relative z-10 overflow-hidden font-mono group transition-colors hover:border-emerald-500/30">
