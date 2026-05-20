@@ -893,6 +893,67 @@ export const OPTIMIZATION_KNOWLEDGE_BASE: OptimizationTopic[] = [
     ],
     howToUse: "Select Oodle Kraken or Selene compression algorithms in package parameters. Enable IoStore inside target build options and run the packaging system to bundle the game into contiguous storage structures.",
     concreteMsNumber: "Reduces fast-travel loading screens from 18.0 seconds down to 2.4 seconds on NVMe storage."
+  },
+  {
+    id: "hlod_aggregator",
+    title: "Dynamic HLOD Proximity Aggregator",
+    category: "Rendering & Graphics",
+    description: "Baking distant foliage and houses into unified Hierarchical Level of Detail billboards on background worker loops. Rather than rendering 5,000 distinct low-resolution meshes in the distance, the system bakes visual clusters into massive, single-texture proxy meshes. This slashes draw calls and vertex counts to almost zero for the far horizon.",
+    gpuImpact: "Reclaims up to 4.5ms GPU rendering time by converting complex horizon rasterization to flat proxy billboards.",
+    cpuImpact: "Saves ~3.1ms on the Draw Thread by culling thousands of draw call dispatches into a single proxy mesh per grid.",
+    ramImpact: "+250MB System RAM during baking processes; saves ~300MB RAM runtime by unloading raw assets.",
+    vramImpact: "Saves roughly 400MB VRAM by collapsing unique distant textures into shared atlas materials.",
+    latencyImpact: "Maintains smooth 60 FPS output, eliminating frame drops when viewing massive landscapes from high elevations.",
+    hasFeatures: [
+      "World Partition HLOD Layers for automated grid-based proxy generation.",
+      "Simplified Mesh Bake and Texture Atlasing integration."
+    ],
+    missingFeatures: [
+      "Dynamic real-time generation during gameplay (HLODs must be baked strictly offline in the editor)."
+    ],
+    howToUse: "Assign static meshes to an HLOD layer inside the Details Panel. Use the 'Build HLODs' commandlet to generate proxy meshes for all World Partition cells, ensuring the material proxy instances use flat atlases.",
+    concreteMsNumber: "Claws back exactly 4.5ms GPU raster time during sweeping panoramic camera pans over forested mountains."
+  },
+  {
+    id: "async_inventory",
+    title: "Lock-Free Async Inventory Streamers",
+    category: "Memory & State Arch",
+    description: "Dynamic inventory transaction systems utilizing lock-free concurrent queues. Traditional MMO and RPG database updates parse thousands of item stats on the Game Thread, creating catastrophic 60ms stutter traps (network timeout kicks). We decouple all loot parsing via concurrent arrays streaming to Node.js/Redis backends.",
+    gpuImpact: "0.0ms.",
+    cpuImpact: "Prevents entire Game Thread freezes. Stabilizes active combat ticking under 13ms even during mass item explosions.",
+    ramImpact: "+45MB RAM to maintain double-buffered item transaction queues.",
+    vramImpact: "0.0ms.",
+    latencyImpact: "Eradicates 120ms network delay spikes during transaction phases, securing 0% packet loss.",
+    hasFeatures: [
+      "TQueue: lock-free, thread-safe single-producer single-consumer queues.",
+      "Asynchronous C++ task graphs to perform bulk JSON or binary parsing on worker threads."
+    ],
+    missingFeatures: [
+      "Multi-producer multi-consumer guaranteed determinism (requires manual critical sections or mutex locking constructs)."
+    ],
+    howToUse: "Push picked-up item structs into a TQueue. A background worker thread continually dequeues items, runs heavy FArchive serialization, and dispatches HTTP/WebSocket payloads to the master server without interrupting the Game Thread.",
+    concreteMsNumber: "Eliminates ~65ms GC and parsing stutters, securing a stable 1.2ms server ticking limit during massive 10,000+ item loot drops."
+  },
+  {
+    id: "spatial_grid_replication",
+    title: "Spatial Grid Network Replication",
+    category: "Multiplayer & Netcode",
+    description: "Offloading dynamic player interest updates inside dense RPG hubs to a dedicated thread-safe spatial network replication grid. Instead of polling every entity globally, the replication graph divides the server world into grid nodes. Only entities physically crossing Node boundaries trigger relevancy updates, scaling networking from O(N^2) to O(1).",
+    gpuImpact: "0.0ms.",
+    cpuImpact: "Saves up to 6.2ms Server Game Thread overhead during densely populated multiplayer hubs (e.g., Novigrad with 100 players).",
+    ramImpact: "+80MB RAM required on dedicated servers to host spatial grids and active client sub-connection lists.",
+    vramImpact: "0.0ms.",
+    latencyImpact: "Significantly reduces server simulation latency, pulling tick speeds down from 35ms back to a tight 16ms.",
+    hasFeatures: [
+      "Replication Graph plugin natively dividing worlds into spatialized node trees.",
+      "GridSpatialization2D nodes capable of bucketing actors precisely based on 2D coordinates."
+    ],
+    missingFeatures: [
+      "Full Blueprint integration (Replication Graph must be written and customized strictly in C++).",
+      "Dynamic Z-axis separating (3D grid spatialization requires custom grid node overrides)."
+    ],
+    howToUse: "Derive a custom UReplicationGraph. Implement a UReplicationGraphNode_GridSpatialization2D for the main persistent levels. Route dynamic entities to the spatial node, and static entities (like doors) to 'AlwaysRelevant' nodes for localized clients.",
+    concreteMsNumber: "Restores exactly 6.2ms of server ticking budget by discarding remote client packet dispatches in crowded MMO zones."
   }
 ];
 

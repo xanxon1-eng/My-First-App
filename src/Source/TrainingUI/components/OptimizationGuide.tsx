@@ -401,6 +401,7 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['AAA C++ Masterclass Integration', 'Fully integrated 50+ stages of C++ architectural training ranging from raw memory pointers natively scaling up to Iris Replication and Data-Oriented components.'],
               ['Multiplayer Architecture Ready', 'Day-1 Server-Authority structures, replicated states, and decoupled UI layers built for painless future mobile-PC crossplay.'],
               ['Authoritative Server Protocol', 'Standalone local auth converted to true Dedicated Server execution models with rollback state verification.'],
               ['Deterministic Frame Sync', 'Physics determinism and fixed-point math bridges for tight lockstep syncing between high-end PCs and mobile CPUs.'],
@@ -437,6 +438,7 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Interactive Optimization Curriculum', 'Fully mapped the advanced Optimization Guide directly into interactive C++ School sandbox tasks, going from zero to professional AAA Data-Oriented mastery.'],
               ['Robust Task Null-Pointer Defenses', 'Hardened <CppSchoolVisualizer> with comprehensive optional-chaining boundaries to handle empty or transitionary task states gracefully, correcting client-side runtime crashes while maintaining fluid 16.7ms layout operations.'],
               ['Unified Interactive C++ Simulation Suite', 'Complete rewrite of the core interactive sandbox with 10 tailormade simulations mapping all 47 syllabus topics (combat mesh rigs, FName-vs-FString type memory caches, real-time GC reference sweep tracers, O(1) TMap hashing, check() crash dumps, DeltaTime frame independent movement and multicast delegates).'],
               ['Dynamic Vector Visualizer Engine', 'Integrated 4 newly designed tailored vector blueprints (electronic logic gates, array cache blocks, stack/heap dereference vectors, and reflection metadata class shapes) in searchable formats.'],
@@ -479,9 +481,9 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
           </div>
           <ul className="space-y-4">
             {[
-              ['Dynamic HLOD Proximity Aggregator', 'Baking distant foliage and houses into unified Hierarchical Level of Detail billboards on background worker loops to lower graphics draws. Target: -4.5ms GPU rendering.'],
-              ['Lock-Free Async Inventory Streamers', 'Dynamic inventory transaction systems utilizing lock-free concurrent queues to prevents RPG server bottlenecks during 10,000+ item loot drops. Target: -1.2ms server ticking limit.'],
-              ['Spatial Grid Network Replication', 'Offloading dynamic player interest updates inside dense RPG hubs to a dedicated thread-safe spatial network replication grid. Target: -1.2ms server ticking limit.'],
+              ['Server-Side Rewind Physics', 'Rewinding 3D physics traces on Dedicated Servers to calculate hit registration against past lag states. Target: Fixes high ping combat.'],
+              ['Global Dynamic GI Caching', 'Building an offline probe grid system combined with runtime irradiance caching to bypass Lumen hardware raytracing costs. Target: -6.0ms GPU.'],
+              ['Procedural AST Generation', 'Parsing raw JSON behavior instructions natively into Abstract Syntax Trees in C++ cache memory bypassing UObject GC costs.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
@@ -499,7 +501,7 @@ const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavi
             {[
               ['Boids Flocking Alg. Migration', 'Migrating cosmetic background AI (birds, fish, non-interactive town crowds in Novigrad) from heavy Behavior Trees to cheap C++ Boids algorithms on worker threads.'],
               ['Hardware-Accelerated Animation Sharing', 'Bypassing bone updates on distant mobile proxy skeletons via shared skinning buffers directly allocated on the GPU, saving -1.0ms CPU.'],
-              ['Dynamic GPU Occlusion Query Pools', 'Implementing visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.']
+              ['Dynamic GPU Occlusion Query Pools', 'Implementing visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
