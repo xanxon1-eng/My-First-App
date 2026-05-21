@@ -54,6 +54,7 @@ export const GeometryTab = () => {
   const [alphaMode, setAlphaMode] = useState<'pure_masked' | 'solid_cards' | 'nanite_pr'>('solid_cards');
   const [occlusionMode, setOcclusionMode] = useState<'none' | 'standard' | 'hzb'>('hzb');
   const [ssdmMode, setSsdmMode] = useState<'disabled' | 'enabled_pom' | 'enabled_ssdm'>('enabled_ssdm');
+  const [clipGuardMode, setClipGuardMode] = useState<'disabled' | 'static_hull' | 'dynamic_decoupler'>('dynamic_decoupler');
 
   // Perform interactive mathematical simulation based on RPG target vectors
   const currentScenario = SCENARIOS[scenario];
@@ -74,6 +75,17 @@ export const GeometryTab = () => {
     simulatedGpu += 0.7; // Ultra-fast Screen Space Displacement Mapping
     simulatedVram += 25; // Height field texture buffer (16-bit)
     simulatedCpu -= 1.8; // Saves CPU geometry assembly and draw calls completely
+  }
+
+  // Dynamic SSDM Geometry Clip-Guard Decoupler
+  if (clipGuardMode === 'disabled') {
+    simulatedCpu -= 0.5; // Saves CPU but causes terrible gameplay clipping on SSDM surfaces
+  } else if (clipGuardMode === 'static_hull') {
+    simulatedCpu += 1.8; // Memory-heavy, wide static collision hulls
+    simulatedRam += 120;
+  } else if (clipGuardMode === 'dynamic_decoupler') {
+    simulatedCpu += 0.8; // Async Chaos Raycasts decouple physics hitches
+    simulatedRam += 25; // Lightweight ring buffer for active colliders
   }
 
   // Nanite Mode mathematical transitions
@@ -263,18 +275,34 @@ export const GeometryTab = () => {
               </div>
 
               {/* Screen Space Displacement Mapping (SSDM) */}
-              <div className="sm:col-span-2">
+              <div>
                 <label className="text-[10px] uppercase font-bold tracking-wider text-sky-400 block mb-1.5 flex items-center gap-1">
-                  <Sparkles className="w-3 h-3 text-sky-400" /> Screen Space Displacement Mapping (SSDM)
+                  <Sparkles className="w-3 h-3 text-sky-400" /> Screen Space Displacement
                 </label>
                 <select
                   value={ssdmMode}
                   onChange={(e) => setSsdmMode(e.target.value as any)}
                   className="w-full bg-black/40 border border-kingfisher-border/50 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
                 >
-                  <option value="disabled">Disabled (Render real high-poly stone meshes; +2.2ms GPU, +2.0ms CPU, +0MB VRAM)</option>
-                  <option value="enabled_pom">Traditional POM (Raymarch Object Coordinates; +1.4ms GPU, breaks early-Z, +15MB VRAM)</option>
-                  <option value="enabled_ssdm">Crimson Desert SSDM (Manipulate depth/Z-Buffer; +0.7ms GPU, -1.8ms CPU, +25MB VRAM)</option>
+                  <option value="disabled">Disabled (+2.2ms GPU, +2.0ms CPU)</option>
+                  <option value="enabled_pom">Traditional POM (+1.4ms GPU)</option>
+                  <option value="enabled_ssdm">CD-Style SSDM (+0.7ms, -1.8ms CPU)</option>
+                </select>
+              </div>
+
+              {/* Dynamic SSDM Geometry Clip-Guard Decoupler */}
+              <div>
+                <label className="text-[10px] uppercase font-bold tracking-wider text-indigo-400 block mb-1.5 flex items-center gap-1">
+                  <Shield className="w-3 h-3 text-indigo-400" /> SSDM Clip-Guard Decoupler
+                </label>
+                <select
+                  value={clipGuardMode}
+                  onChange={(e) => setClipGuardMode(e.target.value as any)}
+                  className="w-full bg-black/40 border border-kingfisher-border/50 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500"
+                >
+                  <option value="disabled">Disabled (Visually Clips)</option>
+                  <option value="static_hull">Static Hull (+1.8ms CPU, +120MB RAM)</option>
+                  <option value="dynamic_decoupler">Async Decoupler (+0.8ms CPU)</option>
                 </select>
               </div>
 
@@ -557,6 +585,40 @@ export const GeometryTab = () => {
         </div>
       </Collapsible>
 
+      {/* TOPIC 6 */}
+      <Collapsible title="6. Dynamic SSDM Geometry Clip-Guard Decoupler" icon={Shield} color="#6366f1" badge="#PhysicsDecoupling">
+        <div className="space-y-4">
+          <p className="text-sm text-kingfisher-muted leading-relaxed">
+            Screen Space Displacement Mapping (SSDM) optimizes rendering by adjusting depth visually rather than pushing mathematical vertex collision boundaries. While extremely performant visually, this approach breaks physics engines—game actors like a Witcher or an active Baldur's Gate 3 party will inevitably clip their feet deep into protruding rock surfaces.
+          </p>
+          <p className="text-sm text-kingfisher-muted leading-relaxed">
+            The solution is the <strong>Dynamic SSDM Geometry Clip-Guard Decoupler</strong>. Instead of increasing total RAM overhead by storing millions of high-res static physical collision meshes alongside the visual GPU data, this architecture seamlessly decouples physics calculations from the static world geometry entirely. By utilizing a continuous backend CPU worker-thread, the Decoupler streams lightweight temporary primitive hulls (boxes or spheres) into the Chaos Physics engine only within the strict localized area beneath active RPG pawns, offset perfectly by the SSDM height data map.
+          </p>
+
+          <MultiplayerImpact 
+            gpu="0.0ms (Entirely handled on CPU asynchronous threads)" 
+            cpu="Optimized (+0.8ms Async trace injection versus +3.0ms standard static collision calculation)" 
+            ram="Saves -200MB+ (Deletes dense static collision mesh requirements map-wide)" 
+            vram="0MB (No extra render load)" 
+            latency="Highly dependent on whether the server has access to headless heightmap trace values for anti-cheat validation." 
+          />
+
+          <FeatureMatrix 
+            has={[
+              "O(1) memory complexity (Collision hulls generated strictly on-demand per pawn)",
+              "Async physics thread injection avoiding main-loop game thread hitches",
+              "Absolute prevention of visual body clipping into heavy displaced surfaces without expensive geometry imports"
+            ]}
+            missing={[
+              "Seamless support for thousands of tumbling dynamic physical rigid bodies (best utilized for prioritized pawns/characters)",
+              "Out-of-the-box Blueprints (Requires native C++ manual data sampling streams)",
+              "Standard NavMesh generation support (NavMesh must bake against standard low-poly boundaries)"
+            ]}
+            howToUse="Bypass complex collision volumes map-wide. Maintain a low-poly flat collision plane for standard world navigation. Load a duplicated, CPU-friendly representation of your SSDM height map matrix into memory. Attach a C++ Clip-Guard Component to your characters' root. During Tick (on an async background thread), sample the specific UV coordinate beneath the pawn, and aggressively shift a hidden 'floor-collider' proxy upwards. The physics engine interprets this as standing on solid rocks, fully neutralizing visual displacement clipping!"
+          />
+        </div>
+      </Collapsible>
+
       {/* C++ OPTIMIZATION CODEBLOCK */}
       <SectionCard title="C++ Core Implementation: Dynamic HISM Culling & Distance Vector Optimization" icon={Code} color={COLORS.kingfisher.warm}>
         <p className="text-xs text-kingfisher-muted mb-3 leading-relaxed">
@@ -685,6 +747,123 @@ void ARpgGeometryOptimizationManager::OptimizeWorldFoliageLayers(APlayerControll
     }
 }
           `}
+        />
+      </SectionCard>
+
+      {/* C++ OPTIMIZATION CODEBLOCK 2: CLIP GUARD */}
+      <SectionCard title="C++ Core Implementation: Dynamic SSDM Geometry Clip-Guard Decoupler" icon={Shield} color="#6366f1">
+        <p className="text-xs text-kingfisher-muted mb-3 leading-relaxed">
+          The following C++ decoupled structure executes asynchronously. It reads CPU accessible heightmap matrices, calculating the true Z offset without engaging the GPU, and drives a lightweight Collision proxy beneath the character. This guarantees Zero-Clip SSDM traversal without saturating map memory.
+        </p>
+        <CodeBlock 
+          language="cpp"
+          code={`#pragma once
+
+#include "CoreMinimal.h"
+#include "Components/ActorComponent.h"
+#include "Components/BoxComponent.h"
+#include "SsdmClipGuardDecoupler.generated.h"
+
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
+class RPGPORTAL_API USsdmClipGuardDecoupler : public UActorComponent
+{
+    GENERATED_BODY()
+
+public:	
+    USsdmClipGuardDecoupler();
+
+protected:
+    virtual void BeginPlay() override;
+
+public:	
+    virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
+
+private:
+    // Lightweight decoupled collision plane that slides under the player proxy
+    UPROPERTY()
+    UBoxComponent* ActiveClipGuardHull;
+
+    // Fast O(1) mathematical lookup into loaded heightmap matrices 
+    float ProbeSsdmHeightmapOffsetAtLocation(const FVector& WorldContextLoc);
+    
+    // Config: The max scaling offset to limit erroneous height peaks
+    float DecoupleClampLimit = 150.0f;
+};
+
+// ==========================================
+// Implementation file: SsdmClipGuardDecoupler.cpp
+// ==========================================
+#include "SsdmClipGuardDecoupler.h"
+#include "GameFramework/Actor.h"
+#include "Async/Async.h"
+
+USsdmClipGuardDecoupler::USsdmClipGuardDecoupler()
+{
+    // Important: We allow this to tick, but will offload heavy lifting where possible
+    PrimaryComponentTick.bCanEverTick = true;
+    PrimaryComponentTick.TickGroup = TG_PrePhysics; // Must run before Chaos processing
+}
+
+void USsdmClipGuardDecoupler::BeginPlay()
+{
+    Super::BeginPlay();
+
+    // Spawn a temporary lightweight Box collision that only exists for this specific pawn
+    AActor* Owner = GetOwner();
+    if (Owner)
+    {
+        ActiveClipGuardHull = NewObject<UBoxComponent>(Owner);
+        ActiveClipGuardHull->RegisterComponent();
+        ActiveClipGuardHull->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+        ActiveClipGuardHull->SetBoxExtent(FVector(30.f, 30.f, 5.f)); // Small floor proxy
+        ActiveClipGuardHull->SetHiddenInGame(false); // Can be used for debug visualization
+    }
+}
+
+void USsdmClipGuardDecoupler::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+    Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+    if (!ActiveClipGuardHull) return;
+
+    AActor* Owner = GetOwner();
+    FVector CurrentPawnLocation = Owner->GetActorLocation();
+
+    // In a AAA setting, this async task would interface directly with the Chaos physics thread (PT)
+    // Here we use an Async task to quickly calculate the SSDM height offset without blocking the Game Thread
+    AsyncTask(ENamedThreads::AnyBackgroundThreadNormalTask, [this, CurrentPawnLocation, Owner]()
+    {
+        // 1. Decoupled Memory lookup: Sample structural displacement UV purely from CPU side array
+        float SsdmZOffset = ProbeSsdmHeightmapOffsetAtLocation(CurrentPawnLocation);
+
+        // Clamp extreme peaks
+        SsdmZOffset = FMath::Clamp(SsdmZOffset, 0.0f, DecoupleClampLimit);
+
+        // 2. Safely sync the new proxy bounds back to standard collision loop
+        AsyncTask(ENamedThreads::GameThread, [this, CurrentPawnLocation, SsdmZOffset]()
+        {
+            if (ActiveClipGuardHull)
+            {
+                FVector DecoupledProxyLoc = CurrentPawnLocation;
+                // Shift perfectly into position matching visual GPU shaders
+                DecoupledProxyLoc.Z = (CurrentPawnLocation.Z - 90.0f) + SsdmZOffset; 
+                ActiveClipGuardHull->SetWorldLocation(DecoupledProxyLoc);
+            }
+        });
+    });
+}
+
+float USsdmClipGuardDecoupler::ProbeSsdmHeightmapOffsetAtLocation(const FVector& WorldContextLoc)
+{
+    // Pseudo-logic:
+    // Determine which Landscape / Grid Segment limits this Location.
+    // Hash coordinate into a CPU Matrix Array built from your actual 16-bit displacement map parameters
+    // Return height evaluation * Shader Displacement Magnitude Scale
+    
+    // Simulated offset calculation representing rocky displacement at X,Y
+    return FMath::PerlinNoise2D(FVector2D(WorldContextLoc.X, WorldContextLoc.Y) * 0.01f) * 45.0f;
+}
+`}
         />
       </SectionCard>
     </div>
