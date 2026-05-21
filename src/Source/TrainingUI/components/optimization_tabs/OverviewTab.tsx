@@ -41,6 +41,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Geometry Tab Expansion: SSDM Implementation', 'Detailed precisely how Screen Space Displacement Mapping works relative to Nanite. Included bandwidth impacts (-250MB VRAM, -1.5ms GPU), the flipped importance of height vs albedo textures, and specific Unreal Engine integration limitations regarding collision offsets.'],
+              ['Screen Space Displacement Mapping (SSDM) & Custom G-Buffer Depth Offsets', 'Ray-marches 16-bit heightfields in screen-space within shader passes to offset G-Buffer depth coordinates directly. Achieves extreme high-poly masonry depth on cheap flat planks, completely eliminating the Nanite virtual cluster stream pool VRAM buffer footprint (~250MB saved) and zeroing out Game Thread culling CPU load entirely, while detailing real-world smoking guns like physical dynamic weapon collision clipping and steep grazing view-angle distortion.'],
               ['Custom C++ School Individual Diagnostics Engine', 'Highly granular, handcrafted telemetry mapping exact CPU, GPU, RAM, VRAM, and ping metrics individually for all 47+ C++ lesson tasks, inspired by technical constraints of The Witcher 3, PoE, and Baldur\'s Gate 3.'],
               ['Stochastic MegaLights Direct Lighting Engine', 'Stochastically samples point and spot lighting budgets per-pixel to handle over 100+ dynamic spell light sources concurrently without vertex stall, reclaiming ~4.2ms GPU frame constraints.'],
               ['Direct-Mesh Radiance Cascades (Real-time diffuse GI)', 'Camera-targeted sparse 3D GPU irradiance hash grids that replace heavy Lumen ray-trace calculations with constant-time GI updates, saving up to -6.5ms GPU overhead in dense environments.'],
@@ -102,6 +104,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Geometry Tab Expansion: SSDM Implementation', 'Detailed precisely how Screen Space Displacement Mapping works relative to Nanite. Included bandwidth impacts (-250MB VRAM, -1.5ms GPU), the flipped importance of height vs albedo textures, and specific Unreal Engine integration limitations regarding collision offsets.'],
+              ['Crimson Desert-inspired Screen Space Displacement Mapping (SSDM)', 'Comprehensive guide and math-driven simulator modeling 16-bit G-Buffer pixel depth offsets in screen space. Bypasses Nanite streaming pool VRAM requirements entirely while detailing the hardware metrics, UE functional gaps, and weapon clipping mitigations.'],
               ['Custom C++ School Individual Diagnostics Engine', 'A robust lookup registry in C++ School, providing custom-fit CPU, GPU, RAM, VRAM, and ping metrics for all 47 lesson tasks individually. Deep-dives on specific UE structures and custom code limits.'],
               ['Stochastic MegaLights Direct Lighting Solver', 'Stochastically samples point and spot lighting budgets per-pixel to handle over 100+ dynamic spell light sources concurrently without vertex stall, reclaiming ~4.2ms GPU frame constraints.'],
               ['Direct-Mesh Radiance Cascades (Real-time diffuse GI)', 'Camera-targeted sparse 3D GPU irradiance hash grids that replace heavy Lumen ray-trace calculations with constant-time GI updates, saving up to -6.5ms GPU overhead.'],
@@ -326,6 +330,12 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
                   'State controllers grouping runtime combat structures into unified C++ clusters (FGCCluster) to bypass deep, nested object tree checks during sweeps.',
                   'CPU: Halts recurring 12ms GC main-thread hitches | GPU: 0ms | RAM: +18MB overhead | VRAM: Saves -80MB (speeds dynamic mesh releasing) | Latency: Keeps server loop sub-16.7ms during active combat.',
                   'UE Support: Unreal provides gc.CreateGCClusters for blueprint components, but lacks custom runtime USTRUCT grouping thresholds for modular actor segments. To use, wrap auxiliary combat buffers in custom pointer arrays and enforce manual asset pruning on event-driven state transitions.'
+                ],
+                [
+                  'Dynamic SSDM Geometry Clip-Guard Decoupler',
+                  'A dynamic collision capsule controller and stencil mask processor that runs active player sweeps on flat Screen Space Displacement walls. Detects dynamic skeletal mesh overlaps (like sword slices or feet) and slides character transforms slightly off simulated depths to stop physical weapons from clipping inside flat visual structures.',
+                  'CPU: +0.2ms Game Thread sweep tracking | GPU: +0.1ms stencil mask filter checks | RAM: +1MB tracking buffers | VRAM: Reclaims -350MB compared to modeling physical 3D masonry details | Latency: 0ms',
+                  'UE Support: Unreal possesses no dynamic clip-guards or auto-colliders inside Material Editors to adjust dynamic collision limits around Pixel Depth Offset (PDO) shaders. Programmers must enforce collision sweep capsules in custom locomotions, overriding PDO distances beyond close ranges to match the physical plane.'
                 ]
               ].map(([title, desc, budget, ueSupport]) => (
                 <li key={title} className="p-3 bg-black/10 rounded-xl border border-amber-500/10 hover:border-amber-500/25 transition-all text-xs">
@@ -352,6 +362,12 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
             </div>
             <ul className="space-y-5">
               {[
+                [
+                  'Screen Space Grazing Angle Jitter Mitigation',
+                  'Dynamic ray-step scaler for Screen Space Displacement. When the camera view vector approaches near perpendicular grazing angles, the shader gracefully fades the displacement height to prevent pixel wobble and temporal artifacts.',
+                  'CPU: 0ms | GPU: +0.3ms (Additional dot product checks in the pixel shader) | RAM: 0MB | VRAM: 0MB | Latency: 0ms',
+                  'UE Support: Unreal Engine\'s Pixel Depth Offset (PDO) lacks an automatic grazing angle falloff function out of the box. Developers must write custom dot product nodes within the material graph comparing CameraVector vs VertexNormal to aggressively fade height intensity at steep angles.'
+                ],
                 [
                   'Neon-Accelerated Character Locomotion Solver',
                   'Register-level mathematical character transformations compiled directly on ARM-compatible processors to bypass expensive blueprint execution nodes.',

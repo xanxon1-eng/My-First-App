@@ -1075,6 +1075,29 @@ export const OPTIMIZATION_KNOWLEDGE_BASE: OptimizationTopic[] = [
     ],
     howToUse: "Enable r.HZBOcclusion=1 in device configurations. Create custom visual meshes inside bounding-box structures. Dispatch visibility queries asynchronously, utilizing dual-buffered results to update actor visibility states in the next frame to prevent stall pipelines.",
     concreteMsNumber: "-1.8ms GPU savings in graphic-heavy swamp environments with dense complex overlapping trees."
+  },
+  {
+    id: "ssdm",
+    title: "Screen Space Displacement Mapping (SSDM)",
+    category: "Rendering & Graphics",
+    description: "High-performance depth offset workflow that ray-marches 16-bit heightfields in screen-space to offset pixel depth values directly inside the G-Buffer. Replaces heavy virtualized Nanite clusters or high-poly meshes, giving Crimson Desert (March 19, 2026) spectacular masonry relief depth on flat cheap planks without vertex or streaming-pool overhead. However, it lacks real 3D geometry vertices, meaning dynamic actors and swords can clip inside details (e.g. standard clipping 'smoking gun'), and viewing at steep grazing angles introduces wobble.",
+    gpuImpact: "Adds minor +0.7ms base pass cost for raymarching depth loops while saving up to -3.0ms across vertex pipeline units.",
+    cpuImpact: "0.0ms CPU Game Thread ticking overhead (processed asynchronously on GPU compute units). Saves -1.8ms CPU culling and geometry assembly load.",
+    ramImpact: "Saves over -180MB System RAM by keeping heavy detail coordinates out of standard memory heaps.",
+    vramImpact: "Requires +25MB for 16-bit Heightfield textures. Reclaims over 250MB+ VRAM compared to Nanite's streaming cache blocks.",
+    latencyImpact: "0ms direct network or processing latency. Executed per-client at viewport rendering level.",
+    hasFeatures: [
+      "Screen-space pixel-depth offsets (PDO) to reconstruct three-dimensional depth and shadow alignment.",
+      "High-frequency micro-shadowing and light self-occlusion filters based exclusively on high-resolution heightmaps.",
+      "Substantial geometric data footprint reduction, dropping mesh loading constraints to zero."
+    ],
+    missingFeatures: [
+      "Native out-of-the-box global Screen Space Displacement (SSDM) re-projection parameters within standard engine materials.",
+      "Collision clip-guard capsule constraints or stencil clip buffers to lock weapons and feet out of visual offset depths.",
+      "Dynamic grazing angles scale adjustments to auto-suppress vertex-texture stretching when looking parallel to surface flatlands."
+    ],
+    howToUse: "Create a custom Material Custom node in HLSL to perform screen-space raymarching over 16-bit heightmaps. Integrate a lightweight collision overlay box around the flat surface to slide sword sweeps and player traces slightly off the wall, preventing visual clipping, and caking depth write outputs beyond 15 meters to restore Early-Z culling performance.",
+    concreteMsNumber: "Saves up to -3.0ms overall vertex GPU rendering and 250MB+ streaming VRAM vs standard geometric clusters."
   }
 ];
 

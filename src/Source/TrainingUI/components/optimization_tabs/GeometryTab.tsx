@@ -53,6 +53,7 @@ export const GeometryTab = () => {
   const [wpoMode, setWpoMode] = useState<'global' | 'cull_45m' | 'disabled'>('cull_45m');
   const [alphaMode, setAlphaMode] = useState<'pure_masked' | 'solid_cards' | 'nanite_pr'>('solid_cards');
   const [occlusionMode, setOcclusionMode] = useState<'none' | 'standard' | 'hzb'>('hzb');
+  const [ssdmMode, setSsdmMode] = useState<'disabled' | 'enabled_pom' | 'enabled_ssdm'>('enabled_ssdm');
 
   // Perform interactive mathematical simulation based on RPG target vectors
   const currentScenario = SCENARIOS[scenario];
@@ -61,6 +62,19 @@ export const GeometryTab = () => {
   let simulatedVram = currentScenario.baseVram;
   let simulatedRam = currentScenario.baseRam;
   let simulatedPing = currentScenario.basePing;
+
+  // Screen Space Displacement Mapping (SSDM) vs POM impact
+  if (ssdmMode === 'disabled') {
+    simulatedGpu += 2.2; // Extra vertex workload and draw calls of high-poly masonry structures (alternative)
+    simulatedCpu += 2.0; // CPU culling and LOD setup for detailed models
+  } else if (ssdmMode === 'enabled_pom') {
+    simulatedGpu += 1.4; // High instruction cost of Parallax Occlusion Mapping, breaks early-Z
+    simulatedVram += 15; // Low VRAM for 8-bit heightmap
+  } else if (ssdmMode === 'enabled_ssdm') {
+    simulatedGpu += 0.7; // Ultra-fast Screen Space Displacement Mapping
+    simulatedVram += 25; // Height field texture buffer (16-bit)
+    simulatedCpu -= 1.8; // Saves CPU geometry assembly and draw calls completely
+  }
 
   // Nanite Mode mathematical transitions
   if (naniteMode === 'disabled') {
@@ -245,6 +259,22 @@ export const GeometryTab = () => {
                   <option value="none">Frustum Culling Only (Disabled)</option>
                   <option value="standard">Standard Frame-Wait Query</option>
                   <option value="hzb">Hierarchical Z-Buffer (HZB)</option>
+                </select>
+              </div>
+
+              {/* Screen Space Displacement Mapping (SSDM) */}
+              <div className="sm:col-span-2">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-sky-400 block mb-1.5 flex items-center gap-1">
+                  <Sparkles className="w-3 h-3 text-sky-400" /> Screen Space Displacement Mapping (SSDM)
+                </label>
+                <select
+                  value={ssdmMode}
+                  onChange={(e) => setSsdmMode(e.target.value as any)}
+                  className="w-full bg-black/40 border border-kingfisher-border/50 rounded-lg p-2 text-xs font-mono text-white focus:outline-none focus:border-sky-500"
+                >
+                  <option value="disabled">Disabled (Render real high-poly stone meshes; +2.2ms GPU, +2.0ms CPU, +0MB VRAM)</option>
+                  <option value="enabled_pom">Traditional POM (Raymarch Object Coordinates; +1.4ms GPU, breaks early-Z, +15MB VRAM)</option>
+                  <option value="enabled_ssdm">Crimson Desert SSDM (Manipulate depth/Z-Buffer; +0.7ms GPU, -1.8ms CPU, +25MB VRAM)</option>
                 </select>
               </div>
 
@@ -487,6 +517,42 @@ export const GeometryTab = () => {
               "Dynamic volumetric culling structures based on dynamic level streaming zones"
             ]}
             howToUse="Configure your console variables to activate `r.HZBOcclusion=1` and `r.Nanite.Occlusion=2`. Group marketplace items inside instanced grid volumes to let HZB async compute units process coordinate queries entirely on the GPU."
+          />
+        </div>
+      </Collapsible>
+
+      {/* TOPIC 5 */}
+      <Collapsible title="5. Screen Space Displacement Mapping (SSDM) & Custom G-Buffer Pixel Offsets" icon={Sparkles} color="#38bdf8" badge="#ScreenSpaceDepth">
+        <div className="space-y-4">
+          <p className="text-sm text-kingfisher-muted leading-relaxed">
+            While Nanite streams virtual clusters to render detail, it introduces heavy disk read bandwidth overhead and crams streaming pools. Crimson Desert (March 19, 2026 release) bypassed this by utilizing <strong>Screen Space Displacement Mapping (SSDM)</strong>. This technique ray-marches 16-bit high-frequency heightfields within screen space to offset pixel depths inside the G-Buffer directly. High-precision retaining walls and stone crevices look like high-poly masonry, while in the modeling suite the mesh is simply a flat, cheap plank.
+          </p>
+
+          <p className="text-xs text-amber-400 bg-amber-950/20 border border-amber-900/40 p-3 rounded-lg leading-relaxed">
+            <AlertTriangle className="w-4 h-4 text-amber-500 inline mr-1.5 align-middle shrink-0" />
+            <strong>The SSDM Gamedev Smoking Gun:</strong> Because the depth displacement occurs entirely as a pixel shader visual calculation and does <em>not represent real 3D vertex geometry</em>, physical entities like swords, player feet, or projectile arrows will visually clip through protruding stone rocks. This clipping, along with wobble/distortion at extreme grazing angles, is the absolute identifier of Screen Space Logic.
+          </p>
+
+          <MultiplayerImpact 
+            gpu="Peak Shader Cost (+0.7ms Base Pass, Z-Buffer raymarching) for massive vertex savings (-3.0ms)" 
+            cpu="0.0ms Game Thread Cost (Calculated fully on GPU compute units)" 
+            ram="Saves -180MB RAM (Removes heavy high-poly mesh coordinates from system memory)" 
+            vram="+25MB active texture footprint for 16-bit Heightmaps (Saves 250MB+ vs Nanite pool streaming)" 
+            latency="0ms (Processed per-client at local viewport level; safe for multiplayer ping syncs)" 
+          />
+
+          <FeatureMatrix 
+            has={[
+              "Pixel-level micro-shadowing and self-occlusions mapping driven by 16-bit heightfield channels",
+              "Unbelievable geometric virtual visual rendering on flat plank base polygons",
+              "Massive VRAM and CPU stream-cache bandwidth savings compared to Nanite vertex pools"
+            ]}
+            missing={[
+              "Native Unreal Engine out-of-the-box global Screen Space Displacement (SSDM) base pass re-projections",
+              "Clip-guards and stencil collision limits to prevent physical dynamic weapons and actors from slipping inside the simulated depth offset",
+              "Wobble and pixel-swimming mitigation algorithms at steep grazing view angles"
+            ]}
+            howToUse="Create a custom HLSL screen space ray-marshaller within the Material Custom Node. At close distances, write the ray-marching depth offsets to Pixel Depth Offset (PDO) to support correct shadow projection. To resolve weapon clipping, construct lightweight collision capsules offset slightly around flat planks to slide actor physics and traces smoothly."
           />
         </div>
       </Collapsible>

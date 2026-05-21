@@ -5102,6 +5102,121 @@
                 ]
               }
             ]
+          },
+          {
+            "type": "SectionCard",
+            "props": {
+              "title": "Screen Space Displacement (Crimson Desert SSDM)",
+              "icon": "Layers",
+              "color": "COLORS.status.success",
+              "className": "md:col-span-2"
+            },
+            "children": [
+              {
+                "type": "p",
+                "props": {
+                  "className": "text-sm text-kingfisher-muted mb-3"
+                },
+                "children": [
+                  {
+                    "type": "text",
+                    "value": "An alternative to Nanite and Parallax Occlusion Mapping (POM). Instead of brute-forcing dense polygons, SSDM ray-marches 16-bit heightfields in the pixel shader to manually rewrite depth inside the Z-buffer. This simulates steep silhouettes, deep crevices, and realistic self-shadowing on standard flat geometry planks."
+                  }
+                ]
+              },
+              {
+                "type": "ul",
+                "props": {
+                  "className": "list-disc pl-5 space-y-2 text-sm text-kingfisher-muted"
+                },
+                "children": [
+                  {
+                    "type": "li",
+                    "props": {},
+                    "children": [
+                      {
+                        "type": "strong",
+                        "props": {
+                          "className": "text-amber-400"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Bandwidth Winner vs Nanite:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " Storing a 1,000 polygon mid-poly wall alongside a 1k height map is substantially cheaper for GPU streaming pools than Nanite's million-polygon micro-clusters. It preserves massive draw distances without CPU mesh overload."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "props": {},
+                    "children": [
+                      {
+                        "type": "strong",
+                        "props": {
+                          "className": "text-amber-400"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "Resource Management (Albedo vs Height):"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " The relationship is flipped. Albedo is essentially a flat color wash. The height map does the heavy lifting, providing 3D coordinates for crevice occlusion. Without the Z-buffer depth offset, the textures look muddy and washed out. Focus your Substance Designer time strictly on perfecting deep stone peaks rather than the base colors."
+                      }
+                    ]
+                  },
+                  {
+                    "type": "li",
+                    "props": {},
+                    "children": [
+                      {
+                        "type": "strong",
+                        "props": {
+                          "className": "text-amber-400"
+                        },
+                        "children": [
+                          {
+                            "type": "text",
+                            "value": "The Smoking Gun Flaw:"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "text",
+                        "value": " It's a screen space illusion. Physical sweeps (like swords) will clip straight through the displaced volume because the rocks technically do not exist in the physical space. Extreme grazing camera angles also induce heavy visual jitter and wobble as the shader struggles to recalculate pixel offsets in real-time."
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "MultiplayerImpact",
+                "props": {
+                  "gpu": "-1.5ms (Conserves massive vertex processing budgets over Nanite clustering arrays)",
+                  "cpu": "0.0ms (No Game Thread culling overhead required)",
+                  "ram": "0MB",
+                  "vram": "-250MB (Eliminates giant Nanite VRAM pool streaming requirements, trading them for cheap 2D textures)",
+                  "latency": "0ms"
+                }
+              },
+              {
+                "type": "FeatureMatrix",
+                "props": {
+                  "has": "[\n            \"Pixel Depth Offset (PDO) shader configurations\",\n            \"Bump Offset material expressions\",\n            \"Silhouette clipping algorithms\"\n          ]",
+                  "missing": "[\n            \"Collision-Aware pixel depth synchronization (Requires a custom weapon-clip decoupler in C++ to halt swords clipping)\",\n            \"Native artifact-free grazing angles (The wobble at steep angles is mathematically inherent unless ray steps are exploded)\"\n          ]",
+                  "howToUse": "To implement: Do not model unique 50m masonry walls. Rely on clean, modular mid-poly silhouettes for structural edges. Feed high-quality height maps into Pixel Depth Offset nodes to let the shader dictate 3D light occlusion coordinates rather than pure geometry. Use this for retaining walls, paving roads, and tiled environments."
+                }
+              }
+            ]
           }
         ]
       }
