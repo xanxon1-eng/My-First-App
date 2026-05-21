@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -69,6 +69,7 @@ const TAB_GROUPS = [
     title: 'Status & Overview',
     tabs: [
       { id: 'overview',         label: 'Implementation Status',    icon: ClipboardList },
+      { id: 'aspect_overlaps',  label: 'Aspect Overlaps Analysis', icon: Shuffle },
       { id: 'project_appl',     label: 'RPG Goal Application',     icon: Sword },
     ]
   },
@@ -156,6 +157,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
 
   const renderContent = () => {
     if (activeTab === 'overview') return <OverviewTab onNavigate={setActiveTab} />;
+    if (activeTab === 'aspect_overlaps') return <AspectOverlapsTab />;
     if (activeTab === 'project_appl') return <ProjectApplicationTab />;
     if (activeTab === 'lighting') return <LightingTab />;
     if (activeTab === 'aaa_profiling') return <AAAQualityProfilingTab />;

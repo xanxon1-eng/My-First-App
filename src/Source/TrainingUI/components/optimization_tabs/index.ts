@@ -3,3 +3,4 @@ export * from './ProjectApplicationTab';
 export * from './LightingTab';
 export * from './AAAQualityProfilingTab';
 export * from './ModifierSandboxTab';
+export * from './AspectOverlapsTab';
