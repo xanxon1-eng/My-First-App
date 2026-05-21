@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -125,6 +125,7 @@ const TAB_GROUPS = [
       { id: 'collision',        label: 'Collision & Traces',       icon: Crosshair },
       { id: 'occlusion',        label: 'Occlusion & Visibility',   icon: Eye },
       { id: 'boids_flocking',   label: 'Boids Flocking AI bg',     icon: Trees },
+      { id: 'ai_path_grid_slicers', label: 'Procedural Path-Grid Slicers', icon: Grid },
       { id: 'npc',              label: 'World AI Simulation',      icon: Network },
       { id: 'animation_audio',  label: 'Animation & Audio',        icon: Music },
       { id: 'ui_umg',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
@@ -186,6 +187,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'lighting') return <LightingTab />;
     if (activeTab === 'aaa_profiling') return <AAAQualityProfilingTab />;
     if (activeTab === 'modifier_sandbox') return <ModifierSandboxTab />;
+    if (activeTab === 'ai_path_grid_slicers') return <AIPathGridSlicersTab />;
     
     const componentName = TAB_TO_COMPONENT_NAME[activeTab];
     if (componentName) {

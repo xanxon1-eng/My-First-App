@@ -863,28 +863,41 @@ export function CppSchoolVisualizer() {
 
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
                     {/* RAM Register UI */}
-                    <div className="border border-white/5 p-2 bg-black/40 rounded-lg overflow-y-auto max-h-48">
-                      <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-2 font-mono font-bold">Physical RAM Cells (0x00A1F0...)</div>
+                    <div className="border border-white/5 p-2 bg-black/40 rounded-lg overflow-y-auto max-h-48 relative">
+                      <div className="text-[9px] uppercase tracking-wider text-zinc-500 mb-2 font-mono font-bold flex justify-between">
+                         <span>Physical RAM Cells (0x00A1F0...)</span>
+                         <span className="text-purple-400">Read Latency: ~100ns (Cache Miss)</span>
+                      </div>
                       <div className="space-y-1 font-mono text-[10px]">
+                        <AnimatePresence>
                         {memoryCells.map((cell, idx) => (
-                          <div
-                            key={idx}
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ duration: 0.3, delay: idx * 0.05 }}
+                            key={cell.addr}
                             onMouseEnter={() => setHoveredCell(idx)}
                             onMouseLeave={() => setHoveredCell(null)}
-                            className={`flex justify-between p-1.5 rounded transition-colors ${
+                            className={`flex justify-between p-1.5 rounded transition-colors relative overflow-hidden ${
                               hoveredCell === idx ? 'bg-white/10' : 'bg-white/5'
                             } ${cell.isProtected ? 'border-l-2 border-emerald-500' : 'border-l-2 border-red-500'}`}
                           >
-                            <div className="flex gap-1.5">
+                            <div className="flex gap-1.5 z-10">
                               <span className="text-zinc-500 text-[8px]">{cell.addr}</span>
                               <span className="text-sky-300 font-bold">{cell.name}</span>
                               <span className="text-[8px] text-zinc-600">({cell.type})</span>
                             </div>
-                            <span className={`font-bold ${cell.value.includes('DANGLING') ? 'text-red-400' : 'text-emerald-400'}`}>
+                            <span className={`font-bold z-10 ${cell.value.includes('DANGLING') ? 'text-red-400 animate-pulse' : 'text-emerald-400'}`}>
                               {cell.value}
                             </span>
-                          </div>
+                            {cell.value.includes('DANGLING') && (
+                               <div className="absolute inset-0 bg-red-500/10 animate-pulse pointer-events-none" />
+                            )}
+                          </motion.div>
                         ))}
+                        </AnimatePresence>
                       </div>
                     </div>
 
@@ -944,7 +957,12 @@ export function CppSchoolVisualizer() {
 
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4 my-2">
                     {/* TMap Bucket list */}
-                    <div className="border border-white/5 p-2 bg-black/40 rounded-lg flex flex-col justify-between">
+                    <div className="border border-white/5 p-2 bg-black/40 rounded-lg flex flex-col justify-between relative overflow-hidden">
+                      <div className="absolute top-0 right-0 p-2 text-[8px] text-violet-400 font-mono opacity-50 text-right">
+                         <div>CPU TMap Lookup: ~0.002ms</div>
+                         <div>CPU TArray Scan: ~1.2ms</div>
+                         <div>O(1) Hash Map</div>
+                      </div>
                       <div>
                         <div className="text-[9px] font-mono text-zinc-500 uppercase font-bold mb-2">Hash Space Register (Buckets [0-3])</div>
                         <div className="grid grid-cols-2 gap-2 text-[10px] font-mono">
@@ -952,28 +970,38 @@ export function CppSchoolVisualizer() {
                             const entriesInBucket = tmapEntries.filter(e => e.bucket === i);
                             const isHl = tmapSearchingBucket === i;
                             return (
-                              <div
+                              <motion.div
+                                layout
                                 key={i}
-                                className={`p-2 rounded border transition-all ${
+                                className={`p-2 rounded border transition-all relative overflow-hidden ${
                                   isHl 
-                                    ? 'bg-rose-950/40 border-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.3)] animate-pulse' 
+                                    ? 'bg-rose-950/40 border-rose-500 shadow-[0_0_10px_rgba(244,63,94,0.3)]' 
                                     : 'bg-zinc-800/50 border-white/5'
                                 }`}
                               >
-                                <div className="text-[8px] text-zinc-500">BUCKET STATE [{i}]</div>
+                                {isHl && <div className="absolute inset-0 bg-rose-500/10 animate-pulse" />}
+                                <div className="text-[8px] text-zinc-500 font-bold">BUCKET [{i}]</div>
                                 <div className="mt-1 space-y-1">
+                                  <AnimatePresence>
                                   {entriesInBucket.length > 0 ? (
                                     entriesInBucket.map((entry, idx) => (
-                                      <div key={idx} className="flex flex-col">
+                                      <motion.div 
+                                        layout
+                                        initial={{ opacity: 0, y: 5 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        key={entry.key} 
+                                        className="flex flex-col relative z-10"
+                                      >
                                         <span className="text-yellow-400 font-bold">{entry.key}</span>
                                         <span className="text-[9px] text-zinc-400">{entry.value}</span>
-                                      </div>
+                                      </motion.div>
                                     ))
                                   ) : (
                                     <span className="text-zinc-650 italic text-[9px]">Empty registry</span>
                                   )}
+                                  </AnimatePresence>
                                 </div>
-                              </div>
+                              </motion.div>
                             );
                           })}
                         </div>
@@ -1057,7 +1085,10 @@ export function CppSchoolVisualizer() {
                     {/* Left: switch UENUM controls */}
                     <div className="border border-white/5 p-2 bg-black/40 rounded-lg flex flex-col justify-between">
                       <div>
-                        <div className="text-[9px] font-mono text-zinc-500 uppercase font-bold mb-1.5">UENUM :: EPlayerState Switch status</div>
+                        <div className="text-[9px] font-mono text-zinc-500 uppercase font-bold mb-1.5 flex justify-between">
+                           <span>UENUM :: EPlayerState Switch status</span>
+                           <span className="text-indigo-400">Switch Eval: ~0.001ms</span>
+                        </div>
                         <div className="flex flex-wrap gap-1.5">
                           {['IDLE', 'COMBAT', 'RESTING', 'DEAD'].map(state => (
                             <button
@@ -1147,28 +1178,40 @@ export function CppSchoolVisualizer() {
                     {currentTask?.title || ''} Simulation Loop Matrix
                   </div>
 
-                  <div className="flex justify-center flex-wrap gap-2.5 my-3 min-h-[50px]">
+                  <div className="flex justify-center flex-wrap gap-2.5 my-3 min-h-[50px] relative">
+                    <div className="absolute -top-4 right-2 text-[8px] font-mono text-kingfisher-warm">Evaluation: ~0.0001ms/step</div>
+                    <AnimatePresence>
                     {loopElements.map((val, idx) => {
                       const isActive = idx === loopActiveIdx;
                       return (
-                        <div
-                          key={idx}
-                          className={`w-12 h-12 rounded border font-mono flex flex-col items-center justify-center transition-all relative ${
+                        <motion.div
+                          layout
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: isActive ? 1.1 : 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          key={`${idx}-${val}`}
+                          className={`w-12 h-12 rounded border font-mono flex flex-col items-center justify-center transition-all relative z-10 ${
                             isActive
-                              ? 'bg-kingfisher-warm border-kingfisher-deep text-black font-extrabold scale-110 shadow-[0_0_15px_rgba(233,187,147,0.5)]'
+                              ? 'bg-kingfisher-warm border-kingfisher-deep text-black font-extrabold shadow-[0_0_15px_rgba(233,187,147,0.5)]'
                               : 'bg-zinc-800 border-zinc-700 text-zinc-200'
                           }`}
                         >
                           <span className="text-[8px] opacity-75">[{idx}]</span>
                           <span className="text-xs font-bold">{val}</span>
+                          <AnimatePresence>
                           {idx === loopActiveIdx && (
-                            <span className="absolute -bottom-5 text-[7px] font-bold text-kingfisher-warm font-mono tracking-widest">
+                            <motion.span 
+                              initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                              className="absolute -bottom-5 text-[7px] font-bold text-kingfisher-warm font-mono tracking-widest"
+                            >
                               ACTIVE
-                            </span>
+                            </motion.span>
                           )}
-                        </div>
+                          </AnimatePresence>
+                        </motion.div>
                       );
                     })}
+                    </AnimatePresence>
                   </div>
 
                   <div className="bg-black/30 border border-white/5 rounded p-2 text-xs font-mono flex justify-between items-center px-4 mt-2 mb-2">
