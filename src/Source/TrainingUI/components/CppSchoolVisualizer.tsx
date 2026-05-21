@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useTrainingCore } from '../../TrainingCore/core/TrainingCore';
 import { Bird, Play, Zap, Shield, Heart, HelpCircle, Activity, RefreshCw, Cpu, Award, HardDrive, CheckCircle, Info, Eye, EyeOff, AlertTriangle, Search, Database, Layers, Sliders, Globe, Server, Link, Trash2, Monitor } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { getIndividualTaskDiagnostic } from '../../TrainingCore/core/CppSchoolDiagnostics';
 
 // Generic Universal Visualizer Component
 const UniversalTaskVisualizer = ({ task, documents, session }: { task: any, documents: any[], session: any }) => {
@@ -604,117 +605,7 @@ export function CppSchoolVisualizer() {
 
   // Multi-tier RPG-Hardware and Network Impact Matrix calculations
   const getCoreDiagnostics = (): { gpu: string; cpu: string; ram: string; vram: string; ping: string; info: string; ueFeatures: string[]; missingFeatures: string[] } => {
-    switch (mode) {
-      case 'combat':
-        return {
-          gpu: '0.12ms (Skinned meshes bone updates)',
-          cpu: '1.45ms (Collision traces and character state evaluations)',
-          ram: '84MB (Hero meshes, animations, skeletal weights)',
-          vram: '32MB (Shader skeleton buffers)',
-          ping: 'Average +2.5ms (UDP Net packet evaluations)',
-          info: 'Direct skeletal strike actions and damage indicator triggers mapped dynamically.',
-          ueFeatures: ['SkeletalMeshComponent dynamic morph bounds', 'PoseableMesh attachments'],
-          missingFeatures: ['Automatic broadphase hitbox collision pruning (requires spatial hashing logic)']
-        };
-      case 'console':
-        return {
-          gpu: '0.00ms (Text-heavy simulation)',
-          cpu: activeLogType === 'FString' ? '0.45ms (Overhead string copies)' : activeLogType === 'FName' ? '0.02ms (Global symbol hashing)' : '0.85ms (Localization translates)',
-          ram: activeLogType === 'FString' ? '320KB (Accumulates heap memory stutters)' : '40KB (Symbol index arrays)',
-          vram: '0.5MB (Unicode character caching)',
-          ping: 'None',
-          info: 'Evaluates the performance differences between dynamic FStrings, symbols (FNames), and FText localized blocks.',
-          ueFeatures: ['String localization lookup tables', 'FName global string dictionary indexing'],
-          missingFeatures: ['Automated string-duplication memory sweeping (forces manual use of String Tables)']
-        };
-      case 'pointers':
-        return {
-          gpu: '0.00ms (Core RAM layout)',
-          cpu: '0.05ms (O(1) direct address dereferencing)',
-          ram: '16 bytes (Naked memory allocation without class blocks, highly fragmented under high loops)',
-          vram: '0.00ms',
-          ping: 'None',
-          info: 'Deref pointers write straight to RAM coordinate segments. GC sweep recycles blocks without macros.',
-          ueFeatures: ['Unreal Garbage Collector reference trees', 'UProperty reflection tree headers'],
-          missingFeatures: ['Naked C++ raw pointers memory protections (GC ignores naked objects completely)']
-        };
-      case 'arrays':
-        return {
-          gpu: '0.00ms',
-          cpu: 'O(1) instant hash lookup (vs O(N) linear iteration for simple vectors)',
-          ram: '32KB (Bucket registry and hash maps arrays)',
-          vram: '0.00ms',
-          ping: 'None',
-          info: 'TMap lookup performs key symbol hashing, resolving target bucket instantly without sweeping elements.',
-          ueFeatures: ['TMap hash-map buckets serialization', 'TArray contiguous dynamic memory reallocation'],
-          missingFeatures: ['Multi-threaded atomic map lookups (you must implement critical locks manually)']
-        };
-      case 'control_flow':
-        return {
-          gpu: '0.00ms',
-          cpu: '0.01ms (Simple branch registers)',
-          ram: '4 bytes (UENUM state tracking blocks)',
-          vram: '0.00ms',
-          ping: '+1.5ms (Server State replication interval)',
-          info: 'State evaluation is handled via local conditional nodes. Assertions prevent thread violations.',
-          ueFeatures: ['check(), ensure(), verify() error handlers', 'UENUM byte-serialization macros'],
-          missingFeatures: ['Automatic player state rollback validation (requires custom predictor state wrappers)']
-        };
-      case 'loops':
-      case 'nested_loops':
-        return {
-          gpu: '0.00ms',
-          cpu: mode === 'nested_loops' ? '4.80ms O(N^2) (Very heavy on wide inventories!)' : '0.12ms O(N) (Linear sum evaluations)',
-          ram: '128 bytes (Registers stack storage)',
-          vram: '0.00ms',
-          ping: 'None',
-          info: 'Nested loops step indices iteratively. O(N^2) calculations degrade performance exponentially.',
-          ueFeatures: ['Fast range-based TArray iterators', 'Pre-allocated heap structures'],
-          missingFeatures: ['O(N) unique array lookup hashing (must implement custom spatial registry)']
-        };
-      case 'actor_lifecycle':
-        return {
-          gpu: '1.20ms (FVector transform evaluations)',
-          cpu: useDeltaTime ? '1.80ms (Frame independent movement ticks)' : '5.40/8.20ms (Game runs at speed of graphics, highly unstable!)',
-          ram: '24KB (Kinematic positional buffers)',
-          vram: '8MB (Positional buffer matrices)',
-          ping: '+12ms (Network replication tick checks)',
-          info: 'Ticks moving drone representation. FPS slider changes frame timings. Timers cue Spell cast callbacks.',
-          ueFeatures: ['Component Ticking sharing loops', 'FTimerManager gameplay callbacks register'],
-          missingFeatures: ['Automatic sub-stepped physics sync under high server loops (must enable async physics manually)']
-        };
-      case 'reflection_bp':
-        return {
-          gpu: '0.22ms (Visual Node wires dynamic shader lines)',
-          cpu: bpPulseActive ? '1.45ms (Disperses multi-cast event pointers to 3 listeners)' : '0.02ms',
-          ram: '640KB (Event listener registry vectors)',
-          vram: '1.2MB (Node graph graphics cache)',
-          ping: '+15ms (Multicast delegate RPCs)',
-          info: 'Reflection graph linking delegates and blueprint visibility specifiers interactively.',
-          ueFeatures: ['Unreal Header Tool (UHT) macros generating metadata', 'Multicast dynamic delegate bindings'],
-          missingFeatures: ['Dynamic delegate compile-time type-safety warnings (fails at runtime unless properly bound)']
-        };
-      case 'optimization_pro':
-        const tid = currentTask?.id;
-        if (tid === 'task_NEW_LIGHTING') return { gpu: '-4.5ms (Shadow Map bounds locking)', cpu: '0.12ms', ram: '45MB', vram: '-120MB', ping: 'None', info: 'Hardware Lumen raytracing bypassed via dynamic bounds.', ueFeatures: ['Virtual Shadow Maps', 'Distance Fields'], missingFeatures: ['Dynamic probe cache culling'] };
-        if (tid === 'task_opt_1') return { gpu: '0.0ms', cpu: '-3.2ms (Contiguous memory iteration)', ram: '-15MB (Struct padding)', vram: '0.0ms', ping: 'None', info: 'Optimal L1/L2 cache hits through data-oriented arrays.', ueFeatures: ['TArray', 'Fast TMap operations'], missingFeatures: ['Built-in struct padding analyzers'] };
-        if (tid === 'task_opt_2') return { gpu: '0.0ms', cpu: '-5.8ms (GameThread bypass)', ram: '12MB (Worker queues)', vram: '0.0ms', ping: 'None', info: 'Offloading pathfinding to TaskGraph workers.', ueFeatures: ['TaskGraph', 'FAsyncTask'], missingFeatures: ['Automated atomic locking'] };
-        if (tid === 'task_opt_3') return { gpu: '0.0ms', cpu: '-8.5ms (Mass Entity updates)', ram: '-120MB (No UObject overhead)', vram: '0.0ms', ping: 'None', info: '10,000 active entities ticking securely in ECS.', ueFeatures: ['MassEntity', 'Fragments'], missingFeatures: ['Visual ECS debugger tool'] };
-        if (tid === 'task_opt_4') return { gpu: '0.0ms', cpu: '-2.4ms (Retained Slate widgets)', ram: '8MB', vram: '4MB', ping: 'None', info: 'Manual invalidation prevents Slate pre-pass loops.', ueFeatures: ['Retainer Box', 'Invalidation Box'], missingFeatures: ['Auto-dirtying bindings'] };
-        if (tid === 'task_opt_5') return { gpu: '0.0ms', cpu: '-4.6ms (Replication prioritization)', ram: '110MB', vram: '0.0ms', ping: '<25ms (Stable!)', info: 'IRIS and NetDormancy strip replication bandwidth.', ueFeatures: ['IRIS Repl', 'NetDormancy'], missingFeatures: ['Automated replication stress testing'] };
-        return { gpu: '-6.2ms (PSO and ISM batching)', cpu: '-3.5ms (Draw Thread limits)', ram: '48MB', vram: '-250MB (Shared textures)', ping: 'None', info: 'Baking PSOs and instancing saves draw calls.', ueFeatures: ['HISM', 'PSO Cache'], missingFeatures: ['Automatic shader permutation cullers'] };
-      default:
-        return {
-          gpu: '1.85ms (LOD and shader caches evaluation)',
-          cpu: asyncThreadsActive > 0 ? '0.15ms (Offloaded to parallel thread)' : '6.45ms (Async load prevent Game thread freeze)',
-          ram: '12.4MB (Asynchronous assets streaming heap pools)',
-          vram: '46.0MB (Async texture allocations)',
-          ping: 'None',
-          info: 'Async Streamable manager stream-loads boss character assets in background. Math offloaded safely.',
-          ueFeatures: ['FStreamableManager async loading system', 'TaskGraph parallel worker threads'],
-          missingFeatures: ['Automated automatic cache sweep collectors (must write custom memory unloaders)']
-        };
-    }
+    return getIndividualTaskDiagnostic(currentTask?.id || '', mode);
   };
 
   const diagnostics = getCoreDiagnostics();
