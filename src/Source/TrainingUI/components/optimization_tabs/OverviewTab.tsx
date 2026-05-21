@@ -81,6 +81,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['RPG Pre-Production Roadmap Planner', 'Interactive architectural budget simulator mapping terrain strategy, World Partition, AI, and storage layouts natively to CPU/GPU frame budgets and hardware limits.'],
+              ['Interactive Hardware Budget Profiling', 'Verifiable, real-time calculations tracking estimated CPU Main-thread delays, GPU draw load, System RAM, VRAM allocations, and Ping latencies side-by-side.'],
+              ['High-Performance C++ Blueprint Snippets', 'Provided production-grade C++ architectures for strict memory alignment packs, multi-region asynchronous tasks, Mass fragment traits, and Slate invalidation bounds.'],
+              ['Under-the-Hood Framework Analysers', 'Exhaustive parallel matrices comparing native Unreal Engine 5.8 features immediately to elite alternatives (Houdini pipelines, GOAP planners, custom server Octrees, and SQLite databases).'],
               ['Content Visibility Fix', 'Resolved a critical CSS rendering issue where dynamic content was initialized with zero opacity, preventing knowledge display.'],
               ['Modular Dynamic Data Architecture Migration', 'Total detachment of 53 training tasks and 48 knowledge pages into self-contained micro-modules, establishing an aggressive data-driven scale pattern capable of supporting limitless knowledge injection. Eradicates LLM tool latency (reducing agent payload overhead by ~95% per task), allowing for frictionless deep dives. CPU/RAM load for the V8 engine running the pipeline is drastically minimized.'],
               ['Interactive Optimization Curriculum', 'Fully mapped the advanced Optimization Guide directly into interactive C++ School sandbox tasks, going from zero to professional AAA Data-Oriented mastery.'],
@@ -153,7 +157,6 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Multi-region Network Simulation', 'Synthetic jitter and burst packet loss injection into client predictive loops for stress testing.'],
               ['Hardware-Accelerated Animation Sharing', 'Bypassing bone updates on distant mobile proxy skeletons via shared skinning buffers directly allocated on the GPU, saving -1.0ms CPU.'],
               ['Dynamic GPU Occlusion Query Pools', 'Implementing visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.'],
-              ['Smart Object Interaction handles', 'Decoupled, data-only interaction descriptors for thousands of open world lootables, bypassing high-cost actor collision primitives.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
