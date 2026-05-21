@@ -41,6 +41,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Autonomous Modifier Registry & Chaos Validation Suite', 'Data-driven tag composition registry compiling skills/items, executing DFS cycle loop validation checks on boot, and running simulated 1k bot sweeps under mathematical asymptotes to isolate outliers in 0.8ms CPU.'],
               ['AAA Quality Profiler Simulator Sandbox', 'Live interactive diagnostic testing suite comparing RPG workloads, allowing dynamic toggles for C++ memory aligns, net dormancy, and significance managers.'],
               ['FArchive Save Game Serializer Tracing', 'Binary byte-aligned memory streaming setups that bypass reflection constraints, reducing world disk saves to under 2.0ms.'],
               ['RenderDoc G-Buffer Profiler Integration', 'Frame dissection techniques for resolving semi-transparent vertex shader overdraw costs in heavy foliage clusters.'],
@@ -89,6 +90,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Modular Modifier Balance & Chaos Bot Sandbox Tab', 'Interactive tab modeling complex ARPG tag composition, graphical DFS cycle feedback scans, real-time 1,000 headless bot sweeps, and generational Genetic algorithms maximizing simulated build DPS.'],
               ['Upgraded Hardware Budget Engine v2.0', 'Polished the complete interactive simulator to support platform ceilings (Mobile/Console/PC Ultra), modular components, memory paging overdraw penalties, and dynamic CVar lists.'],
               ['Universal Interactive Real-Time Hardware Budget Simulators', 'Equipped literally every single optimization guide tab (40+ items) with tailored real-time simulators, modeling custom thematic selectors, accurate hardware budgets, and microsecond computations.'],
               ['Thematic Custom Sizing & Architecture Toggles', 'Fine-tuned interactive control panels mapped dynamically by tab context (e.g. MassEntity, Networking, Multithreading, Shaders, World Partition, Spatial Hashing).'],
