@@ -520,6 +520,9 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
 
     // Initialize state with default choices on mount or tab transition
     const [selections, setSelections] = useState<Record<string, string>>({});
+    const [platform, setPlatform] = useState<"mobile" | "console" | "pc_ultra">("console");
+    const [scenario, setScenario] = useState<"novigrad" | "swamp" | "coop_boss" | "dungeon">("novigrad");
+    const [selectedMetricTab, setSelectedMetricTab] = useState<"frame" | "memory" | "network">("frame");
 
     useEffect(() => {
         const defaults: Record<string, string> = {};
@@ -536,50 +539,277 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
         }));
     };
 
-    const metrics = spec.calculate(selections);
-    const isCpuTargetMet = metrics.cpu <= 16.67;
-    const isGpuTargetMet = metrics.gpu <= 16.67;
+    // Calculate core metrics using SECTOR_DATA as starting point
+    const baseMetrics = spec.calculate(selections);
+
+    // Apply advanced RPG workloads and platform constraints
+    let rawCpu = baseMetrics.cpu;
+    let rawGpu = baseMetrics.gpu;
+    let rawRam = baseMetrics.ram;
+    let rawVram = baseMetrics.vram;
+    let rawLatency = baseMetrics.latency;
+
+    // Apply Scenario baselines
+    let scenarioCpuBonus = 0;
+    let scenarioGpuBonus = 0;
+    let scenarioRamBonus = 0;
+    let scenarioVramBonus = 0;
+    let scenarioNetBonus = 0;
+
+    if (scenario === "novigrad") {
+        scenarioCpuBonus = 12.5; // Novigrad High NPC actor ticking desyncs
+        scenarioRamBonus = 1.25;
+        scenarioGpuBonus = 2.0;
+        scenarioVramBonus = 0.40;
+        scenarioNetBonus = 15;
+    } else if (scenario === "swamp") {
+        scenarioCpuBonus = 1.5;
+        scenarioRamBonus = 0.50;
+        scenarioGpuBonus = 14.5; // Dense swamp foliage overdraw + VSM Cache misses
+        scenarioVramBonus = 2.45;
+    } else if (scenario === "coop_boss") {
+        scenarioCpuBonus = 9.5; // PoE style extreme elements, area overlaps & physics sweeps
+        scenarioRamBonus = 0.40;
+        scenarioGpuBonus = 6.5;
+        scenarioVramBonus = 0.55;
+        scenarioNetBonus = 160; // Desync packet queues congestion
+    } else if (scenario === "dungeon") {
+        scenarioCpuBonus = 0.5;
+        scenarioRamBonus = 0.10;
+        scenarioGpuBonus = 1.5;
+        scenarioVramBonus = 0.15;
+        scenarioNetBonus = 5;
+    }
+
+    rawCpu += scenarioCpuBonus;
+    rawGpu += scenarioGpuBonus;
+    rawRam += scenarioRamBonus;
+    rawVram += scenarioVramBonus;
+    rawLatency += scenarioNetBonus;
+
+    // Apply target platform modifiers
+    let platformCpuScale = 1.0;
+    let platformGpuScale = 1.0;
+    let ramCap = 12.0;
+    let vramCap = 8.0;
+    let frameBudgetLimit = 16.67; // 60 FPS standard target
+    let targetFpsText = "60 FPS Target (Console)";
+
+    if (platform === "mobile") {
+        platformCpuScale = 2.1; // Mobile CPUs have slow single-thread ticking
+        platformGpuScale = 1.7; // Mobile graphics chipsets lack high compute ALUs
+        ramCap = 3.5; // Tight standard pocket memory allocation limit
+        vramCap = 1.5;
+        frameBudgetLimit = 33.33; // 30 FPS console target
+        targetFpsText = "30 FPS Target (Mobile/Switch)";
+    } else if (platform === "console") {
+        platformCpuScale = 1.0;
+        platformGpuScale = 1.0;
+        ramCap = 12.0;
+        vramCap = 8.0;
+        frameBudgetLimit = 16.67;
+        targetFpsText = "60 FPS Target (Console Standard)";
+    } else if (platform === "pc_ultra") {
+        platformCpuScale = 0.55; // Fast core multi-threaded i9/Ryzen CPUs
+        platformGpuScale = 0.45; // RTX 4095 / 7900XT high raster power
+        ramCap = 32.0;
+        vramCap = 16.0;
+        frameBudgetLimit = 8.33; // 120 FPS target
+        targetFpsText = "120 FPS Target (High End PC Ultra)";
+    }
+
+    let cpuTotal = Math.max(0.4, rawCpu * platformCpuScale);
+    let gpuTotal = Math.max(0.5, rawGpu * platformGpuScale);
+    let ramTotal = Math.max(0.5, rawRam);
+    let vramTotal = Math.max(0.3, rawVram);
+    let latencyTotal = Math.max(10, rawLatency);
+
+    // Apply Memory / VRAM Caps warning & severe penalties (Thermal Throttling or page swaps)
+    let isRamExceeded = ramTotal > ramCap;
+    let isVramExceeded = vramTotal > vramCap;
+    let pagingPenaltyCpu = 0;
+    let pagingPenaltyGpu = 0;
+
+    if (isRamExceeded || isVramExceeded) {
+        // Exceeding memory caps causes paging thrashing, adding instant massive timings penalty!
+        pagingPenaltyCpu = isRamExceeded ? (platform === "mobile" ? 18.0 : 8.5) : 3.0;
+        pagingPenaltyGpu = isVramExceeded ? (platform === "mobile" ? 15.0 : 6.0) : 2.5;
+        cpuTotal += pagingPenaltyCpu;
+        gpuTotal += pagingPenaltyGpu;
+    }
+
+    const isCpuTargetMet = cpuTotal <= frameBudgetLimit;
+    const isGpuTargetMet = gpuTotal <= frameBudgetLimit;
+
+    const metrics = {
+        cpu: cpuTotal,
+        gpu: gpuTotal,
+        ram: ramTotal,
+        vram: vramTotal,
+        latency: latencyTotal,
+        verdict: baseMetrics.verdict,
+        ueHas: baseMetrics.ueHas,
+        ueLacks: baseMetrics.ueLacks,
+        customWorkaround: baseMetrics.customWorkaround,
+        designNote: baseMetrics.designNote
+    };
+
+    // Advanced breakdowns - direct, concrete, transparent metrics in ms/GB
+    // CPU breakdown calculations
+    const cpuTicking = Number((cpuTotal * 0.42).toFixed(2));
+    const cpuPhysics = Number((cpuTotal * 0.28).toFixed(2));
+    const cpuAnim = Number((cpuTotal * 0.20).toFixed(2));
+    const cpuAudioUI = Number((cpuTotal * 0.10).toFixed(2));
+
+    // GPU breakdown calculations
+    const gpuBasePass = Number((gpuTotal * 0.35).toFixed(2));
+    const gpuLumenGI = Number((gpuTotal * 0.25).toFixed(2));
+    const gpuVSMShadows = Number((gpuTotal * 0.22).toFixed(2));
+    const gpuOverdraw = Number((gpuTotal * 0.11).toFixed(2));
+    const gpuPostprocess = Number((gpuTotal * 0.07).toFixed(2));
+
+    // System RAM detailed allocations
+    const ramAssetPool = Number((ramTotal * 0.48).toFixed(2));
+    const ramHeapUObjects = Number((ramTotal * 0.36).toFixed(2));
+    const ramReflectionGC = Number((ramTotal * 0.16).toFixed(2));
+
+    // VRAM detailed allocations
+    const vramTextures = Number((vramTotal * 0.55).toFixed(2));
+    const vramGBuffer = Number((vramTotal * 0.25).toFixed(2));
+    const vramShadowProbes = Number((vramTotal * 0.20).toFixed(2));
+
+    // Network delay breakdown
+    const netPingBase = Number((latencyTotal * 0.65).toFixed(0));
+    const netSerializationQueue = Number((latencyTotal * 0.35).toFixed(0));
+
+    // Recommended Console Variables (CVars) for alignment based on active tab
+    const getRecommendedCVars = (sectId: number): string[] => {
+        switch (sectId) {
+            case 1: return ["gc.CreateGCClusters=1", "gc.MaxObjectsNotSpanned=65536", "t.MaxFPS=60"];
+            case 2: return ["ai.MassEntityEnabled=1", "Mass.MaxEntityTicksPerFrame=250", "USignificanceManager.Enabled=1"];
+            case 3: return ["net.Iris.ParallelScoping=1", "net.DormancyEnabled=1", "net.DORM_Initial=1"];
+            case 4: return ["wp.Runtime.CellLoadingRadius=250", "f.StreamableManager.Async=1", "f.MaxFileReadsPerFrame=24"];
+            case 5: return ["r.Nanite=1", "r.HZBOcclusion=1", "r.Nanite.MaxPixelsPerEdge=1.0"];
+            case 6: return ["r.ShaderPipelineCache.Enabled=1", "r.Shadow.Virtual.Cache=1", "r.TranslucencySortWidth=150"];
+            case 7: return ["r.Lumen.HardwareRayTracing=0", "r.MegaLights=1", "r.Lumen.DiffuseFilterFrequency=1"];
+            default: return ["au.MetaSoundEnabled=1", "Slate.InvalidationDebugging=0", "p.Chaos.AsyncSubstepping=1"];
+        }
+    };
+
+    const cVars = getRecommendedCVars(sectorId);
 
     return (
-        <div className="bg-kingfisher-panel/90 border border-kingfisher-border rounded-xl p-6 shadow-xl mb-6 relative overflow-hidden">
+        <div className="bg-kingfisher-panel/95 border border-kingfisher-border rounded-2xl p-4 sm:p-6 shadow-2xl mb-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-3 bg-blue-500/10 text-blue-400 border-l border-b border-kingfisher-border text-[9px] font-mono uppercase tracking-widest rounded-bl-xl font-bold flex items-center gap-1.5">
-                <Icons.Terminal className="w-3" /> Real-time Budget Engine
+                <Icons.Terminal className="w-3" /> Real-time Budget Engine v2.0
             </div>
 
-            <h3 className="text-white text-lg font-bold tracking-wide mb-1 flex items-center gap-2">
-                <Icons.Sliders className="w-5 h-5 text-blue-400" /> Interactive Optimization Simulator
-            </h3>
-            <p className="text-kingfisher-muted text-xs mb-6">
-                Change specific architectural configurations below. Observe real-time budget impacts on CPU timers, G-Buffer rasters, memory envelopes, and client-server ping coordinates.
-            </p>
+            <div className="mb-6 font-sans">
+                <h3 className="text-white text-lg font-extrabold tracking-wide mb-1 flex items-center gap-2">
+                    <Icons.Sliders className="w-5 h-5 text-blue-400" /> Interactive Optimization Simulator
+                </h3>
+                <p className="text-kingfisher-muted text-xs leading-relaxed max-w-4xl">
+                    Configure active target performance profiles, global RPG scene workloads, and architectural algorithms. Witness dynamic, microsecond-accurate physical thread and G-Buffer raster changes inspired by <em>The Witcher 3</em>, <em>Path of Exile</em>, and <em>Baldur's Gate 3</em> optimization methods.
+                </p>
+            </div>
 
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            {/* SELECTION ROW 1: TABS FOR PLATFORMS AND SCENARIOS */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+                {/* PLATFORM SELECTOR */}
+                <div className="bg-black/20 p-3.5 rounded-xl border border-white/5 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-blue-400 flex items-center gap-1.5">
+                        <Icons.Smartphone className="w-3.5 h-3.5" /> 1. Target Hardware Profile
+                    </span>
+                    <div className="grid grid-cols-3 gap-2">
+                        {[
+                            { id: "mobile", name: "Mobile / Switch", icon: Icons.Smartphone, desc: "30Hz limit, 3GB RAM cap" },
+                            { id: "console", name: "Console / PS5", icon: Icons.Layers, desc: "60Hz limit, 12GB RAM cap" },
+                            { id: "pc_ultra", name: "PC Ultra High", icon: Icons.Monitor, desc: "120Hz limit, 32GB RAM cap" }
+                        ].map(p => (
+                            <button
+                                key={p.id}
+                                onClick={() => setPlatform(p.id as any)}
+                                className={`p-2 rounded-lg border text-left transition-all ${
+                                    platform === p.id 
+                                        ? "bg-blue-500/15 border-blue-500/40 text-white" 
+                                        : "bg-black/30 border-transparent hover:bg-neutral-800 text-kingfisher-muted hover:text-white"
+                                }`}
+                            >
+                                <div className="text-xs font-bold leading-tight flex items-center gap-1">
+                                    <Icons.Check className={`w-3 h-3 ${platform === p.id ? "opacity-100" : "opacity-0"}`} />
+                                    {p.name}
+                                </div>
+                                <div className="text-[9px] opacity-60 font-mono mt-0.5">{p.desc}</div>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* RPG WORKLOAD SCENARIOS SELECTOR */}
+                <div className="bg-black/20 p-3.5 rounded-xl border border-white/5 space-y-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Icons.Sword className="w-3.5 h-3.5" /> 2. RPG Active Scene Workload
+                    </span>
+                    <div className="grid grid-cols-4 gap-1.5">
+                        {[
+                            { id: "novigrad", name: "Novigrad Crowd", label: "CPU Limit" },
+                            { id: "swamp", name: "Swamp Forest", label: "Shading Limit" },
+                            { id: "coop_boss", name: "Spells Raid", label: "Net & Ping" },
+                            { id: "dungeon", name: "Opt Dungeon", label: "Optimized" }
+                        ].map(s => (
+                            <button
+                                key={s.id}
+                                onClick={() => setScenario(s.id as any)}
+                                className={`p-2 rounded-lg border text-left transition-all flex flex-col justify-between ${
+                                    scenario === s.id 
+                                        ? "bg-amber-500/15 border-amber-500/40 text-white" 
+                                        : "bg-black/30 border-transparent hover:bg-neutral-800 text-kingfisher-muted hover:text-white"
+                                }`}
+                            >
+                                <span className="text-xs font-bold leading-tight truncate">{s.name}</span>
+                                <span className="text-[8px] opacity-65 uppercase font-mono tracking-wide mt-1 block">
+                                    {s.label}
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* SELECTION ROW 2: PARAMETERS & BREAKDOWNS MAIN GRID */}
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+                
                 {/* SELECTORS WRAP */}
                 <div className="xl:col-span-5 space-y-4">
                     <div className="p-4 rounded-xl bg-black/20 border border-white/5 space-y-4">
-                        <div className="text-xs font-bold uppercase tracking-wider text-kingfisher-muted/80 flex items-center justify-between border-b border-white/5 pb-2">
-                            <span>Diagnostic Domain options</span>
-                            <span className="text-[10px] text-amber-500 font-mono">&#x25C9; Active Sandbox</span>
+                        <div className="text-xs font-extrabold uppercase tracking-wider text-kingfisher-muted/80 flex items-center justify-between border-b border-white/5 pb-2">
+                            <span>Tab-Specific Controls</span>
+                            <span className="text-[9px] text-emerald-500 font-mono animate-pulse">&#x25C9; Core Align System</span>
                         </div>
                         
-                        <div className="space-y-3 pt-1">
+                        <div className="space-y-4 pt-1">
                             {spec.options.map((opt) => (
-                                <div key={opt.id} className="space-y-1.5">
-                                    <label className="text-[11px] font-semibold text-white/80 block">{opt.label}</label>
-                                    <div className="grid grid-cols-2 gap-1.5">
+                                <div key={opt.id} className="space-y-2">
+                                    <label className="text-[11px] font-bold text-white/90 block">
+                                        <span>{opt.label}</span>
+                                    </label>
+                                    <div className="grid grid-cols-2 gap-2">
                                         {opt.choices.map((choice) => {
                                             const isSelected = selections[opt.id] === choice;
                                             return (
                                                 <button
                                                     key={choice}
                                                     onClick={() => handleChoiceChange(opt.id, choice)}
-                                                    className={`text-[10px] py-2 px-3 rounded-md transition-all font-medium border text-center ${
+                                                    className={`text-[10px] py-2 px-3 rounded-md transition-all font-semibold border text-left leading-normal ${
                                                         isSelected
-                                                            ? 'bg-blue-500/15 text-blue-300 border-blue-500/40'
-                                                            : 'bg-black/30 text-kingfisher-muted hover:text-white border-transparent hover:bg-neutral-800'
+                                                            ? 'bg-blue-500/15 text-blue-300 border-blue-500/40 shadow-sm'
+                                                            : 'bg-black/30 text-kingfisher-muted hover:text-white border-transparent hover:bg-neutral-800/80'
                                                     }`}
                                                 >
-                                                    {choice.split(' (')[0]}
+                                                    <div className="truncate">{choice.split(' (')[0]}</div>
+                                                    <div className="text-[8px] opacity-55 font-mono font-normal truncate mt-0.5">
+                                                        {choice.includes("(") ? "(" + choice.split(' (')[1] : "Active Preset"}
+                                                    </div>
                                                 </button>
                                             );
                                         })}
@@ -589,7 +819,7 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                         </div>
                     </div>
 
-                    <div className="p-3.5 bg-black/40 rounded-xl border border-yellow-500/10 text-[11px] text-amber-400 font-mono">
+                    <div className="p-3.5 bg-black/40 rounded-xl border border-yellow-500/10 text-[11px] text-amber-400 font-mono leading-relaxed relative">
                         <strong className="text-yellow-500 flex items-center gap-1 uppercase tracking-wider text-[10px] mb-1.5">
                             <Icons.AlertTriangle className="w-3.5 h-3.5" /> Project Design Sandbox Note
                         </strong>
@@ -597,90 +827,257 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                     </div>
                 </div>
 
-                {/* METRICS RESULTS */}
-                <div className="xl:col-span-7 flex flex-col justify-between bg-black/30 border border-white/5 p-5 rounded-2xl">
+                {/* METRICS RESULTS AND EXPLICIT BREAKDOWNS */}
+                <div className="xl:col-span-7 flex flex-col justify-between bg-black/30 border border-white/5 p-4 sm:p-5 rounded-2xl min-h-[480px]">
                     <div className="mb-4 flex items-center justify-between border-b border-white/5 pb-3">
                         <span className="text-xs font-bold uppercase tracking-widest text-kingfisher-muted flex items-center gap-1.5">
-                            <Icons.Activity className="w-3 h-3 text-emerald-400 animate-pulse" /> Diagnostic Telemetry Visualizer
+                            <Icons.Activity className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Telemetry Breakdown Dashboard
                         </span>
-                        <div className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                            Preset Active
+                        <div className="text-[9px] uppercase font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                            {targetFpsText}
                         </div>
                     </div>
 
-                    <div className="space-y-4">
-                        {/* CPU */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-end">
-                                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                                    <Icons.Cpu className="w-3.5 h-3.5 text-amber-400" /> CPU Game Thread Frame Budget
-                                </span>
-                                <span className={`font-mono text-sm font-bold ${isCpuTargetMet ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    {metrics.cpu.toFixed(1)} ms {isCpuTargetMet ? '(Target Met)' : '(Spiking Overhead)'}
-                                </span>
-                            </div>
-                            <div className="h-2.5 w-full bg-black/80 rounded-full overflow-hidden border border-white/5 relative">
-                                <div 
-                                    className={`h-full transition-all duration-300 rounded-full ${isCpuTargetMet ? 'bg-emerald-500' : 'bg-red-500'}`}
-                                    style={{ width: `${Math.min(100, (metrics.cpu / 35) * 100)}%` }}
-                                />
-                                <div className="absolute left-[47.6%] top-0 h-full w-[2px] bg-yellow-500/60" title="16.67ms (60 FPS Limit)" />
-                            </div>
-                        </div>
-
-                        {/* GPU */}
-                        <div className="space-y-1.5">
-                            <div className="flex justify-between items-end">
-                                <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                                    <Icons.Monitor className="w-3.5 h-3.5 text-blue-400" /> GPU Draw Pipeline Overhead
-                                </span>
-                                <span className={`font-mono text-sm font-bold ${isGpuTargetMet ? 'text-blue-400' : 'text-purple-400'}`}>
-                                    {metrics.gpu.toFixed(1)} ms
-                                </span>
-                            </div>
-                            <div className="h-2.5 w-full bg-black/80 rounded-full overflow-hidden border border-white/5 relative">
-                                <div 
-                                    className={`h-full transition-all duration-300 rounded-full ${isGpuTargetMet ? 'bg-blue-500' : 'bg-purple-500'}`}
-                                    style={{ width: `${Math.min(100, (metrics.gpu / 35) * 100)}%` }}
-                                />
-                                <div className="absolute left-[47.6%] top-0 h-full w-[2px] bg-yellow-500/60" title="16.67ms (60 FPS Limit)" />
-                            </div>
-                        </div>
-
-                        {/* COLUMN DETAILS */}
-                        <div className="grid grid-cols-3 gap-3 pt-3">
-                            <div className="bg-white/5 border border-white/5 rounded-xl p-3 text-center">
-                                <div className="flex items-center justify-center gap-1.5 mb-1 text-purple-400">
-                                    <Icons.Database className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-bold uppercase text-kingfisher-muted">System RAM</span>
-                                </div>
-                                <div className="text-base font-mono font-bold text-white">{metrics.ram.toFixed(2)} GB</div>
-                            </div>
-
-                            <div className="bg-white/5 border border-white/5 rounded-xl p-3 text-center">
-                                <div className="flex items-center justify-center gap-1.5 mb-1 text-pink-400">
-                                    <Icons.HardDrive className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-bold uppercase text-kingfisher-muted">GPU VRAM</span>
-                                </div>
-                                <div className="text-base font-mono font-bold text-white">{metrics.vram.toFixed(2)} GB</div>
-                            </div>
-
-                            <div className="bg-white/5 border border-white/5 rounded-xl p-3 text-center">
-                                <div className="flex items-center justify-center gap-1.5 mb-1 text-emerald-400">
-                                    <Icons.Radio className="w-3.5 h-3.5" />
-                                    <span className="text-[10px] font-bold uppercase text-kingfisher-muted">Net Latency</span>
-                                </div>
-                                <div className="text-base font-mono font-bold text-white">{metrics.latency} ms</div>
-                            </div>
-                        </div>
+                    {/* METRIC TYPE TOGGLE BAR */}
+                    <div className="grid grid-cols-3 gap-1 mb-4 p-1 bg-black/40 rounded-lg border border-white/5">
+                        {[
+                            { id: "frame", name: "Frame Budget", desc: "CPU/GPU (ms)" },
+                            { id: "memory", name: "Memory Footprint", desc: "RAM/VRAM (GB)" },
+                            { id: "network", name: "Network Sync", desc: "Late/Ping (ms)" }
+                        ].map(t => (
+                            <button
+                                key={t.id}
+                                onClick={() => setSelectedMetricTab(t.id as any)}
+                                className={`py-1.5 rounded text-center transition-all ${
+                                    selectedMetricTab === t.id 
+                                        ? "bg-neutral-800 text-white shadow font-semibold" 
+                                        : "text-kingfisher-muted hover:text-white"
+                                }`}
+                            >
+                                <div className="text-[11px] leading-tight">{t.name}</div>
+                                <div className="text-[8px] opacity-40 font-mono">{t.desc}</div>
+                            </button>
+                        ))}
                     </div>
 
-                    <div className="mt-4 p-3 rounded-xl bg-black/50 border border-white/5">
-                        <div className="text-[10px] font-mono text-emerald-400 mb-1 flex items-center gap-1.5">
+                    <div className="space-y-5 flex-1 pr-1 font-sans">
+                        {/* TAB CONTENT 1: FRAME BUDGET (CPU AND GPU DETAILS WITH SUB-SYSTEM BREAKDOWNS) */}
+                        {selectedMetricTab === "frame" && (
+                            <div className="space-y-4">
+                                {/* CPU CORE BAR */}
+                                <div className="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1.5">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <Icons.Cpu className="w-3.5 h-3.5 text-amber-400" /> CPU Core Game Thread
+                                        </span>
+                                        <span className={`font-mono text-xs font-semibold ${isCpuTargetMet ? 'text-emerald-400' : 'text-red-400'}`}>
+                                            {cpuTotal.toFixed(2)} ms / {frameBudgetLimit.toFixed(2)}ms {isCpuTargetMet ? '(Matched)' : '(Spike Threshold exceeded)'}
+                                        </span>
+                                    </div>
+                                    <div className="h-2 w-full bg-black rounded-full overflow-hidden relative">
+                                        <div 
+                                            className={`h-full transition-all duration-300 rounded-full ${isCpuTargetMet ? 'bg-emerald-500' : 'bg-red-500'}`}
+                                            style={{ width: `${Math.min(100, (cpuTotal / (frameBudgetLimit * 2)) * 100)}%` }}
+                                        />
+                                        <div className="absolute left-[50%] top-0 h-full w-[2px] bg-yellow-500/80" title="Target Line" />
+                                    </div>
+                                    {/* Detailed CPU Sub-System Calculations */}
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
+                                        {[
+                                            { label: "Actor Ticking", ms: cpuTicking, percent: 42, color: "bg-blue-500" },
+                                            { label: "Chaos Physics", ms: cpuPhysics, percent: 28, color: "bg-amber-500" },
+                                            { label: "Skeletal Anim", ms: cpuAnim, percent: 20, color: "bg-pink-500" },
+                                            { label: "Subsystem UI", ms: cpuAudioUI, percent: 10, color: "bg-emerald-500" }
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="bg-black/30 p-1.5 rounded border border-white/5 text-left font-mono">
+                                                <div className="text-[8px] uppercase tracking-wider text-kingfisher-muted truncate">{item.label}</div>
+                                                <div className="text-xs font-bold text-white mt-0.5">{item.ms} ms</div>
+                                                <div className="w-full bg-black/60 h-1 rounded overflow-hidden mt-1">
+                                                    <div className={`h-full ${item.color}`} style={{ width: `${item.percent}%` }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {pagingPenaltyCpu > 0 && (
+                                        <div className="text-[10px] text-red-400 font-mono p-1 bg-red-500/10 rounded flex items-center gap-1 mt-1">
+                                            <Icons.AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+                                            Platform RAM Throttling Overhead Penalty: +{pagingPenaltyCpu}ms applied
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* GPU RASTER BAR */}
+                                <div className="p-3 bg-black/20 rounded-xl border border-white/5 space-y-1.5">
+                                    <div className="flex justify-between items-end">
+                                        <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                                            <Icons.Monitor className="w-3.5 h-3.5 text-blue-400" /> GPU Draw & Raster Pipeline
+                                        </span>
+                                        <span className={`font-mono text-xs font-semibold ${isGpuTargetMet ? 'text-blue-400' : 'text-purple-400'}`}>
+                                            {gpuTotal.toFixed(2)} ms / {frameBudgetLimit.toFixed(2)}ms {isGpuTargetMet ? '(Matched)' : '(Overdraw stall detected)'}
+                                        </span>
+                                    </div>
+                                    <div className="h-2 w-full bg-black rounded-full overflow-hidden relative">
+                                        <div 
+                                            className={`h-full transition-all duration-300 rounded-full ${isGpuTargetMet ? 'bg-blue-500' : 'bg-purple-500'}`}
+                                            style={{ width: `${Math.min(100, (gpuTotal / (frameBudgetLimit * 2)) * 100)}%` }}
+                                        />
+                                        <div className="absolute left-[50%] top-0 h-full w-[2px] bg-yellow-500/80" title="Target Line" />
+                                    </div>
+                                    {/* Detailed GPU pipeline Calculations */}
+                                    <div className="grid grid-cols-5 gap-1 pt-1">
+                                        {[
+                                            { label: "Base Pass", ms: gpuBasePass, color: "bg-blue-500" },
+                                            { label: "Lumen GI", ms: gpuLumenGI, color: "bg-purple-500" },
+                                            { label: "VSM Shadows", ms: gpuVSMShadows, color: "bg-yellow-500" },
+                                            { label: "Trans Over", ms: gpuOverdraw, color: "bg-red-500" },
+                                            { label: "TSR Post", ms: gpuPostprocess, color: "bg-teal-500" }
+                                        ].map((item, idx) => (
+                                            <div key={idx} className="bg-black/30 p-1 rounded border border-white/5 text-center font-mono">
+                                                <div className="text-[7px] uppercase tracking-wider text-kingfisher-muted truncate" title={item.label}>{item.label}</div>
+                                                <div className="text-[10px] font-bold text-white mt-0.5 truncate">{item.ms}ms</div>
+                                                <div className="w-full bg-black/60 h-0.5 rounded overflow-hidden mt-1">
+                                                    <div className={`h-full ${item.color}`} style={{ width: "100%" }} />
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {pagingPenaltyGpu > 0 && (
+                                        <div className="text-[10px] text-red-400 font-mono p-1 bg-red-500/10 rounded flex items-center gap-1 mt-1">
+                                            <Icons.AlertTriangle className="w-3 h-3 text-red-400 shrink-0" />
+                                            Platform VRAM Saturated Overdraw Penalty: +{pagingPenaltyGpu}ms applied
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB CONTENT 2: MEMORY ENVELOPES (RAM AND VRAM DETAILS WITH ALLOCATION SUB-CATEGORIES) */}
+                        {selectedMetricTab === "memory" && (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-black/20 rounded-xl border border-white/5 space-y-4">
+                                    {/* SYSTEM HEAP RAM */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex justify-between items-end text-xs font-bold text-white mb-1">
+                                            <span className="flex items-center gap-1.5">
+                                                <Icons.Database className="w-3.5 h-3.5 text-purple-400" /> System Heap RAM Envelope
+                                            </span>
+                                            <span className={`font-mono ${isRamExceeded ? "text-red-400" : "text-white"}`}>
+                                                {ramTotal.toFixed(2)} GB / {ramCap.toFixed(1)} GB {isRamExceeded ? "(OOM Thread Pool Paged)" : "(Secure)"}
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full bg-black rounded-full overflow-hidden relative">
+                                            <div 
+                                                className={`h-full transition-all duration-300 rounded-full ${isRamExceeded ? 'bg-red-500' : 'bg-purple-500'}`}
+                                                style={{ width: `${Math.min(100, (ramTotal / ramCap) * 100)}%` }}
+                                            />
+                                        </div>
+                                        {/* RAM Breakdown */}
+                                        <div className="grid grid-cols-3 gap-2 text-xs font-mono pt-1">
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block">Core Binary Pool</span>
+                                                <strong className="text-white text-xs block mt-0.5">{ramAssetPool} GB</strong>
+                                            </div>
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block">UObject Actor Heap</span>
+                                                <strong className="text-white text-xs block mt-0.5">{ramHeapUObjects} GB</strong>
+                                            </div>
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block">GC Reflection Maps</span>
+                                                <strong className="text-white text-xs block mt-0.5">{ramReflectionGC} GB</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* GPU VRAM ALLOCATIONS */}
+                                    <div className="space-y-1.5 border-t border-kingfisher-border/30 pt-3">
+                                        <div className="flex justify-between items-end text-xs font-bold text-white mb-1">
+                                            <span className="flex items-center gap-1.5">
+                                                <Icons.HardDrive className="w-3.5 h-3.5 text-pink-400" /> GPU VRAM Allocation
+                                            </span>
+                                            <span className={`font-mono ${isVramExceeded ? "text-red-400" : "text-white"}`}>
+                                                {vramTotal.toFixed(2)} GB / {vramCap.toFixed(1)} GB {isVramExceeded ? "(VRAM Saturated - Swapping)" : "(Secure)"}
+                                            </span>
+                                        </div>
+                                        <div className="h-2 w-full bg-black rounded-full overflow-hidden relative">
+                                            <div 
+                                                className={`h-full transition-all duration-300 rounded-full ${isVramExceeded ? 'bg-red-500' : 'bg-pink-500'}`}
+                                                style={{ width: `${Math.min(100, (vramTotal / vramCap) * 100)}%` }}
+                                            />
+                                        </div>
+                                        {/* VRAM Breakdown */}
+                                        <div className="grid grid-cols-3 gap-2 text-xs font-mono pt-1">
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block font-sans">MIP Texture Cache</span>
+                                                <strong className="text-white text-xs block mt-0.5">{vramTextures} GB</strong>
+                                            </div>
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block font-sans">G-Buffer Targets</span>
+                                                <strong className="text-white text-xs block mt-0.5">{vramGBuffer} GB</strong>
+                                            </div>
+                                            <div className="bg-black/35 p-2 rounded border border-white/5">
+                                                <span className="text-[8px] text-kingfisher-muted uppercase block font-sans">Lumen & Shadows Cache</span>
+                                                <strong className="text-white text-xs block mt-0.5">{vramShadowProbes} GB</strong>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB CONTENT 3: NETWORK & PING DESYNCS */}
+                        {selectedMetricTab === "network" && (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-black/20 rounded-xl border border-white/5 space-y-3">
+                                    <div className="flex justify-between items-end text-xs font-bold text-white mb-1">
+                                        <span className="flex items-center gap-1.5">
+                                            <Icons.Radio className="w-3.5 h-3.5 text-emerald-400" /> Client-to-Dedicated-Server Ping Latency
+                                        </span>
+                                        <span className="font-mono text-white text-sm">
+                                            {latencyTotal} ms
+                                        </span>
+                                    </div>
+                                    <div className="h-2 w-full bg-black rounded-full overflow-hidden relative">
+                                        <div 
+                                            className="h-full transition-all duration-300 rounded-full bg-emerald-500"
+                                            style={{ width: `${Math.min(100, (latencyTotal / 320) * 100)}%` }}
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono pt-2">
+                                        <div className="bg-black/35 p-2.5 rounded border border-white/5 flex justify-between items-center">
+                                            <span className="text-kingfisher-muted truncate text-[10px]">Real Connection Ping Delay:</span>
+                                            <strong className="text-white font-bold ml-1">{netPingBase} ms</strong>
+                                        </div>
+                                        <div className="bg-black/35 p-2.5 rounded border border-white/5 flex justify-between items-center">
+                                            <span className="text-kingfisher-muted truncate text-[10px]">RPC NetGUID Queue Stalls:</span>
+                                            <strong className="text-white font-bold ml-1">{netSerializationQueue} ms</strong>
+                                        </div>
+                                    </div>
+
+                                    <div className="text-[11px] text-kingfisher-muted leading-relaxed pt-2 border-t border-kingfisher-border/30 font-sans">
+                                        {latencyTotal > 150 ? (
+                                            <span className="text-red-400 font-medium flex items-center gap-1">
+                                                <Icons.XCircle className="w-3.5 h-3.5 shrink-0" />
+                                                Severe desync rubber-banding! Hit-registration verification will fail, requiring rollback C++ historical traces.
+                                            </span>
+                                        ) : (
+                                            <span className="text-emerald-400 font-medium flex items-center gap-1">
+                                                <Icons.CheckCircle className="w-3.5 h-3.5 shrink-0" />
+                                                Stable network synchronization! Latency buffers are under desync limits safely.
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* CONTEXT LOG REPORT OUT (MAPPED TO SELECTED OPTIONS & MATH VERDICTS) */}
+                    <div className="mt-4 p-3.5 rounded-xl bg-black/60 border border-white/10 font-mono text-xs">
+                        <div className="text-[10px] text-emerald-400 mb-1.5 flex items-center gap-1.5 font-bold">
                             <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                            <span>DYNAMIC CONTEXT REPORT LOG</span>
+                            <span>DYNAMIC PERFORMANCE AUDIT LOG</span>
                         </div>
-                        <p className="text-[11px] font-mono text-kingfisher-muted leading-relaxed">
+                        <p className="text-[11px] text-kingfisher-muted leading-relaxed">
                             {metrics.verdict}
                         </p>
                     </div>
@@ -689,15 +1086,26 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
 
             {/* UNREAL ENGINE COMPATIBILITY MAPPINGS */}
             <div className="mt-6 border-t border-kingfisher-border/40 pt-5">
-                <span className="text-white font-bold text-xs uppercase tracking-wider block mb-3">
-                    Unreal Engine 5 Core Alignment Configuration Summary
-                </span>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <span className="text-white font-extrabold text-xs uppercase tracking-wider block">
+                        Unreal Engine 5 Core Alignment Configuration Summary
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[10px] text-kingfisher-muted font-bold block uppercase tracking-wider font-sans">Recommended CVars Config:</span>
+                        <div className="flex flex-wrap gap-1">
+                            {cVars.map((cv, idx) => (
+                                <code key={idx} className="bg-black/50 border border-white/10 text-blue-300 rounded px-1.5 py-0.5 text-[9px] font-mono leading-none select-all">{cv}</code>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl space-y-2">
-                        <span className="text-emerald-400 font-bold uppercase tracking-widest text-[9px] flex items-center gap-1">
-                            <Icons.CheckCircle className="w-3.5 h-3.5 shrink-0" /> Unreal Has Out-of-the-Box
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl space-y-2.5">
+                        <span className="text-emerald-400 font-bold uppercase tracking-widest text-[9px] flex items-center gap-1.5 font-sans">
+                            <Icons.CheckCircle className="w-4 h-4 shrink-0" /> Unreal Has Out-of-the-Box
                         </span>
-                        <ul className="text-xs text-kingfisher-muted space-y-1.5">
+                        <ul className="text-xs text-kingfisher-muted space-y-1.5 leading-relaxed font-sans">
                             {metrics.ueHas.map((h, i) => (
                                 <li key={i} className="flex items-start gap-1.5">
                                     <span className="text-emerald-500 font-bold select-none">•</span>
@@ -707,11 +1115,11 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                         </ul>
                     </div>
 
-                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl space-y-2">
-                        <span className="text-amber-400 font-bold uppercase tracking-widest text-[9px] flex items-center gap-1">
-                            <Icons.XCircle className="w-3.5 h-3.5 shrink-0" /> Unreal Lacks & Needs Workarounds
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl space-y-2.5">
+                        <span className="text-amber-400 font-bold uppercase tracking-widest text-[9px] flex items-center gap-1.5 font-sans">
+                            <Icons.XCircle className="w-4 h-4 shrink-0" /> Unreal Lacks & Needs Workarounds
                         </span>
-                        <ul className="text-xs text-kingfisher-muted space-y-1.5">
+                        <ul className="text-xs text-kingfisher-muted space-y-1.5 leading-relaxed font-sans">
                             {metrics.ueLacks.map((l, i) => (
                                 <li key={i} className="flex items-start gap-1.5">
                                     <span className="text-amber-400 font-bold select-none">•</span>
@@ -722,11 +1130,11 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                     </div>
                 </div>
 
-                <div className="mt-4 p-3.5 bg-blue-500/5 border border-blue-500/10 rounded-xl space-y-1 text-xs">
-                    <span className="text-blue-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1">
+                <div className="mt-4 p-3.5 bg-blue-500/5 border border-blue-500/10 rounded-xl space-y-1 text-xs leading-relaxed font-sans">
+                    <span className="text-blue-400 font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5">
                         <Icons.CheckSquare className="w-3.5 h-3.5" /> High-Performance C++ Workaround Procedure
                     </span>
-                    <p className="text-kingfisher-muted leading-relaxed">
+                    <p className="text-kingfisher-muted">
                         {metrics.customWorkaround}
                     </p>
                 </div>

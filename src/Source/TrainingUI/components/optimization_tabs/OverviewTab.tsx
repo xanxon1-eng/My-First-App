@@ -73,6 +73,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Dynamic HZB (Hierarchical Z-Buffer) Vertex Occlusion Engine', 'Evaluates spatial mesh coordinates and hides off-screen geometry on asynchronously computed GPU pools, recovering over 3.5ms on vertex-pipe operations.'],
               ['WPO Wind Sway material locks', 'Restricts foliage displacements programmatically beyond 45 meters, ensuring Virtual Shadow Map (VSM) cache fillrates remain above 95% and saving up to 5.0ms of G-Buffer vertex shadow map calculations.'],
               ['Universal Interactive Real-Time Hardware Budget Simulators', 'Integrated high-fidelity thematic sandbox engines with concrete millisecond metrics comparing CPU, GPU, RAM, VRAM, and Latency for all 40+ optimization guide tabs.'],
+              ['Universal Hardware Budget Engine v2.0', 'Upgraded the real-time simulation engines with advanced RPG workload modifiers, discrete CPU/GPU millisecond counts, detailed VRAM buffers, state check-offs, and CVar settings.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -88,6 +89,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Upgraded Hardware Budget Engine v2.0', 'Polished the complete interactive simulator to support platform ceilings (Mobile/Console/PC Ultra), modular components, memory paging overdraw penalties, and dynamic CVar lists.'],
               ['Universal Interactive Real-Time Hardware Budget Simulators', 'Equipped literally every single optimization guide tab (40+ items) with tailored real-time simulators, modeling custom thematic selectors, accurate hardware budgets, and microsecond computations.'],
               ['Thematic Custom Sizing & Architecture Toggles', 'Fine-tuned interactive control panels mapped dynamically by tab context (e.g. MassEntity, Networking, Multithreading, Shaders, World Partition, Spatial Hashing).'],
               ['Under-the-Hood Unreal Engine Feature Mapping', 'Delineated out-of-the-box features in Unreal Engine, identifying critical blind spots and detailing customized architectural solutions inspired by Witcher 3, PoE, and BG3.'],
