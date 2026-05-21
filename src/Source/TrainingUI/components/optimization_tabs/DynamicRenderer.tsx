@@ -185,12 +185,12 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
         options: [
             { id: "pipeline", label: "NPC Actor Framework", choices: ["Standard ticking Blueprints", "MassEntity contiguous fragments"] },
             { id: "path", label: "Spatial Pathfinding Search", choices: ["Standard A* Navmesh sweep", "Hierarchical Flowfields Grid"] },
-            { id: "anim", label: "Animation Bone Evaluation", choices: ["Rigid mesh evaluations", "Significance Distance scale"] }
+            { id: "anim", label: "Animation Sharing", choices: ["Rigid mesh evaluations", "Hardware-Accelerated Animation Sharing"] }
         ],
         calculate: (selections) => {
             const isMass = selections.pipeline === "MassEntity contiguous fragments";
             const isFlow = selections.path === "Hierarchical Flowfields Grid";
-            const isSignif = selections.anim === "Significance Distance scale";
+            const isAnimSharing = selections.anim === "Hardware-Accelerated Animation Sharing";
 
             let cpu = 24.8;
             let gpu = 8.4;
@@ -200,7 +200,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
 
             if (isMass) { cpu -= 14.2; ram -= 0.65; latency -= 8; }
             if (isFlow) { cpu -= 5.5; }
-            if (isSignif) { cpu -= 4.1; vram -= 0.35; }
+            if (isAnimSharing) { cpu -= 4.1; vram += 0.15; } // saves main-thread CPU, minor GPU VRAM footprint
 
             return {
                 cpu: Math.max(0.6, cpu),
@@ -208,7 +208,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
                 ram: Math.max(0.8, ram),
                 vram: Math.max(0.4, vram),
                 latency: Math.max(0, latency),
-                verdict: `Simulating town civilians via ${isMass ? "Data-Oriented MassEntity slices" : "individual Blueprint actors"} keeps memory layout contiguous. Routing crowds using a shared ${isFlow ? "Flowfield Hash matrix" : "A* path query search"} changes navigation to O(1). Animation updating culls bone ticks successfully.`,
+                verdict: `Simulating town civilians via ${isMass ? "Data-Oriented MassEntity slices" : "individual Blueprint actors"} keeps memory layout contiguous. Routing crowds using a shared ${isFlow ? "Flowfield Hash matrix" : "A* path query search"} changes navigation to O(1). ${isAnimSharing ? "Bypassing CPU-bound bone animations via shader buffers saves 1.0ms CPU." : "Traditional anim ticks consume major client CPU cycles."}`,
                 ueHas: [
                     "UMassEntitySubsystem & FMassEntityManager",
                     "USignificanceManager tick scaling managers",
@@ -230,22 +230,25 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
         options: [
             { id: "framework", label: "Connection Net Replication", choices: ["Legacy NetChannels channels", "IRIS Parallelised scoping"] },
             { id: "dormancy", label: "Actor Network Dormancy", choices: ["Active every-frame replications", "Dynamic NetDormancy triggers"] },
-            { id: "sync", label: "Lag Correction & Prediction", choices: ["Authoritative absolute sweeps", "Lag Rewind history tracers"] }
+            { id: "sync", label: "Lag Correction & Prediction", choices: ["Authoritative absolute sweeps", "Lag Rewind history tracers"] },
+            { id: "netsim", label: "Multi-region Network Sim", choices: ["Zero-loss LAN connection (Default)", "High-Jitter Packet Loss Simulation"] }
         ],
         calculate: (selections) => {
             const isIris = selections.framework === "IRIS Parallelised scoping";
             const isDormant = selections.dormancy === "Dynamic NetDormancy triggers";
             const isPredicted = selections.sync === "Lag Rewind history tracers";
+            const isNetsim = selections.netsim === "High-Jitter Packet Loss Simulation";
 
             let cpu = 18.2;
             let gpu = 4.5;
             let ram = 1.95;
             let vram = 1.1;
-            let latency = 210; // simulated packet-load ping delay
+            let latency = 15; // physical baseline network ping
 
             if (isIris) { cpu -= 5.4; }
-            if (isDormant) { cpu -= 2.8; latency -= 60; }
-            if (isPredicted) { cpu += 1.2; latency -= 130; } // predictive saves feel: -130ms ping feel
+            if (isDormant) { cpu -= 2.8; }
+            if (isPredicted) { cpu += 1.2; }
+            if (isNetsim) { latency += 85; ram += 0.05; } // inject simulated packet delays and history buffer space
 
             return {
                 cpu: Math.max(0.4, cpu),
@@ -253,7 +256,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
                 ram,
                 vram,
                 latency: Math.max(10, latency),
-                verdict: `Parallelizing connection scoping via ${isIris ? "IRIS scoping rings" : "Standard legacy channels"} offloads networking computation out of the main thread. ${isDormant ? "NetDormancy disables passive object checks" : "Static containers consume socket checks"}. ${isPredicted ? "Historical circular location arrays allow zero-lag weapon hit verification on high latency connections" : "Standard absolute sweeping triggers desyncs beyond 100ms ping"}.`,
+                verdict: `Parallelizing connection scoping via ${isIris ? "IRIS scoping rings" : "Standard legacy channels"} offloads networking computation out of the main thread. ${isDormant ? "NetDormancy disables passive object checks" : "Static containers consume socket checks"}. ${isPredicted ? "Historical circular location arrays allow zero-lag weapon hit verification on high latency connections" : "Standard absolute sweeping triggers desyncs beyond 100ms ping"}. ${isNetsim ? "Simulating high jitter (up to 80ms) and 15% packet drops stress-tests client prediction loops." : "LAN profile uses perfect non-simulated sockets."}`,
                 ueHas: [
                     "IRIS Replication Engine (available in modern UE5 builds)",
                     "Replication Graph spatial cluster culling structures",
@@ -320,12 +323,12 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
         options: [
             { id: "engine", label: "Foliage Geometry System", choices: ["Standard Meshes with LODs", "Nanite Micro-polygon Streaming"] },
             { id: "batch", label: "Mesh Draw Dispatching", choices: ["Individual Actor Mesh loops", "Hierarchical Instanced Component (HISM)"] },
-            { id: "cull", label: "Occlusion Query Method", choices: ["Basic Distance Culling volume", "Asynchronous GPU HZB Occlusion"] }
+            { id: "cull", label: "Occlusion Query Method", choices: ["Basic Distance Culling volume", "Dynamic GPU Occlusion Query Pools"] }
         ],
         calculate: (selections) => {
             const isNanite = selections.engine === "Nanite Micro-polygon Streaming";
             const isHism = selections.batch === "Hierarchical Instanced Component (HISM)";
-            const isHZB = selections.cull === "Asynchronous GPU HZB Occlusion";
+            const isOcclusionPools = selections.cull === "Dynamic GPU Occlusion Query Pools";
 
             let cpu = 12.8;
             let gpu = 23.5;
@@ -335,7 +338,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
 
             if (isNanite) { gpu -= 6.4; vram -= 1.15; }
             if (isHism) { cpu -= 5.2; gpu -= 2.4; }
-            if (isHZB) { gpu -= 3.8; }
+            if (isOcclusionPools) { gpu -= 3.8; cpu += 0.3; vram += 0.05; } // culls offscreen mobile assets aggressively, minor RAM/VRAM setup
 
             return {
                 cpu: Math.max(0.3, cpu),
@@ -343,7 +346,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
                 ram,
                 vram: Math.max(0.3, vram),
                 latency,
-                verdict: `Drawing repeating debris props as a unified ${isHism ? "HISM dynamic instanced array" : "individual draw calls pool"} collapses CPU call submissions. Utilizing ${isNanite ? "Nanite virtualized pipelines" : "traditional LOD bands"} speeds polygon delivery. Occl_culling checks hides offscreen vertices asynchronously on custom GPU pipelines.`,
+                verdict: `Drawing repeating debris props as a unified ${isHism ? "HISM dynamic instanced array" : "individual draw calls pool"} collapses CPU call submissions. Utilizing ${isNanite ? "Nanite virtualized pipelines" : "traditional LOD bands"} speeds polygon delivery. ${isOcclusionPools ? "Dynamic GPU occlusion query pools cull off-camera visual models on mobile GPU raster tiles, saving -1.8ms GPU." : "Passive distance checks render hidden elements."}`,
                 ueHas: [
                     "Nanite virtualized geometry compression engine",
                     "UHierarchicalInstancedStaticMeshComponent classes",
@@ -455,12 +458,12 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
         options: [
             { id: "audio", label: "Acoustic Prioritisation", choices: ["Distance volume checks", "Obstacle-tracking Raycast Culler"] },
             { id: "ui", label: "HUD Slate Redrawing", choices: ["Redraw every-frame (Default)", "UMG Slate Invalidation Box"] },
-            { id: "phys", label: "Physics Solver Rate", choices: ["Standard synchronous tick", "Chaos Async Sub-stepping"] }
+            { id: "phys", label: "Physics Solver Rate", choices: ["Standard synchronous tick", "Adaptive Physics Substepper Scheduler"] }
         ],
         calculate: (selections) => {
             const isCullSound = selections.audio === "Obstacle-tracking Raycast Culler";
             const isInvalidated = selections.ui === "UMG Slate Invalidation Box";
-            const isSubstepped = selections.phys === "Chaos Async Sub-stepping";
+            const isSubstepped = selections.phys === "Adaptive Physics Substepper Scheduler";
 
             let cpu = 15.8;
             let gpu = 6.2;
@@ -468,9 +471,9 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
             let vram = 1.15;
             let latency = 0;
 
-            if (isCullSound) { cpu -= 1.4; } // MetaSounds channel saving
-            if (isInvalidated) { cpu -= 3.8; } // UMG ticking saving
-            if (isSubstepped) { cpu -= 2.5; }
+            if (isCullSound) { cpu -= 1.4; } // MetaSounds raycaster culling saves -1.4ms Game Thread
+            if (isInvalidated) { cpu -= 3.8; } // UMG paint caching saving
+            if (isSubstepped) { cpu -= 2.5; ram += 0.02; } // limits non-combat physics frequencies saving CPU
 
             return {
                 cpu: Math.max(0.4, cpu),
@@ -478,7 +481,7 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
                 ram,
                 vram,
                 latency,
-                verdict: `Wrapping bloated interface components within ${isInvalidated ? "UMG Invalidation Boxes" : "dynamic Slate canvases"} prevents redundant redraw updates. MetaSounds acoustic rays cull obscured enemy sound buffers. Async substepped Chaos loops drop blocking main thread delays.`,
+                verdict: `Wrapping bloated interface components within ${isInvalidated ? "UMG Invalidation Boxes" : "dynamic Slate canvases"} prevents redundant redraw updates. ${isCullSound ? "Obstacle-tracking MetaSound raycaster filters and mutes fully occluded sound buffers, recovering -1.2ms CPU." : "Traditional distance-only check synthesizes fully obstructed sounds."} ${isSubstepped ? "Adaptive Physics Substepper down-schedules non-combat dynamic bounds, saving -1.5ms CPU." : "Rigid synchronous solver iterations lock Game Thread ticks."}`,
                 ueHas: [
                     "UMG UI Invalidation Box frameworks",
                     "MetaSound procedural mixing tracks",

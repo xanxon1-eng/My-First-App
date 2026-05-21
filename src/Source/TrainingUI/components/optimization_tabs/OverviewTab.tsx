@@ -75,6 +75,11 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['WPO Wind Sway material locks', 'Restricts foliage displacements programmatically beyond 45 meters, ensuring Virtual Shadow Map (VSM) cache fillrates remain above 95% and saving up to 5.0ms of G-Buffer vertex shadow map calculations.'],
               ['Universal Interactive Real-Time Hardware Budget Simulators', 'Integrated high-fidelity thematic sandbox engines with concrete millisecond metrics comparing CPU, GPU, RAM, VRAM, and Latency for all 40+ optimization guide tabs.'],
               ['Universal Hardware Budget Engine v2.0', 'Upgraded the real-time simulation engines with advanced RPG workload modifiers, discrete CPU/GPU millisecond counts, detailed VRAM buffers, state check-offs, and CVar settings.'],
+              ['Dynamic Sound Prioritization Raycaster', 'MetaSounds prioritizer raycasting obstacle thickness and distance vectors from the camera to cull inaudible mob battle sound buffers, recovering -1.2ms CPU on Game Thread audio tick processing.'],
+              ['Adaptive Physics Substepper Scheduler', 'Physics update scheduler that dynamically scales down update frequencies of non-combat passive physics bounds based on camera frustum scales, conserving -1.5ms server CPU ticks.'],
+              ['Multi-region Network Simulation', 'Synthetic jitter (10ms - 80ms) and burst packet loss (1% - 15%) injection into client predictive loops for stress testing local predictive rollbacks.'],
+              ['Hardware-Accelerated Animation Sharing', 'Bypasses bone updates on distant mobile proxy skeletons via shared skinning buffers allocated directly on the GPU, saving -1.0ms Game Thread CPU time.'],
+              ['Dynamic GPU Occlusion Query Pools', 'Implements visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -137,6 +142,11 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Hierarchical HZB Occlusion Culling', 'Implemented spatial hash-based HZB (Hierarchical Z-Buffer) visibility queries to aggressively cull geometric assets (Novigrad-style density), saving ~3.5ms GPU time.'],
               ['Procedural Foliage Vector Culling', 'Added distance-scale vector culling for global RPG forests, bypassing standard actor-based culling for contiguous memory checks, reclaiming 2.0ms CPU.'],
               ['AAA Open-World Geometry & Nanite Stress-Test Simulator', 'Full interactive dashboard modeling real-time dynamic rendering presets (Swamp forests, city squares, spell Arenas) alongside fine-grained controllers for Nanite, alpha overdraw, wind sway, and HZB occlusion tracking.'],
+              ['Dynamic Sound Prioritization Raycaster', 'Raycasts structural obstacles from the camera, using MetaSound channel controllers to drop or prioritize dynamic sound channels based on spatial audio isolation, saving -1.2ms Game Thread CPU.'],
+              ['Adaptive Physics Substepper Scheduler', 'Monitors the screen-space camera projection cone and scales physics solver update frequencies of non-combat passive meshes down to 10Hz, reclaiming -1.5ms system CPU.'],
+              ['Multi-region Network Simulation', 'Sophisticated QoS simulating bridge for injecting mock latency jitter (10ms to 80ms) and packet dropouts to stress-test predictive state correction loops.'],
+              ['Hardware-Accelerated Animation Sharing', 'Shared GPU vertex skinning pools that bypass CPU-side skeletal matrix evaluations for distant cosmetic proxy crowds, recovering -1.0ms main thread CPU.'],
+              ['Dynamic GPU Occlusion Query Pools', 'Asynchronous bounding-box sweeps culling distant hidden meshes on mobile devices before rendering, boosting raster capabilities by -1.8ms GPU.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20 transition-colors">
@@ -301,11 +311,11 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
           </div>
           <ul className="space-y-4">
             {[
-              ['Dynamic Sound Prioritization Raycaster', 'MetaSounds prioritizer raycasting obstacle thickness and distance vectors from the camera to cull inaudible mob battle sound buffers, recovering -1.2ms CPU.'],
-              ['Adaptive Physics Substepper Scheduler', 'Physics update scheduler that dynamically scales down update frequencies of non-combat passive physics bounds based on camera frustum scales.'],
-              ['Multi-region Network Simulation', 'Synthetic jitter and burst packet loss injection into client predictive loops for stress testing.'],
-              ['Hardware-Accelerated Animation Sharing', 'Bypassing bone updates on distant mobile proxy skeletons via shared skinning buffers directly allocated on the GPU, saving -1.0ms CPU.'],
-              ['Dynamic GPU Occlusion Query Pools', 'Implementing visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.'],
+              ['Procedural Dynamic Joint-Compression Solver', 'A physics joint compression culler running on NEON/SIMD lanes to skip distant dynamic ragdoll articulation steps, reclaiming -0.7ms CPU for target combat.'],
+              ['Hierarchical Spatial UI Canvas Invalidation Channels', 'Sub-viewport canvas grouping that runs region segment tests to only redraw UI modules intersecting key changes, saving 0.4ms CPU of canvas ticks.'],
+              ['Direct3D 12 Sparse Feedback Texture Streaming', 'Virtual texture paging leveraging GPU sampler feedback to load only accessed tiles of high-resolution models, recovering up to -350MB of VRAM budget.'],
+              ['Predictive Client-Side Network Dead-Reckoning', 'Extrapolates projectile coordinates using cubic spline interpolation to hide high-jitter (over 120ms) server tick delays during fast combat, stabilizing ping feel.'],
+              ['Asynchronous Niagara Particle Vertex Cull Grids', 'Screen-space bounds testing before dynamic vertex shaders spawn particles, bypassing draw call overdraw and saving -1.1ms GPU rendering capacity.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3">
                 <div className="mt-1 shrink-0"><CircleDashed className="w-4 h-4 text-amber-500/50" /></div>
