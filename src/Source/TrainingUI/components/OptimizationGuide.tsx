@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -157,6 +157,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'overview') return <OverviewTab onNavigate={setActiveTab} />;
     if (activeTab === 'project_appl') return <ProjectApplicationTab />;
     if (activeTab === 'lighting') return <LightingTab />;
+    if (activeTab === 'aaa_profiling') return <AAAQualityProfilingTab />;
     
     const componentName = TAB_TO_COMPONENT_NAME[activeTab];
     if (componentName) {
