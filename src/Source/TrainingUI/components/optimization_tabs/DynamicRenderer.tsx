@@ -526,6 +526,15 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
     const [platform, setPlatform] = useState<"mobile" | "console" | "pc_ultra">("console");
     const [scenario, setScenario] = useState<"novigrad" | "swamp" | "coop_boss" | "dungeon">("novigrad");
     const [selectedMetricTab, setSelectedMetricTab] = useState<"frame" | "memory" | "network">("frame");
+    const [copied, setCopied] = useState(false);
+
+    const handleCopyCVars = () => {
+        const text = cVars.join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+        }).catch(() => {});
+    };
 
     useEffect(() => {
         const defaults: Record<string, string> = {};
@@ -1084,6 +1093,70 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                             {metrics.verdict}
                         </p>
                     </div>
+
+                    {/* HARDWARE BOTTLENECK & THREAT RUNTIME DETECTOR */}
+                    <div className="mt-3 p-3.5 rounded-xl bg-black/60 border border-white/10 font-mono text-xs">
+                        <div className="text-[10px] text-yellow-500 mb-2 flex items-center gap-1.5 font-bold">
+                            <Icons.ShieldAlert className="w-3.5 h-3.5 text-yellow-500 animate-pulse" />
+                            <span>HARDWARE BOTTLENECK & SYSTEM DIAGNOSTICS</span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                            {/* Check CPU bottleneck */}
+                            {!isCpuTargetMet && (
+                                <div className="p-2 bg-red-500/10 border border-red-500/20 rounded-lg text-[11px] text-red-300 flex items-start gap-2 leading-relaxed">
+                                    <Icons.TrendingDown className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold text-red-400">CPU Thread Saturation Critical:</span> CPU Frame Time ({cpuTotal.toFixed(2)}ms) exceeds platform budget ({frameBudgetLimit.toFixed(2)}ms). Heavy character ticking or complex physics traces are freezing serialization. 
+                                        <div className="text-[10px] text-kingfisher-muted mt-1">UE Fix: Refactor ticking components to use tick intervals, Tick Groups, or wrap them in FRunnable background workers.</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Check GPU bottleneck */}
+                            {!isGpuTargetMet && (
+                                <div className="p-2 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[11px] text-purple-300 flex items-start gap-2 leading-relaxed">
+                                    <Icons.Flame className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold text-purple-400">GPU Raster Shader Overload:</span> GPU Frame Time ({gpuTotal.toFixed(2)}ms) exceeds platform budget ({frameBudgetLimit.toFixed(2)}ms). High basepass pixel complexity or shadow map resolution is bottlenecking rendering.
+                                        <div className="text-[10px] text-kingfisher-muted mt-1">UE Fix: Enable Nanite on dense meshes, use Hierarchical ISMs, or lock dynamic lighting distance settings using Material quality parameters.</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Check RAM OOM */}
+                            {isRamExceeded && (
+                                <div className="p-2 bg-orange-500/10 border border-orange-500/20 rounded-lg text-[11px] text-orange-300 flex items-start gap-2 leading-relaxed">
+                                    <Icons.HardDrive className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold text-orange-400">RAM Out-Of-Memory Paging Leak Risk:</span> Allocation ({ramTotal.toFixed(2)}GB) exceeds platform cap ({ramCap.toFixed(1)}GB). Paging swaps can cause stutter stalls (+{pagingPenaltyCpu}ms CPU penalty added).
+                                        <div className="text-[10px] text-kingfisher-muted mt-1">UE Fix: Organize persistent static arrays into Garbage Collection Clusters (FGCCluster) or lazy-spawn Actor templates inside World Partition.</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Check VRAM Saturated */}
+                            {isVramExceeded && (
+                                <div className="p-2 bg-pink-500/10 border border-pink-500/20 rounded-lg text-[11px] text-pink-300 flex items-start gap-2 leading-relaxed">
+                                    <Icons.Database className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold text-pink-400">GPU VRAM Saturated Texture Stalls:</span> Memory allocation ({vramTotal.toFixed(2)}GB) exceeds target buffer size ({vramCap.toFixed(1)}GB), triggering PCIe page thrashing (+{pagingPenaltyGpu}ms GPU penalty added).
+                                        <div className="text-[10px] text-kingfisher-muted mt-1">UE Fix: Enable Virtual Textures, optimize channel packed layers, and balance LOD texture streaming MIP ratios.</div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Stable Status */}
+                            {isCpuTargetMet && isGpuTargetMet && !isRamExceeded && !isVramExceeded && (
+                                <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-[11px] text-emerald-300 flex items-start gap-2 leading-relaxed">
+                                    <Icons.CheckCircle className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                                    <div>
+                                        <span className="font-bold text-emerald-400">All Metrics Secured:</span> Thread timings, memory heap buffers, and virtual textures are fully optimized within safe limits for active {platform === "pc_ultra" ? "PC Ultra 120Hz" : platform === "console" ? "Console 60Hz" : "Mobile 30Hz"} rendering targets. Highly playable RPG performance!
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -1093,13 +1166,33 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                     <span className="text-white font-extrabold text-xs uppercase tracking-wider block">
                         Unreal Engine 5 Core Alignment Configuration Summary
                     </span>
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-kingfisher-muted font-bold block uppercase tracking-wider font-sans">Recommended CVars Config:</span>
-                        <div className="flex flex-wrap gap-1">
+                    <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-xl border border-white/5">
+                        <span className="text-[10px] text-kingfisher-muted font-bold block uppercase tracking-wider font-sans">Recommended CVars:</span>
+                        <div className="flex flex-wrap gap-1 items-center">
                             {cVars.map((cv, idx) => (
                                 <code key={idx} className="bg-black/50 border border-white/10 text-blue-300 rounded px-1.5 py-0.5 text-[9px] font-mono leading-none select-all">{cv}</code>
                             ))}
                         </div>
+                        <button
+                            onClick={handleCopyCVars}
+                            className={`ml-2 px-2 py-1 text-[9px] font-bold uppercase rounded transition-all flex items-center gap-1 border ${
+                                copied 
+                                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
+                                    : "bg-kingfisher-blue/20 text-white border-kingfisher-blue/30 hover:bg-kingfisher-blue/35"
+                            }`}
+                        >
+                            {copied ? (
+                                <>
+                                    <Icons.Check className="w-2.5 h-2.5 text-emerald-400" />
+                                    Copied!
+                                </>
+                            ) : (
+                                <>
+                                    <Icons.Copy className="w-2.5 h-2.5 text-white" />
+                                    Copy Set
+                                </>
+                            )}
+                        </button>
                     </div>
                 </div>
                 

@@ -5,7 +5,7 @@ import {
   ClipboardList, EyeOff, Layers, BarChart3, Globe, Folder, Shield, Radio,
   Hexagon, Save, Triangle, Image, Palette, Crosshair, Sliders, Music,
   Package, Eye, TrendingDown, Flame, GitBranch, Terminal, ShieldAlert, Smartphone, Map, Trash2, Code, Menu, X, Users, Grid,
-  Server, Shuffle, Wind, Lock, Wifi, Navigation, Sword, Trees, Droplets, Mountain, ChevronDown, ChevronRight
+  Server, Shuffle, Wind, Lock, Wifi, Navigation, Sword, Trees, Droplets, Mountain, ChevronDown, ChevronRight, Search
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
@@ -147,6 +147,30 @@ const TAB_GROUPS = [
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState(TAB_GROUPS[0].tabs[0].id);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const filteredTabGroups = TAB_GROUPS.map(group => {
+    const matchedTabs = group.tabs.filter(tab => {
+      const labelMatch = tab.label.toLowerCase().includes(searchQuery.toLowerCase());
+      const idMatch = tab.id.toLowerCase().includes(searchQuery.toLowerCase());
+      return labelMatch || idMatch;
+    });
+    return {
+      ...group,
+      tabs: matchedTabs
+    };
+  }).filter(group => {
+    if (selectedCategory === 'All') return group.tabs.length > 0;
+    const categoryMatches = 
+      (selectedCategory === 'CPU' && group.title === 'Architecture & CPU') ||
+      (selectedCategory === 'Netcode' && group.title === 'Multiplayer & Netcode') ||
+      (selectedCategory === 'Graphics' && group.title === 'Rendering & Graphics') ||
+      (selectedCategory === 'Logic' && group.title === 'Game Systems & Logic') ||
+      (selectedCategory === 'Profiling' && group.title === 'Profiling & Tools') ||
+      (selectedCategory === 'Status' && group.title === 'Status & Overview');
+    return categoryMatches && group.tabs.length > 0;
+  });
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
@@ -220,42 +244,94 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
 
         <aside className={`
           fixed inset-y-0 left-0 z-40 w-72 bg-kingfisher-dark lg:relative lg:bg-kingfisher-panel/30
-          border-r border-kingfisher-border flex flex-col p-4 shrink-0 overflow-y-auto custom-scrollbar
+          border-r border-kingfisher-border flex flex-col p-4 shrink-0 overflow-hidden
           transition-transform duration-300 ease-in-out lg:translate-x-0
           ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         `}>
-          <nav className="flex flex-col gap-6 pt-14 lg:pt-0">
-            {TAB_GROUPS.map((group, groupIdx) => (
-              <div key={groupIdx} className="flex flex-col">
-                <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-kingfisher-muted/60 mb-3 pl-2 flex items-center gap-2">
-                  <div className="h-px flex-1 bg-kingfisher-border/30" />
-                  {group.title}
-                  <div className="h-px w-4 bg-kingfisher-border/30" />
-                </div>
-                <div className="flex flex-col gap-1">
-                  {group.tabs.map(tab => {
-                    const isActive = activeTab === tab.id;
-                    const Icon = tab.icon;
-                    return (
-                      <button
-                        key={tab.id}
-                        onClick={() => handleTabSelect(tab.id)}
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                          isActive
-                            ? 'bg-kingfisher-blue/20 text-white shadow-[0_0_15px_-5px_rgba(120,127,178,0.4)] border border-kingfisher-blue/40'
-                            : 'text-kingfisher-muted hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-kingfisher-blue/30 text-white' : 'text-kingfisher-muted group-hover:text-white'}`}>
-                          <Icon className="w-4 h-4 shrink-0" />
-                        </div>
-                        <span className="truncate">{tab.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
+          {/* Sidebar Search and Filter Header */}
+          <div className="flex flex-col gap-3 pb-4 pt-14 lg:pt-0 border-b border-kingfisher-border/30 mb-4 shrink-0">
+            {/* Search Input */}
+            <div className="relative flex items-center">
+              <span className="absolute left-3 text-kingfisher-muted/60">
+                <Search className="w-4 h-4" />
+              </span>
+              <input
+                type="text"
+                placeholder="Search guide topics..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-black/45 hover:bg-black/60 focus:bg-black/80 text-white placeholder-kingfisher-muted/50 rounded-xl pl-9 pr-8 py-2 text-xs border border-kingfisher-border/60 focus:border-kingfisher-blue/60 transition-all outline-none"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 p-1 rounded-full text-kingfisher-muted/60 hover:text-white hover:bg-white/5 transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
+            {/* Category Pill Filters */}
+            <div className="flex flex-wrap gap-1">
+              {['All', 'Status', 'CPU', 'Netcode', 'Graphics', 'Logic', 'Profiling'].map((cat) => {
+                const isCatSelected = selectedCategory === cat;
+                return (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className={`text-[9px] font-bold px-2.5 py-1 rounded-md transition-all border ${
+                      isCatSelected
+                        ? 'bg-kingfisher-blue/20 text-white border-kingfisher-blue/60 shadow-[0_0_8px_-3px_rgba(120,127,178,0.5)]'
+                        : 'bg-black/35 text-kingfisher-muted/70 hover:bg-neutral-800 hover:text-white border-transparent'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Scrolling Tab Navigation */}
+          <nav className="flex-1 overflow-y-auto flex flex-col gap-6 custom-scrollbar pr-1 pb-4">
+            {filteredTabGroups.length === 0 ? (
+              <div className="text-center py-8 text-kingfisher-muted/60 text-xs font-medium">
+                No matching topics found.
               </div>
-            ))}
+            ) : (
+              filteredTabGroups.map((group, groupIdx) => (
+                <div key={groupIdx} className="flex flex-col">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.2em] text-kingfisher-muted/60 mb-3 pl-2 flex items-center gap-2">
+                    <div className="h-px flex-1 bg-kingfisher-border/30" />
+                    {group.title}
+                    <div className="h-px w-4 bg-kingfisher-border/30" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    {group.tabs.map(tab => {
+                      const isActive = activeTab === tab.id;
+                      const Icon = tab.icon;
+                      return (
+                        <button
+                          key={tab.id}
+                          onClick={() => handleTabSelect(tab.id)}
+                          className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                            isActive
+                              ? 'bg-kingfisher-blue/20 text-white shadow-[0_0_15px_-5px_rgba(120,127,178,0.4)] border border-kingfisher-blue/40'
+                              : 'text-kingfisher-muted hover:bg-white/5 hover:text-white border border-transparent'
+                          }`}
+                        >
+                          <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-kingfisher-blue/30 text-white' : 'text-kingfisher-muted group-hover:text-white'}`}>
+                            <Icon className="w-4 h-4 shrink-0" />
+                          </div>
+                          <span className="truncate">{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))
+            )}
           </nav>
         </aside>
 

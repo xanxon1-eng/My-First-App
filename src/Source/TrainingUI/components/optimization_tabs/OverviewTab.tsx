@@ -84,6 +84,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Hardware-Accelerated Animation Sharing', 'Bypasses bone updates on distant mobile proxy skeletons via shared skinning buffers allocated directly on the GPU, saving -1.0ms Game Thread CPU time.'],
               ['Dynamic GPU Occlusion Query Pools', 'Implements visual bounding-box occlusion sweeps to aggressively cull off-camera visual assets on mobile chipsets, reclaiming -1.8ms of GPU raster capacity.'],
               ['Aspect Overlaps & Interdependence Analysis Sandbox', 'Custom interactive matrix mapping key overlaps (e.g., Crowds vs Skinning vs Audio priority, Spell sweeps vs Prediction vs Netcode, GI raycasting vs Foliage Wind VSM Cache invalidations) with explicit microsecond metrics and UE out-of-the-box gap assessments.'],
+              ['Real-Time Sidebar Smart Search & Semantic Category Filtering', 'A fast, real-time client-side search indexing system in the sidebar that allows filtering the heavy database of 40+ optimization guide topics down to specific keywords or category pills (CPU, netcode, graphics, etc.), enhancing learning ergonomics.'],
+              ['Dynamic Hardware Bottleneck & Diagnostics Engine', 'A real-time checker integrated underneath the performance audit log that evaluates frame-budget limits dynamically. Automatically flags CPU Thread bottlenecks, GPU Raster overflows, System RAM swaps, and GPU VRAM PCIe page thrashing, giving direct Unreal Engine C++ recommendations.'],
+              ['Interactive CVar Clipboard Config Exporter', 'A clipboard copying suite mapped dynamically inside the live hardware target simulator, compiling relevant CVars on-the-fly and outputting structured `.ini` blocks for DefaultEngine.ini with a single click.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
@@ -153,6 +156,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Dynamic GPU Occlusion Query Pools', 'Asynchronous bounding-box sweeps culling distant hidden meshes on mobile devices before rendering, boosting raster capabilities by -1.8ms GPU.'],
               ['Spectacular Aspect Overlaps & Interdependence Sandbox Tab', 'Integrated a comprehensive diagnostic and verification matrix detailing compounding game thread, physical solver, and VRAM memory interactions. Proactively optimizes multi-system scenarios modeled after key Witcher 3, PoE, and BG3 workloads down to 0.6ms.'],
               ['Enhanced Virtual Shadow Map wind-locking configs', 'Allows real-time locking of distant foliage material sway updates, elevating shadow cache hit rates to over 95% and saving up to 5.0ms of graphics raster capacity if active.'],
+              ['Real-Time Sidebar Smart Search & Semantic Category Filtering Grid', 'Provides continuous, lightning-fast text and category filter tags inside the side navigation bar to streamline topic lookups across 40+ optimization sectors.'],
+              ['Dynamic Hardware Bottleneck Diagnostics Widget', 'Generates runtime diagnostic advisories directly under the performance telemetry graphs, alerting the developer to CPU delays, GPU loads, RAM page-shocks, or VRAM saturation, coupled with concrete C++ solutions.'],
+              ['Optimal CVar Clipboard Exporter Config', 'Bakes recommended CVars for the active simulation parameters and outputs a clean configuration file copy state for immediate paste in DefaultEngine.ini.'],
             ].map(([title, desc]) => (
               <li key={title} className="flex items-start gap-3 group">
                 <div className="mt-1 rounded-full p-0.5 bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20 transition-colors">
