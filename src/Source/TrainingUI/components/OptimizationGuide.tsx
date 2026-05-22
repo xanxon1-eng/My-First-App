@@ -154,6 +154,29 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  // Compact stability calculation for Header
+  const [headerStability, setHeaderStability] = useState(81);
+
+  React.useEffect(() => {
+    const measureHeader = () => {
+      const nodes = document.getElementsByTagName('*').length;
+      const filesCount = 84;
+      const loc = 19450;
+      
+      const fileRatio = filesCount / 120;
+      const locRatio = loc / 25000;
+      const domRatio = nodes / 8000;
+      
+      const maxRatio = Math.max(fileRatio, locRatio, domRatio);
+      // Math: stability is high if under ceilings, drops proportionally as we exceed
+      const score = Math.max(0, Math.min(100, Math.round(100 - (maxRatio * 80))));
+      setHeaderStability(score);
+    };
+    measureHeader();
+    const interval = setInterval(measureHeader, 1500);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavigate = (tabId: string, anchorId?: string) => {
     setActiveTab(tabId);
@@ -269,7 +292,24 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
         </div>
 
         <div className="hidden sm:flex items-center gap-3">
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+          <button 
+            onClick={() => handleNavigate('overview', 'workspace-diagnostics-container')}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all duration-200 select-none hover:bg-neutral-800 cursor-pointer active:scale-95 ${
+              headerStability >= 80 
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:border-emerald-500/40 shadow-[0_0_10px_-5px_rgba(16,185,129,0.3)]' 
+                : headerStability >= 60 
+                  ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 hover:border-amber-500/40 shadow-[0_0_10px_-5px_rgba(245,158,11,0.3)]' 
+                  : 'bg-red-500/10 border-red-500/20 text-red-400 hover:border-red-500/40 shadow-[0_0_10px_-5px_rgba(239,68,68,0.3)]'
+            }`}
+            title="Google AI Studio & Browser Sandbox Status: Click to inspect detailed metrics and calibration tools"
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">
+              Studio Stability Index: {headerStability}%
+            </span>
+          </button>
+
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest">Multiplayer Optimized</span>
           </div>

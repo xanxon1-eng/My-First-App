@@ -11,8 +11,12 @@ import {
 } from 'lucide-react';
 import { COLORS } from '../../../../constants/colors';
 import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, PageHeader, CodeBlock } from './OptimizationHelpers';
+import { WorkspaceDiagnostics } from '../WorkspaceDiagnostics';
 
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
+  // AI Studio workspace diagnostics
+  'AI Studio Workspace & Browser Sandbox Diagnostics Core': { tabId: 'overview', anchorId: 'workspace-diagnostics-container', badge: 'Studio Safe' },
+
   // Co-op & Netcode
   'Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
   'Multi-Region Latency, Jitter & Packet Loss Simulator': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
@@ -391,6 +395,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 While this educational application is designed for intuitive layout readability on PC, tablet, and mobile, it optimizes directly for high-end <strong>PC & Console architectures (PS5/Xbox Series X)</strong>. Real development paradigms are inspired by the physical limits of <em>The Witcher 3</em>, <em>Path of Exile</em>, and <em>Baldur's Gate 3</em>, bypassing lightweight mobile runtime constraints in favor of heavy multi-threading, hardware-accelerated streaming, global bindless descriptor tables, and GPU-driven asset decompression.
               </p>
             </HighlightBox>
+
+            <WorkspaceDiagnostics />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               {[
@@ -417,6 +423,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Real-time telemetry measuring active scripts, line counts, physical DOM elements, CPU thread lag, and JS heap buffers to protect browser states. Includes a full stress-test calibration panel to artificially inject load factors, triggering latency spikes dynamically for immediate verification.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Integrates 8 custom, hyper-polished animated graphic visualizers directly mapped to dynamic simulated parameters. Models L1 cache padding layouts, real-time MassEntity ECS crowd boids at 120 FPS, dual client-server packet jitter prediction timelines, World Partition streaming grid cells, HISM vs individual draw counts, opaque vs translucent overdraw pixels, sparse Radiance Cascade probes, and Slate repaint invalidation graphs.'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Bypasses standard CPU-to-GPU mesh bindings in complex scenes (Novigrad streets or active PoE boss fights). Stores thousands of texture, buffer, and constant indices inside a global descriptor heap accessed dynamically in shaders, eliminating render thread frame lockups (saves -3.2ms CPU and -1.5ms GPU, allocating 18MB RAM and 50MB VRAM).'],
@@ -487,6 +494,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Full telemetry controller tracking filesystem and system limits, featuring interactive thread blockers, file expansion sliders, and live DOM counters to calibrate gauge measurements in real-time.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Engineered 8 dedicated animated architectural visualizers illustrating physical hardware limits. Solves cache miss DRAM bottlenecks (+140ns), MassEntity contiguous memory chunk stream transfers, prediction rollbacks, 5x5 dynamic camera streaming cell buffers, instanced geometry dispatches, sprite transparency instructions, sparse irradiance GI cache ray bounds, and Slate paint invalidations (saves up to -12ms CPU / -6.5ms GPU, allocating negligible RAM/VRAM).'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Dynamic D3D12 bindless array controllers for custom engine pipelines, allowing zero-copy asset binds and minimizing thread context switches under extreme rendering loads.'],
@@ -754,6 +762,12 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                           'Tracks and records only modified dirty member variables for large inventories, quest parameters, and player states since the last persistent save frame, bypassing slow standard JSON write serialization.',
                           'CPU: -2.5ms Main-Thread write stall release | GPU: 0ms | RAM: +5MB transient buffers | VRAM: 0ms | Latency: Prevents server/client write delays, maintaining QoS levels under heavy action save-points',
                           'UE Support: Unreal SaveGame components serialize entire structures sequentially, presenting no native dirty-tracking. To implement, use a binary delta-array tracking system in custom C++ USTRUCTs, flushing raw bytes via a dedicated worker thread using FArchive::Serialize.'
+                        ],
+                        [
+                          'Real-Time PSO Shader Pre-Compilation & Dynamic Cache Scheduler',
+                          'Tracks and caches Pipeline State Objects (PSOs) predictively at boot-time and early-load points based on upcoming combat skills and enemy spell categories, completely eliminating the notorious shader-compilation stutters in direct traversal.',
+                          'CPU: -15.5ms CPU Game Thread spike culling (zeroes out the legendary 150ms-300ms stutter on first cast) | GPU: +1.2ms compilation pass on load triggers | RAM: +350MB transient compile context buffers | VRAM: +100MB PSO active pipeline index registers | Latency: 0ms (Preserves flawless frame pacing through fast-paced encounters)',
+                          'UE Support: Unreal Engine 5 uses PSO Caching, but requires manual tester collection to record and package files on build compile, lacking a dynamic predictive compiler in the runtime environment. To bridge this, write a custom C++ async thread pool monitor (using FRHIComputeShader / IPSOCollector) to parse upcoming ability asset loads and compile PSO binaries in the background 3 seconds before combat.'
                         ]
                       ].map(([title, desc, budget, ueSupport]) => (
                         <li key={title} className="p-3 bg-black/10 rounded-xl border border-blue-500/10 hover:border-blue-500/25 transition-all text-xs">
