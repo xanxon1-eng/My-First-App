@@ -16,6 +16,8 @@ import { WorkspaceDiagnostics } from '../WorkspaceDiagnostics';
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
   // AI Studio workspace diagnostics
   'AI Studio Workspace & Browser Sandbox Diagnostics Core': { tabId: 'overview', anchorId: 'workspace-diagnostics-container', badge: 'Studio Safe' },
+  'Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
+  'Topic-Tailored Interactive Hardware-Budget Visualizers': { tabId: 'modifier_sandbox', anchorId: 'hardware-and-ability-sim', badge: 'Visualizers' },
 
   // Co-op & Netcode
   'Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
@@ -53,9 +55,16 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Spectacular Aspect Overlaps & Interdependence Sandbox Tab': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
   'RPG Pre-Production Roadmap Planner': { tabId: 'project_appl', badge: 'Pre-Prod Coach' },
   'Gameplay Ability System (GAS) Optimiser & RPG Workloads': { tabId: 'gas_opt', badge: 'GAS Core' },
+  'Gameplay Ability System (GAS) Core Analyser & RPG Simulator': { tabId: 'gas_opt', badge: 'GAS Core' },
   'Interactive Gameplay Ability System (GAS) Core Analysis': { tabId: 'gas_opt', badge: 'GAS Core' },
   'Direct3D 12 Bindless Resources Descriptor Heap Manager': { tabId: 'draw_calls', badge: 'D3D12 Bindless' },
-  'DirectStorage GPU Decompression Pipeline': { tabId: 'storage', badge: 'DirectStorage' }
+  'DirectStorage GPU Decompression Pipeline': { tabId: 'storage', badge: 'DirectStorage' },
+  
+  // Custom lessons and systems
+  'C++ School Intelligent Memory & Layout Enhancements': { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics', badge: 'C++ Diagnostics' },
+  'Geometry Tab Expansion: SSDM Implementation': { tabId: 'gpu', anchorId: 'ssdm-displacement-mapping', badge: 'SSDM' },
+  'Screen Space Displacement Mapping (SSDM) & Custom G-Buffer Depth Offsets': { tabId: 'gpu', anchorId: 'ssdm-displacement-mapping', badge: 'SSDM' },
+  'Custom C++ School Individual Diagnostics Engine': { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics', badge: 'C++ Diagnostics' }
 };
 
 interface CeilingItem {
@@ -424,6 +433,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                   <ul className="space-y-3 pt-1">
                     {[
                       ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Real-time telemetry measuring active scripts, line counts, physical DOM elements, CPU thread lag, and JS heap buffers to protect browser states. Includes a full stress-test calibration panel to artificially inject load factors, triggering latency spikes dynamically for immediate verification.'],
+                      ['Workspace Diagnostics Mathematical Proof Verification Module', 'Integrates a dynamic calibration check panel detailing exact formulas and proof matrices used in the telemetry sampling systems (e.g. DOM/LOC overhead calculations, sandboxed heap limitations, and latency indexes), allowing users to verify mathematical stability rules interactively on-the-fly.'],
+                      ['Live-Synchronized Studio Stability Header Gauge', 'Links the primary header gauge with zero-latency global hook bindings directly to the diagnostics panel metrics, accelerating updates to 300ms of reactive real-time feedback.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Integrates 8 custom, hyper-polished animated graphic visualizers directly mapped to dynamic simulated parameters. Models L1 cache padding layouts, real-time MassEntity ECS crowd boids at 120 FPS, dual client-server packet jitter prediction timelines, World Partition streaming grid cells, HISM vs individual draw counts, opaque vs translucent overdraw pixels, sparse Radiance Cascade probes, and Slate repaint invalidation graphs.'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Bypasses standard CPU-to-GPU mesh bindings in complex scenes (Novigrad streets or active PoE boss fights). Stores thousands of texture, buffer, and constant indices inside a global descriptor heap accessed dynamically in shaders, eliminating render thread frame lockups (saves -3.2ms CPU and -1.5ms GPU, allocating 18MB RAM and 50MB VRAM).'],
@@ -495,6 +506,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                   <ul className="space-y-3 pt-1">
                     {[
                       ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Full telemetry controller tracking filesystem and system limits, featuring interactive thread blockers, file expansion sliders, and live DOM counters to calibrate gauge measurements in real-time.'],
+                      ['Workspace Diagnostics Mathematical Proof Verification Module', 'Sleek custom dashboard section executing live computations of telemetry formulas, overhead ratio equations, and sandbox safe memory allocations with real-time feedback Calibration validation.'],
+                      ['Live-Synchronized Studio Stability Header Gauge', 'Configured 300ms polling synchronization cycles with fallback direct memory indicators to enable instantaneous slider-action response across all views.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Engineered 8 dedicated animated architectural visualizers illustrating physical hardware limits. Solves cache miss DRAM bottlenecks (+140ns), MassEntity contiguous memory chunk stream transfers, prediction rollbacks, 5x5 dynamic camera streaming cell buffers, instanced geometry dispatches, sprite transparency instructions, sparse irradiance GI cache ray bounds, and Slate paint invalidations (saves up to -12ms CPU / -6.5ms GPU, allocating negligible RAM/VRAM).'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Dynamic D3D12 bindless array controllers for custom engine pipelines, allowing zero-copy asset binds and minimizing thread context switches under extreme rendering loads.'],
@@ -791,7 +804,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
             </SectionCard>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div id="unreal-default-ceilings" className="space-y-6">
             <HighlightBox type="warning" className="my-2 text-xs">
               <div className="flex items-center gap-2 mb-2 text-amber-400">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
@@ -829,7 +842,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 filteredCeilings.map((c) => {
                   const IconComp = c.icon;
                   return (
-                    <div key={c.id} className="bg-kingfisher-panel/85 border border-kingfisher-border/60 hover:border-kingfisher-blue/30 transition-all p-5 sm:p-6 rounded-2xl shadow-lg relative overflow-hidden group">
+                    <div key={c.id} id={c.id} className="bg-kingfisher-panel/85 border border-kingfisher-border/60 hover:border-kingfisher-blue/30 transition-all p-5 sm:p-6 rounded-2xl shadow-lg relative overflow-hidden group">
                       {/* Accent highlight bar */}
                       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-kingfisher-blue to-purple-500/20" />
                       

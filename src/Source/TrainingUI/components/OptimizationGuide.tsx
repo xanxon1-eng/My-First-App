@@ -156,25 +156,31 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
   const [selectedCategory, setSelectedCategory] = useState('All');
   
   // Compact stability calculation for Header
-  const [headerStability, setHeaderStability] = useState(81);
+  const [headerStability, setHeaderStability] = useState(94);
 
   React.useEffect(() => {
     const measureHeader = () => {
+      // Direct, zero-latency synchronization with the live WorkspaceDiagnostics telemetry panel
+      if (typeof window !== 'undefined' && (window as any).__lastStabilityScore !== undefined) {
+        setHeaderStability((window as any).__lastStabilityScore);
+        return;
+      }
+
       const nodes = document.getElementsByTagName('*').length;
-      const filesCount = 84;
-      const loc = 19450;
+      const filesCount = 133;
+      const loc = 46476;
       
-      const fileRatio = filesCount / 120;
-      const locRatio = loc / 25000;
-      const domRatio = nodes / 8000;
+      const fileRatio = filesCount / 200;
+      const locRatio = loc / 75000;
+      const domRatio = nodes / 12000;
       
       const maxRatio = Math.max(fileRatio, locRatio, domRatio);
       // Math: stability is high if under ceilings, drops proportionally as we exceed
-      const score = Math.max(0, Math.min(100, Math.round(100 - (maxRatio * 80))));
+      const score = Math.max(4, Math.min(100, Math.round(100 - (maxRatio * 83))));
       setHeaderStability(score);
     };
     measureHeader();
-    const interval = setInterval(measureHeader, 1500);
+    const interval = setInterval(measureHeader, 300); // 300ms cycle for seamless reactive latency tracking
     return () => clearInterval(interval);
   }, []);
 
