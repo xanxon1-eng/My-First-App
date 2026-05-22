@@ -149,9 +149,49 @@ const TAB_GROUPS = [
 
 export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
   const [activeTab, setActiveTab] = useState(TAB_GROUPS[0].tabs[0].id);
+  const [scrollTarget, setScrollTarget] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const handleNavigate = (tabId: string, anchorId?: string) => {
+    setActiveTab(tabId);
+    if (anchorId) {
+      (window as any).__scrollTarget = anchorId;
+      setScrollTarget(anchorId);
+    } else {
+      (window as any).__scrollTarget = null;
+      setScrollTarget(null);
+    }
+    setIsSidebarOpen(false);
+  };
+
+  React.useEffect(() => {
+    if (scrollTarget) {
+      let attempts = 0;
+      const interval = setInterval(() => {
+        const element = document.getElementById(scrollTarget);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.style.outline = '4px solid #3b82f6';
+          element.style.outlineOffset = '4px';
+          element.style.borderRadius = '0.75rem';
+          element.style.transition = 'outline 0.5s ease';
+          setTimeout(() => {
+            element.style.outline = 'none';
+          }, 3000);
+          setScrollTarget(null);
+          clearInterval(interval);
+        }
+        attempts++;
+        if (attempts > 35) { // 3.5 seconds timeout
+          clearInterval(interval);
+          setScrollTarget(null);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, [scrollTarget, activeTab]);
 
   const filteredTabGroups = TAB_GROUPS.map(group => {
     const matchedTabs = group.tabs.filter(tab => {
@@ -183,7 +223,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
   };
 
   const renderContent = () => {
-    if (activeTab === 'overview') return <OverviewTab onNavigate={setActiveTab} />;
+    if (activeTab === 'overview') return <OverviewTab onNavigate={handleNavigate} />;
     if (activeTab === 'aspect_overlaps') return <AspectOverlapsTab />;
     if (activeTab === 'project_appl') return <ProjectApplicationTab />;
     if (activeTab === 'modder_opt') return <ModderOptimizationTab />;

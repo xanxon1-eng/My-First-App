@@ -21,6 +21,21 @@ export const ModderOptimizationTab: React.FC = () => {
   // --- STATE FOR SECTION TRANSITIONS ---
   const [activeTabSection, setActiveTabSection] = useState<'hashing' | 'rebaking' | 'combat' | 'ringbuffer' | 'archetypes'>('hashing');
 
+  useEffect(() => {
+    const target = (window as any).__scrollTarget;
+    if (target) {
+      if (target === 'poe-combat-pipeline') {
+        setActiveTabSection('combat');
+      } else if (target === 'circular-buffers') {
+        setActiveTabSection('ringbuffer');
+      } else if (target === 'hashing-visualizer') {
+        setActiveTabSection('hashing');
+      } else if (target === 'archetype-comparison') {
+        setActiveTabSection('archetypes');
+      }
+    }
+  }, []);
+
   // --- SIMULATOR 1: STRING HASHING ---
   const [hashInput, setHashInput] = useState('Rebels');
   const activeHash = fnv1a(hashInput);
@@ -261,7 +276,7 @@ export const ModderOptimizationTab: React.FC = () => {
 
       {/* RENDER ACTIVE TAB COMPONENT */}
       {activeTabSection === 'hashing' && (
-        <div className="space-y-6">
+        <div id="hashing-visualizer" className="space-y-6">
           <HighlightBox type="info">
             <h5 className="font-bold text-white mb-1">String Hashing Deep-Dive: Life-cycle & Math Costs</h5>
             <p className="text-xs text-kingfisher-muted leading-relaxed">
@@ -354,7 +369,7 @@ export const ModderOptimizationTab: React.FC = () => {
       )}
 
       {activeTabSection === 'combat' && (
-        <div className="space-y-6">
+        <div id="poe-combat-pipeline" className="space-y-6">
           <HighlightBox type="info">
             <h5 className="font-bold text-white mb-1">PoE-Style Combat Pipeline & Bitmask Filtering (Multi-Modifier Resolution)</h5>
             <p className="text-xs text-kingfisher-muted leading-relaxed">
@@ -404,7 +419,7 @@ export const ModderOptimizationTab: React.FC = () => {
       )}
 
       {activeTabSection === 'ringbuffer' && (
-        <div className="space-y-6">
+        <div id="circular-buffers" className="space-y-6">
           <HighlightBox type="info">
             <h5 className="font-bold text-white mb-1">Fixed-Size Static Arrays vs. Resizable Vector Bloat</h5>
             <p className="text-xs text-kingfisher-muted leading-relaxed">
@@ -446,7 +461,7 @@ export const ModderOptimizationTab: React.FC = () => {
       )}
 
       {activeTabSection === 'archetypes' && (
-        <div className="space-y-6">
+        <div id="archetype-comparison" className="space-y-6">
           <HighlightBox type="info">
             <h5 className="font-bold text-white mb-1">Sparse ECS Archetypes vs. Heavy OOP Actor Overheads</h5>
             <p className="text-xs text-kingfisher-muted leading-relaxed">

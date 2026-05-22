@@ -4,8 +4,87 @@ import { CheckCircle, X, Monitor, Cpu, Database, HardDrive, Radio, GitBranch, Sh
 import { COLORS } from '../../../../constants/colors';
 import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, PageHeader, CodeBlock } from './OptimizationHelpers';
 
-export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({ onNavigate }) => (
-  <div className="space-y-6">
+const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
+  // Co-op & Netcode
+  'Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
+  'Multi-Region Latency, Jitter & Packet Loss Simulator': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
+  'Listen Server Co-op Multiplayer with Spatial Relevance Bubbles': { tabId: 'coop_net', anchorId: 'spatial-relevance-bubbles', badge: 'Relevance Bubble' },
+  'Listen Server Co-op Network Relevance Bubble Simulator': { tabId: 'coop_net', anchorId: 'spatial-relevance-bubbles', badge: 'Relevance Bubble' },
+  'Network Replication & QoS Decoupler': { tabId: 'coop_net', anchorId: 'network-qos', badge: 'Netcode QoS' },
+  'Dynamic NetDormancy and OwnedRelevancy sweeps': { tabId: 'coop_net', anchorId: 'spatial-relevance-bubbles', badge: 'Relevance Bubble' },
+
+  // AI & Path Slicers
+  'Multi-scenario Procedural AI Path-Grid Slicers': { tabId: 'ai_path_grid_slicers', badge: 'Path-Grid AI' },
+  'Interactive O(1) AI Path-Grid Slicer Dashboard': { tabId: 'ai_path_grid_slicers', badge: 'Path-Grid AI' },
+  'Procedural AI Path-Grid Slicers Implemented': { tabId: 'ai_path_grid_slicers', badge: 'Path-Grid AI' },
+  'Procedural AI Path-Grid Slicers': { tabId: 'ai_path_grid_slicers', badge: 'Path-Grid AI' },
+
+  // Modder Core & Buffers
+  'PoE-Inspired Combat Pipeline & Bitmask Filtering': { tabId: 'modder_opt', anchorId: 'poe-combat-pipeline', badge: 'Combat Pipeline' },
+  'Interactive PoE Combat Pipeline & Bitmask Conveyor': { tabId: 'modder_opt', anchorId: 'poe-combat-pipeline', badge: 'Combat Pipeline' },
+  'Circular Static Ring Buffers with Dynamic Overwrites': { tabId: 'modder_opt', anchorId: 'circular-buffers', badge: 'Ring Buffers' },
+  'C++ Circular Static Ring Buffer Simulator': { tabId: 'modder_opt', anchorId: 'circular-buffers', badge: 'Ring Buffers' },
+  'Modder-Friendly & Optimized Engine Architecture': { tabId: 'modder_opt', anchorId: 'hashing-visualizer', badge: 'String Hashing' },
+  'Modder-Friendly & Optimized Engine Architecture Support': { tabId: 'modder_opt', anchorId: 'hashing-visualizer', badge: 'String Hashing' },
+
+  // Lighting & Shadows
+  'Stochastic MegaLights Direct Lighting Engine': { tabId: 'lighting', anchorId: 'megalights-solver', badge: 'MegaLights' },
+  'Stochastic MegaLights Direct Lighting Solver': { tabId: 'lighting', anchorId: 'megalights-solver', badge: 'MegaLights' },
+  'Direct-Mesh Radiance Cascades (Real-time diffuse GI)': { tabId: 'lighting', anchorId: 'radiance-cascades-gi', badge: 'Radiance Cascades' },
+
+  // Sandbox tabs
+  'Autonomous Modifier Registry & Chaos Validation Suite': { tabId: 'modifier_sandbox', badge: 'Modifier Registry' },
+  'Modular Modifier Balance & Chaos Bot Sandbox Tab': { tabId: 'modifier_sandbox', badge: 'Modifier Registry' },
+  'AAA Quality Profiler Simulator Sandbox': { tabId: 'aaa_profiling', badge: 'Profiler' },
+  'Interactive AAA Quality Profiling Sandbox': { tabId: 'aaa_profiling', badge: 'Profiler' },
+  'Aspect Overlaps & Interdependence Analysis Sandbox': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
+  'Spectacular Aspect Overlaps & Interdependence Sandbox Tab': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
+  'RPG Pre-Production Roadmap Planner': { tabId: 'project_appl', badge: 'Pre-Prod Coach' }
+};
+
+export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: string) => void }> = ({ onNavigate }) => {
+  const getNavigationTarget = (title: string): { tabId: string; anchorId?: string; badge?: string } | null => {
+    if (LINK_MAP[title]) {
+      return LINK_MAP[title];
+    }
+    const lower = title.toLowerCase();
+    if (lower.includes('relevance bubble') || lower.includes('co-op network') || lower.includes('dormancy')) return { tabId: 'coop_net', anchorId: 'spatial-relevance-bubbles', badge: 'Relevance Bubble' };
+    if (lower.includes('jitter') || lower.includes('latency') || lower.includes('connection ping') || lower.includes('desync')) return { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' };
+    if (lower.includes('combat pipeline') || lower.includes('bitmask')) return { tabId: 'modder_opt', anchorId: 'poe-combat-pipeline', badge: 'Combat Pipeline' };
+    if (lower.includes('ring buffer')) return { tabId: 'modder_opt', anchorId: 'circular-buffers', badge: 'Ring Buffers' };
+    if (lower.includes('string hashing') || lower.includes('fnv-1a')) return { tabId: 'modder_opt', anchorId: 'hashing-visualizer', badge: 'String Hashing' };
+    if (lower.includes('modder-friendly') || lower.includes('optimized engine architecture')) return { tabId: 'modder_opt', anchorId: 'hashing-visualizer', badge: 'Optimized Engine' };
+    if (lower.includes('megalight')) return { tabId: 'lighting', anchorId: 'megalights-solver', badge: 'MegaLights' };
+    if (lower.includes('radiance cascades')) return { tabId: 'lighting', anchorId: 'radiance-cascades-gi', badge: 'Radiance Cascades' };
+    if (lower.includes('ssdm') || lower.includes('displacement mapping')) return { tabId: 'gpu', badge: 'SSDM' };
+    if (lower.includes('path-grid') || lower.includes('slicer')) return { tabId: 'ai_path_grid_slicers', badge: 'Path-Grid AI' };
+    if (lower.includes('modifier balance') || lower.includes('chaos bot') || lower.includes('modifier registry')) return { tabId: 'modifier_sandbox', badge: 'Modifier Registry' };
+    if (lower.includes('profiler') || lower.includes('profiling sandbox')) return { tabId: 'aaa_profiling', badge: 'Profiler' };
+    if (lower.includes('interdependence') || lower.includes('overlaps')) return { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' };
+    if (lower.includes('roadmap planner')) return { tabId: 'project_appl', badge: 'Pre-Prod Coach' };
+    if (lower.includes('mass entity') || lower.includes('ecs')) return { tabId: 'mass_entity', badge: 'MassEntity' };
+    if (lower.includes('cpp school') || lower.includes('c++ school') || lower.includes('diagnostics')) return { tabId: 'live_memory', badge: 'C++ Diagnostics' };
+    if (lower.includes('cvar') || lower.includes('clipboard exporter')) return { tabId: 'scalability', badge: 'CVars' };
+    if (lower.includes('farchive') || lower.includes('serialization')) return { tabId: 'storage', badge: 'FArchive' };
+    if (lower.includes('boids')) return { tabId: 'boids_flocking', badge: 'Boids AI' };
+    if (lower.includes('renderdoc')) return { tabId: 'tools_overview', badge: 'RenderDoc' };
+    if (lower.includes('iris') || lower.includes('replicate')) return { tabId: 'iris_replication', badge: 'Iris' };
+    if (lower.includes('subsystem')) return { tabId: 'subsystems', badge: 'Subsystems' };
+    if (lower.includes('concurrency') || lower.includes('multithread')) return { tabId: 'multithreading', badge: 'Async Threading' };
+    if (lower.includes('shadow map') || lower.includes('vsm')) return { tabId: 'draw_calls', badge: 'VSM Cache' };
+    if (lower.includes('wind-locking') || lower.includes('wpo')) return { tabId: 'materials', badge: 'Wind-Locking' };
+    if (lower.includes('sound raycaster') || lower.includes('metasound')) return { tabId: 'animation_audio', badge: 'MetaSound' };
+    if (lower.includes('physics substepper') || lower.includes('async physics') || lower.includes('chaos async')) return { tabId: 'network_physics', badge: 'Physics Substepping' };
+    if (lower.includes('struct layout') || lower.includes('alignment')) return { tabId: 'cpp_optimal', badge: 'Struct Packing' };
+    if (lower.includes('rewind physics')) return { tabId: 'rewind_physics', badge: 'Server Rewind' };
+    if (lower.includes('server protocol')) return { tabId: 'server_protocol', badge: 'Auth Protocol' };
+    if (lower.includes('decoupled backend')) return { tabId: 'decoupled_backend', badge: 'Profile Backend' };
+    if (lower.includes('deterministic')) return { tabId: 'deterministic', badge: 'Sync Determinism' };
+    return null;
+  };
+
+  return (
+    <div className="space-y-6">
     <PageHeader title="Implementation Status Overview" subtitle="Comprehensive analysis of Unreal Engine's multiplayer-first performance architecture, algorithms, and deep hardware metrics designed for Witcher 3, PoE, and BG3 inspired RPGs." />
     
     <HighlightBox type="success" className="my-4">
@@ -97,14 +176,49 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Real-Time Sidebar Smart Search & Semantic Category Filtering', 'A fast, real-time client-side search indexing system in the sidebar that allows filtering the heavy database of 40+ optimization guide topics down to specific keywords or category pills (CPU, netcode, graphics, etc.), enhancing learning ergonomics.'],
               ['Dynamic Hardware Bottleneck & Diagnostics Engine', 'A real-time checker integrated underneath the performance audit log that evaluates frame-budget limits dynamically. Automatically flags CPU Thread bottlenecks, GPU Raster overflows, System RAM swaps, and GPU VRAM PCIe page thrashing, giving direct Unreal Engine C++ recommendations.'],
               ['Interactive CVar Clipboard Config Exporter', 'A clipboard copying suite mapped dynamically inside the live hardware target simulator, compiling relevant CVars on-the-fly and outputting structured `.ini` blocks for DefaultEngine.ini with a single click.'],
-            ].map(([title, desc]) => (
-              <li key={title} className="flex items-start gap-3 group">
-                <div className="mt-1 rounded-full p-0.5 bg-emerald-500/10 border border-emerald-500/30 group-hover:bg-emerald-500/20 transition-colors">
-                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                </div>
-                <div><strong className="text-white block mb-0.5 text-sm">{title}</strong><span className="text-kingfisher-muted text-xs leading-relaxed">{desc}</span></div>
-              </li>
-            ))}
+            ].map(([title, desc]) => {
+              const target = getNavigationTarget(title);
+              return (
+                <li 
+                  key={title} 
+                  onClick={() => {
+                    if (target) {
+                      onNavigate(target.tabId, target.anchorId);
+                    }
+                  }}
+                  className={`flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 ${
+                    target 
+                      ? 'cursor-pointer hover:bg-kingfisher-blue/5 hover:border-kingfisher-blue/30 group' 
+                      : ''
+                  }`}
+                >
+                  <div className={`mt-1 rounded-full p-0.5 border transition-colors ${
+                    target 
+                      ? 'bg-emerald-500/10 border-emerald-500/30 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50' 
+                      : 'bg-emerald-500/5 border-emerald-500/10'
+                  }`}>
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <strong className={`block text-sm font-semibold transition-colors ${
+                        target 
+                          ? 'text-white group-hover:text-[#ffd700]' 
+                          : 'text-neutral-300'
+                      }`}>
+                        {title}
+                      </strong>
+                      {target && (
+                        <span className="inline-flex items-center text-[10px] font-mono font-bold px-1.5 py-0.2 select-none uppercase tracking-wide rounded bg-kingfisher-blue/15 text-blue-300 border border-kingfisher-blue/10 group-hover:bg-[#ffd700]/15 group-hover:text-[#ffd700] group-hover:border-[#ffd700]/30 transition-all duration-150">
+                          {target.badge || 'Link'} ↗
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-kingfisher-muted text-xs leading-relaxed block">{desc}</span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </SectionCard>
@@ -179,14 +293,49 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
               ['Real-Time Sidebar Smart Search & Semantic Category Filtering Grid', 'Provides continuous, lightning-fast text and category filter tags inside the side navigation bar to streamline topic lookups across 40+ optimization sectors.'],
               ['Dynamic Hardware Bottleneck Diagnostics Widget', 'Generates runtime diagnostic advisories directly under the performance telemetry graphs, alerting the developer to CPU delays, GPU loads, RAM page-shocks, or VRAM saturation, coupled with concrete C++ solutions.'],
               ['Optimal CVar Clipboard Exporter Config', 'Bakes recommended CVars for the active simulation parameters and outputs a clean configuration file copy state for immediate paste in DefaultEngine.ini.'],
-            ].map(([title, desc]) => (
-              <li key={title} className="flex items-start gap-3 group">
-                <div className="mt-1 rounded-full p-0.5 bg-blue-500/10 border border-blue-500/30 group-hover:bg-blue-500/20 transition-colors">
-                  <CheckCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
-                </div>
-                <div><strong className="text-white block mb-0.5 text-sm">{title}</strong><span className="text-kingfisher-muted text-xs leading-relaxed">{desc}</span></div>
-              </li>
-            ))}
+            ].map(([title, desc]) => {
+              const target = getNavigationTarget(title);
+              return (
+                <li 
+                  key={title} 
+                  onClick={() => {
+                    if (target) {
+                      onNavigate(target.tabId, target.anchorId);
+                    }
+                  }}
+                  className={`flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 ${
+                    target 
+                      ? 'cursor-pointer hover:bg-kingfisher-blue/5 hover:border-kingfisher-blue/30 group' 
+                      : ''
+                  }`}
+                >
+                  <div className={`mt-1 rounded-full p-0.5 border transition-colors ${
+                    target 
+                      ? 'bg-blue-500/10 border-blue-500/30 group-hover:bg-blue-500/20 group-hover:border-blue-500/50' 
+                      : 'bg-blue-500/5 border-blue-500/10'
+                  }`}>
+                    <CheckCircle className="w-3.5 h-3.5 text-blue-400 shrink-0" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <strong className={`block text-sm font-semibold transition-colors ${
+                        target 
+                          ? 'text-white group-hover:text-[#ffd700]' 
+                          : 'text-neutral-300'
+                      }`}>
+                        {title}
+                      </strong>
+                      {target && (
+                        <span className="inline-flex items-center text-[10px] font-mono font-bold px-1.5 py-0.2 select-none uppercase tracking-wide rounded bg-kingfisher-blue/15 text-blue-300 border border-kingfisher-blue/10 group-hover:bg-[#ffd700]/15 group-hover:text-[#ffd700] group-hover:border-[#ffd700]/30 transition-all duration-150">
+                          {target.badge || 'Link'} ↗
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-kingfisher-muted text-xs leading-relaxed block">{desc}</span>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         </div>
       </SectionCard>
@@ -423,4 +572,5 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
       </div>
     </SectionCard>
   </div>
-);
+  );
+};

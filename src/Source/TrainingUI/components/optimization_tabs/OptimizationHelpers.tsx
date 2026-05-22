@@ -57,8 +57,8 @@ export const MultiplayerImpact = ({ gpu, cpu, ram, vram, latency }: { gpu: strin
     ))}
   </div>
 );
-export const SectionCard = ({ title, icon: Icon, color = COLORS.kingfisher.blue, children, className = '' }: any) => (
-  <div className={`bg-kingfisher-panel/80 border border-kingfisher-border rounded-xl p-6 shadow-md ${className}`}>
+export const SectionCard = ({ id, title, icon: Icon, color = COLORS.kingfisher.blue, children, className = '' }: any) => (
+  <div id={id} className={`bg-kingfisher-panel/80 border border-kingfisher-border rounded-xl p-6 shadow-md ${className}`}>
     <div className="flex items-center gap-3 mb-4">
       {Icon && <div className="p-2 rounded-lg bg-black/20"><Icon className="w-5 h-5" color={color} /></div>}
       <h3 className="font-semibold text-white text-lg tracking-wide">{title}</h3>
@@ -103,10 +103,10 @@ export const CodeBlock = ({ code, language = 'cpp' }: { code: string; language?:
   </div>
 );
 
-export const Collapsible = ({ title, icon: Icon, color, badge, children }: any) => {
+export const Collapsible = ({ id, title, icon: Icon, color, badge, children }: any) => {
   const [open, setOpen] = useState(true);
   return (
-    <div className="border border-kingfisher-border/50 rounded-2xl overflow-hidden shadow-sm bg-kingfisher-panel/30 mb-4">
+    <div id={id} className="border border-kingfisher-border/50 rounded-2xl overflow-hidden shadow-sm bg-kingfisher-panel/30 mb-4">
       <button
         onClick={() => setOpen(o => !o)}
         className="w-full flex items-center justify-between px-5 py-4 bg-black/30 hover:bg-black/50 transition-colors border-b border-kingfisher-border/30"

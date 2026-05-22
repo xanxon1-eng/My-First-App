@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Sun, Cpu, Monitor, Database, HardDrive, Radio, CheckCircle, X,
   Sliders, Search, Code, RefreshCw, Zap, Shield, HelpCircle, AlertTriangle, Play, Check, Copy, Trees, Sword, Flame, Clock
@@ -30,6 +30,17 @@ export const LightingTab: React.FC = () => {
   const [selectedLighting, setSelectedLighting] = useState<string>('lumen');
   const [currentInfoTab, setCurrentInfoTab] = useState<'legacy' | 'meshes' | 'cascades' | 'blueprints'>('cascades');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
+
+  useEffect(() => {
+    const target = (window as any).__scrollTarget;
+    if (target) {
+      if (target === 'radiance-cascades-gi') {
+        setCurrentInfoTab('cascades');
+      } else if (target === 'megalights-solver') {
+        setSelectedLighting('megalights');
+      }
+    }
+  }, []);
 
   const handleCopyCode = (key: string, text: string) => {
     navigator.clipboard.writeText(text);
@@ -368,7 +379,7 @@ export const LightingTab: React.FC = () => {
       />
 
       {/* Interactive Simulator Section */}
-      <SectionCard title="Interactive Performance & Hardware budget Simulator" icon={Sun} color={COLORS.kingfisher.warm}>
+      <SectionCard id="megalights-solver" title="Interactive Performance & Hardware budget Simulator" icon={Sun} color={COLORS.kingfisher.warm}>
         <div className="text-xs text-kingfisher-muted mb-4 border-b border-kingfisher-border/30 pb-3">
           Configure game archetypes, platforms, and lighting structures to dynamically measure and verify the impact on budgets (GPU, CPU, VRAM, and systemic latency parameters) with concrete millisecond precision.
         </div>
@@ -782,7 +793,7 @@ export const LightingTab: React.FC = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               
               {/* Box 1: Core details */}
-              <SectionCard title="Deconstructing Radiance Cascades" icon={Zap} color={COLORS.kingfisher.warm}>
+              <SectionCard id="radiance-cascades-gi" title="Deconstructing Radiance Cascades" icon={Zap} color={COLORS.kingfisher.warm}>
                 <p className="text-sm">
                   Originally pioneered by the <strong>Grinding Gear Games</strong> engineering team for <strong>Path of Exile 2</strong>, 
                   Radiance Cascades represents a foundational breakthrough in calculating Global Illumination.

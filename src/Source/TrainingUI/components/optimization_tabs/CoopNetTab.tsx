@@ -21,6 +21,19 @@ export const CoopNetTab: React.FC = () => {
   // --- STATE FOR SECTION TRANSITIONS ---
   const [activeSection, setActiveSection] = useState<'relevance' | 'rpc' | 'multiregion'>('relevance');
 
+  useEffect(() => {
+    const target = (window as any).__scrollTarget;
+    if (target) {
+      if (target === 'coop-jitter-simulator' || target === 'multi-region-simulation' || target === 'multi-region-net-sim') {
+        setActiveSection('multiregion');
+      } else if (target === 'spatial-relevance-bubbles' || target === 'net-dormancy-smart-culling' || target === 'net-dormancy-relevancy') {
+        setActiveSection('relevance');
+      } else if (target === 'network-qos' || target === 'coop-rpc-combat') {
+        setActiveSection('rpc');
+      }
+    }
+  }, []);
+
   // --- SIMULATOR 3: MULTI-REGION JITTER & PACKET LOSS ---
   const [mrMrPing, setMrMrPing] = useState(120); // ms
   const [mrMrLoss, setMrMrLoss] = useState(5); // %
@@ -241,7 +254,7 @@ export const CoopNetTab: React.FC = () => {
       </div>
 
       {activeSection === 'relevance' && (
-        <SectionCard title="Simulator #1: Dynamic Spatial Network Relevance Bubbles" icon={Wifi} color={COLORS.kingfisher.blue}>
+        <SectionCard id="spatial-relevance-bubbles" title="Simulator #1: Dynamic Spatial Network Relevance Bubbles" icon={Wifi} color={COLORS.kingfisher.blue}>
           <div className="space-y-6">
             <p className="text-xs text-kingfisher-muted leading-relaxed">
               Click on the map grid to move the selected player. Monsters that lie <strong>inside either player's circular relevance bubble</strong> are active on the network. They replicate stats (coordinates, spells, health) to clients, consuming upload bandwidth. Monsters <strong>outside</strong> both bubbles are put to sleep (Dormant), using exactly 0 KB/s of transmission bandwidth.
@@ -452,7 +465,7 @@ export const CoopNetTab: React.FC = () => {
 
       {activeSection === 'rpc' && (
         <div className="space-y-6">
-          <SectionCard title="Simulator #2: Dedicated Server RPC Validation Pipeline" icon={Swords} color={COLORS.kingfisher.warm}>
+          <SectionCard id="network-qos" title="Simulator #2: Dedicated Server RPC Validation Pipeline" icon={Swords} color={COLORS.kingfisher.warm}>
             <div className="space-y-6">
               <p className="text-xs text-kingfisher-muted leading-relaxed">
                 In co-op lobby designs, letting clients arbitrarily mutate state (e.g., claiming "My strike hit for 10,000 damage!") invites instant hacking. Combat must be <strong>fully authoritative</strong>: the client requests a strike, the server verifies action speeds, cooldowns, and coordinates, resolves the damage mathematical graphs, and broadcasts compressed delta stencils to remote clients. We use <strong>Client-Side Prediction & Interpolation</strong> to keep local reactions instant.
@@ -666,7 +679,7 @@ bool ABattleCharacter::Server_ExecuteStrike_Validate(const FVector& HitCoordinat
       )}
 
       {activeSection === 'multiregion' && (
-        <div className="space-y-6">
+        <div id="coop-jitter-simulator" className="space-y-6">
           <HighlightBox type="success">
             <strong>Predictive Rollback Simulation:</strong> Under typical multi-region speeds (LAN compared to cross-ocean channels), packet jitter and losses can trigger desynchronized frames. Modern full-stack designs resolve desyncs by storing past player transforms inside historical cyclic ring queues. When the Server issues a verified state, the Client rewinds, corrects vectors, and ticks ahead dynamically, presenting zero visual hitches!
           </HighlightBox>
