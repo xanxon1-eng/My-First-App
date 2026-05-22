@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -13,6 +14,28 @@
 
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+html.theme-fate, body.theme-fate {
+  --color-kingfisher-dark: #0a0604;
+  --color-kingfisher-blue: #bd9b59;
+  --color-kingfisher-muted: rgba(232, 207, 156, 0.5);
+  --color-kingfisher-surface: #E8CF9C;
+  --color-kingfisher-warm: #D4AF37;
+  --color-kingfisher-deep: #8B7355;
+  --color-kingfisher-panel: rgba(10, 6, 4, 0.85);
+  --color-kingfisher-border: rgba(212, 175, 55, 0.35);
+
+  --font-sans: "Cinzel", "Inter", ui-sans-serif, system-ui, sans-serif;
+  
+  background-color: var(--color-kingfisher-dark);
+  color: var(--color-kingfisher-surface);
+}
+
+.theme-fate h1, .theme-fate h2, .theme-fate h3, .theme-fate h4 {
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
 }
 
 html, body {
@@ -47,6 +70,18 @@ html, body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: var(--color-kingfisher-warm); 
+}
+
+.theme-fate ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.4); 
+}
+
+.theme-fate ::-webkit-scrollbar-thumb {
+  background: var(--color-kingfisher-deep); 
+}
+
+.theme-fate ::-webkit-scrollbar-thumb:hover {
   background: var(--color-kingfisher-warm); 
 }
 

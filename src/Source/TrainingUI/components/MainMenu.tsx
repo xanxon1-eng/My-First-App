@@ -1,5 +1,5 @@
 import React from 'react';
-import { Bird, Timer, GraduationCap, Download, Settings } from 'lucide-react';
+import { Bird, Timer, GraduationCap, Download, Settings, Moon, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 
@@ -9,6 +9,8 @@ interface MainMenuProps {
   isStandalone?: boolean;
   showInstallButton?: boolean;
   onInstallClick?: () => void;
+  theme?: 'default' | 'fate';
+  onToggleTheme?: () => void;
 }
 
 export const MainMenu: React.FC<MainMenuProps> = ({ 
@@ -16,7 +18,9 @@ export const MainMenu: React.FC<MainMenuProps> = ({
   isAndroidFirefox, 
   isStandalone,
   showInstallButton,
-  onInstallClick
+  onInstallClick,
+  theme = 'default',
+  onToggleTheme
 }) => {
   // Logic simplified to follow user instructions exactly:
   // Android Firefox Logic (Website/Browser): Hide gym timer and school, show install button.
@@ -30,6 +34,21 @@ export const MainMenu: React.FC<MainMenuProps> = ({
 
   return (
     <div className="flex flex-col items-center justify-between h-full w-full bg-kingfisher-dark p-4 sm:p-6 overflow-hidden">
+      {onToggleTheme && (
+        <div className="absolute top-4 right-4 z-50">
+          <button 
+            onClick={onToggleTheme}
+            className="flex items-center gap-2 px-3 py-2 bg-kingfisher-panel border border-kingfisher-border rounded-xl text-kingfisher-surface hover:text-white transition-colors"
+            title="Toggle Visual Style"
+          >
+            {theme === 'fate' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            <span className="text-xs font-semibold uppercase tracking-wider hidden sm:inline">
+              {theme === 'fate' ? 'Default Style' : 'Fate Style'}
+            </span>
+          </button>
+        </div>
+      )}
+
       <motion.div 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -52,10 +71,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         {showContentButtons && (
           <>
             <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.warm}1A` }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('timer')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl transition-colors group min-h-[80px] md:min-h-0"
+              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
             >
               <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
                 <Timer className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-warm" />
@@ -64,10 +83,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.blue}1A` }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('school')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl transition-colors group min-h-[80px] md:min-h-0"
+              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-blue/10 transition-colors group min-h-[80px] md:min-h-0"
             >
               <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-blue/20 transition-colors shrink-0">
                 <GraduationCap className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-blue" />
@@ -76,10 +95,10 @@ export const MainMenu: React.FC<MainMenuProps> = ({
             </motion.button>
 
             <motion.button
-              whileHover={{ scale: 1.02, backgroundColor: `${COLORS.kingfisher.warm}1A` }}
+              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('optimization')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl transition-colors group min-h-[80px] md:min-h-0"
+              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
             >
               <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
                 <Settings className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-warm" />

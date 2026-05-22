@@ -11,6 +11,21 @@ export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('menu');
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [theme, setTheme] = useState<'default' | 'fate'>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('app-theme') as 'fate' | 'default') || 'default';
+    }
+    return 'default';
+  });
+
+  useEffect(() => {
+    if (theme === 'fate') {
+      document.documentElement.classList.add('theme-fate');
+    } else {
+      document.documentElement.classList.remove('theme-fate');
+    }
+    localStorage.setItem('app-theme', theme);
+  }, [theme]);
   
   // Robust initial detection - stick to standalone only to avoid false positives in mobile browsers
   const [isStandalone, setIsStandalone] = useState(() => {
@@ -88,6 +103,8 @@ export default function App() {
           isStandalone={isStandalone}
           showInstallButton={showInstallButton}
           onInstallClick={handleInstallClick}
+          theme={theme}
+          onToggleTheme={() => setTheme(theme === 'default' ? 'fate' : 'default')}
         />
       )}
       
