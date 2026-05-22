@@ -41,7 +41,9 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Spectacular Aspect Overlaps & Interdependence Sandbox Tab': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
   'RPG Pre-Production Roadmap Planner': { tabId: 'project_appl', badge: 'Pre-Prod Coach' },
   'Gameplay Ability System (GAS) Optimiser & RPG Workloads': { tabId: 'gas_opt', badge: 'GAS Core' },
-  'Interactive Gameplay Ability System (GAS) Core Analysis': { tabId: 'gas_opt', badge: 'GAS Core' }
+  'Interactive Gameplay Ability System (GAS) Core Analysis': { tabId: 'gas_opt', badge: 'GAS Core' },
+  'Direct3D 12 Bindless Resources Descriptor Heap Manager': { tabId: 'draw_calls', badge: 'D3D12 Bindless' },
+  'DirectStorage GPU Decompression Pipeline': { tabId: 'storage', badge: 'DirectStorage' }
 };
 
 export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: string) => void }> = ({ onNavigate }) => {
@@ -83,6 +85,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
     if (lower.includes('decoupled backend')) return { tabId: 'decoupled_backend', badge: 'Profile Backend' };
     if (lower.includes('deterministic')) return { tabId: 'deterministic', badge: 'Sync Determinism' };
     if (lower.includes('gameplay ability system') || lower.includes('gas') || lower.includes('asc') || lower.includes('ability system component')) return { tabId: 'gas_opt', badge: 'GAS Core' };
+    if (lower.includes('bindless') || lower.includes('descriptor heap') || lower.includes('d3d12')) return { tabId: 'draw_calls', badge: 'D3D12 Bindless' };
+    if (lower.includes('directstorage') || lower.includes('decompression')) return { tabId: 'storage', badge: 'DirectStorage' };
     return null;
   };
 
@@ -93,9 +97,11 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
     <HighlightBox type="success" className="my-4">
       <div className="flex items-center gap-2 mb-2">
         <GitBranch className="w-4 h-4 text-emerald-400" />
-        <strong className="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">Recommended Algorithm</strong>
+        <strong className="text-emerald-400 font-bold uppercase tracking-widest text-[10px]">PC & Console High-End Focus</strong>
       </div>
-      <p className="text-emerald-100/90 text-sm italic">Simulated annealing for dynamic multi-platform graphic scaling based on real-time thermal throttling indicators.</p>
+      <p className="text-emerald-100/90 text-xs leading-relaxed">
+        While this educational application is designed for intuitive layout readability on PC, tablet, and mobile, it optimizes directly for high-end <strong>PC & Console architectures (PS5/Xbox Series X)</strong>. Real development paradigms are inspired by the physical limits of <em>The Witcher 3</em>, <em>Path of Exile</em>, and <em>Baldur's Gate 3</em>, bypassing lightweight mobile runtime constraints in favor of heavy multi-threading, hardware-accelerated streaming, global bindless descriptor tables, and GPU-driven asset decompression.
+      </p>
     </HighlightBox>
     
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -123,6 +129,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Bypasses standard CPU-to-GPU mesh bindings in complex scenes (Novigrad streets or active PoE boss fights). Stores thousands of texture, buffer, and constant indices inside a global descriptor heap accessed dynamically in shaders, eliminating render thread frame lockups (saves -3.2ms CPU and -1.5ms GPU, allocating 18MB RAM and 50MB VRAM).'],
+              ['DirectStorage GPU Decompression Pipeline', 'Streams heavy asset packages directly from NVMe solid-state drives to VRAM using dynamic GDeflate GPU shader decompression, skipping slower CPU-bound decompression thread cycles in active travel (saves -8.5ms CPU and -1.5GB system RAM cache buffers, with a minor +120MB VRAM overhead).'],
               ['Gameplay Ability System (GAS) Optimiser & RPG Workloads', 'In-depth architectural guides mapping ASC memory boundaries, custom O(1) attribute registries, and production-grade poolers. Prevents -12.4ms CPU frame lockups in high-frequency isometric combat spikes.'],
               ['Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators', 'Augmented the visual spatial relevance bubbles navigation with a dynamic multi-region network simulator. Models real-time cross-ocean ping latencies (~150ms+), jitter deviations (±50ms), and packet loss rates, executing a C++ cyclic snapshot ring buffer to rollback and correct client path visual hitches smoothly.'],
               ['Multi-scenario Procedural AI Path-Grid Slicers', 'Upgraded path-grid slicing guides into three distinct simulators: an active CPU/RAM frame time budget workload comparer against raw dynamic A* Recast algorithms, an interactive top-down 10x10 tile matrix height field projector revealing bit-packed hex data indexes in real-time, and background multi-threaded async FRunnable slicing thread log schedulers.'],
@@ -230,6 +238,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Dynamic D3D12 bindless array controllers for custom engine pipelines, allowing zero-copy asset binds and minimizing thread context switches under extreme rendering loads.'],
+              ['DirectStorage GPU Decompression Pipeline', 'Direct-to-VRAM decompression scripts, integrating custom streaming priorities to completely remove GC loading hitches during fast travels across open world environments.'],
               ['Gameplay Ability System (GAS) Core Analyser & RPG Simulator', 'Full interactive hardware budget simulation panel calculating CPU Game Thread, GPU shader, RAM, VRAM, and packet network footprints side-by-side. Provides detailed Witcher 3, PoE, and BG3 goal evaluations.'],
               ['Multi-Region Latency, Jitter & Packet Loss Simulator', 'Interactive lag, jitter, and packet drop scheduler modeling real-world cross-ocean connections (~150ms+ ping), demonstrating cyclic rollback corrections on client-side state buffers.'],
               ['Interactive O(1) AI Path-Grid Slicer Dashboard', 'Fully interactive 10x10 matrix cell height projection mapper with dynamic coordinate lookup metrics and multi-threaded async FRunnable trace thread-pool schedule logs.'],
@@ -527,33 +537,33 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
 
           <div>
             <div className="flex items-center gap-2 mb-4 p-2 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-              <Smartphone className="w-4 h-4 text-blue-500" />
-              <h4 className="text-blue-400 font-bold uppercase tracking-widest text-[10px]">Minor/Mobile Subsystems Pending</h4>
+              <Monitor className="w-4 h-4 text-blue-500" />
+              <h4 className="text-blue-400 font-bold uppercase tracking-widest text-[10px]">PC & High-End Console Subsystems (No Mobile Focus)</h4>
             </div>
             <ul className="space-y-5">
               {[
                 [
+                  'Direct3D 12 Bindless Resources Descriptor Heap Management',
+                  'Bypasses the CPU-to-GPU resource binding bottleneck in rich open worlds. Packs thousands of texture, buffer, and constant indices directly into a global descriptor heap accessed in shaders, eliminating dynamic Draw Call driver overhead entirely.',
+                  'CPU: -3.2ms Render Thread overhead reduction | GPU: -1.5ms GPU pipeline state changes | RAM: +18MB tracking allocation | VRAM: +50MB descriptor heap cache | Latency: 0ms (Unlocks high FPS scaling on high-spec hardware)',
+                  'UE Support: Unreal Engine uses the Render Hardware Interface (RHI) to bind buffers, but default setups allocate resources individually per-mesh draw call, causing descriptor table rebuilds and thread contention under multi-core loads. To bridge this, write a custom FRHIBindlessDescriptorHeap manager inside custom C++ engine modules and allocate heaps on boot.'
+                ],
+                [
+                  'DirectStorage Asynchronous GPU Decompression Pipeline',
+                  'Streams asset packages from NVMe solid-state storage directly to VRAM using dynamic GDeflate GPU shader decompression. Completely bypasses slow CPU-side thread decompression during high-speed traversal or fast traveling.',
+                  'CPU: -8.5ms CPU decompression thread overhead | GPU: +0.4ms compute shader pass during loads | RAM: -1.5GB system RAM cache saving | VRAM: +120MB dynamic streaming buffers | Latency: Reducer: fast travel loading times dropped by over 80% (e.g. 12 seconds to 1.5 seconds)',
+                  'UE Support: Unreal Engine natively supports virtual textures and streaming, but still defaults to CPU-bound decompression stream processing (such as Oodle). Programmers must override the asset-loader pipeline using native DX12 DirectStorage API queues to stream raw compressed pak files directly to GPU memory.'
+                ],
+                [
                   'Screen Space Grazing Angle Jitter Mitigation',
-                  'Dynamic ray-step scaler for Screen Space Displacement. When the camera view vector approaches near perpendicular grazing angles, the shader gracefully fades the displacement height to prevent pixel wobble and temporal artifacts.',
-                  'CPU: 0ms | GPU: +0.3ms (Additional dot product checks in the pixel shader) | RAM: 0MB | VRAM: 0MB | Latency: 0ms',
+                  'Dynamic ray-step scaler for Screen Space Displacement (SSDM). When the camera view vector approaches near perpendicular grazing angles on stone walls or tiles, the shader automatically fades height displacement to prevent temporal pixel shimmering and wobble.',
+                  'CPU: 0ms | GPU: +0.3ms (additional dot product checks in the pixel shader) | RAM: 0MB | VRAM: 0MB | Latency: 0ms (Maintains pristine, artifact-free masonry rendering up to 4K resolutions)',
                   'UE Support: Unreal Engine\'s Pixel Depth Offset (PDO) lacks an automatic grazing angle falloff function out of the box. Developers must write custom dot product nodes within the material graph comparing CameraVector vs VertexNormal to aggressively fade height intensity at steep angles.'
                 ],
                 [
-                  'Neon-Accelerated Character Locomotion Solver',
-                  'Register-level mathematical character transformations compiled directly on ARM-compatible processors to bypass expensive blueprint execution nodes.',
-                  'CPU: -1.2ms Mobile Game Thread scaling | GPU: 0ms | RAM: -8MB (clears runtime instruction tables) | VRAM: 0ms | Latency: 0ms',
-                  'UE Support: Unreal standardizes double-precision transforms but doesn\'t expose direct NEON instruction sets in Blueprint nodes. Programmers must enforce mobile C++ optimizations via custom vector SSE/Neon wrappers, restricting variable evaluation calls to direct compiled loops.'
-                ],
-                [
-                  'Mobile Distance Material Quality Controller',
-                  'Dynamic shader complexity coordinator swapping multi-layered shader models with lightweight, pre-baked single-texture maps beyond 15 meters on handheld platforms.',
-                  'CPU: +0.2ms coordinator overhead | GPU: -4.8ms GPU raster recovery (cuts draw calls in high density areas) | RAM: +32MB holding cache | VRAM: Saves -180MB dynamic texture buffers | Latency: Stabilizes mobile frame parity under heavy stress.',
-                  'UE Support: Unreal includes crude Material Quality Switches, but they cannot dynamically update based on dynamic camera distance splits at runtime. Developers must bind texture blend parameters to a dynamic Material Parameter Collection (MPC) tracked by the Significance Manager.'
-                ],
-                [
                   'Dynamic SAVE-file Delta Serializer',
-                  'Tracks and records only modified dirty member variables since the last persistent save frame, completely avoiding raw JSON file writes.',
-                  'CPU: -2.5ms Main-Thread write stall release | GPU: 0ms | RAM: +5MB transient buffers | VRAM: 0ms | Latency: Prevents server write delays, maintaining QoS levels.',
+                  'Tracks and records only modified dirty member variables for large inventories, quest parameters, and player states since the last persistent save frame, bypassing slow standard JSON write serialization.',
+                  'CPU: -2.5ms Main-Thread write stall release | GPU: 0ms | RAM: +5MB transient buffers | VRAM: 0ms | Latency: Prevents server/client write delays, maintaining QoS levels under heavy action save-points',
                   'UE Support: Unreal SaveGame components serialize entire structures sequentially, presenting no native dirty-tracking. To implement, use a binary delta-array tracking system in custom C++ USTRUCTs, flushing raw bytes via a dedicated worker thread using FArchive::Serialize.'
                 ]
               ].map(([title, desc, budget, ueSupport]) => (
