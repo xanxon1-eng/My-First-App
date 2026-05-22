@@ -39,7 +39,9 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Interactive AAA Quality Profiling Sandbox': { tabId: 'aaa_profiling', badge: 'Profiler' },
   'Aspect Overlaps & Interdependence Analysis Sandbox': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
   'Spectacular Aspect Overlaps & Interdependence Sandbox Tab': { tabId: 'aspect_overlaps', badge: 'Aspect Overlaps' },
-  'RPG Pre-Production Roadmap Planner': { tabId: 'project_appl', badge: 'Pre-Prod Coach' }
+  'RPG Pre-Production Roadmap Planner': { tabId: 'project_appl', badge: 'Pre-Prod Coach' },
+  'Gameplay Ability System (GAS) Optimiser & RPG Workloads': { tabId: 'gas_opt', badge: 'GAS Core' },
+  'Interactive Gameplay Ability System (GAS) Core Analysis': { tabId: 'gas_opt', badge: 'GAS Core' }
 };
 
 export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: string) => void }> = ({ onNavigate }) => {
@@ -80,6 +82,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
     if (lower.includes('server protocol')) return { tabId: 'server_protocol', badge: 'Auth Protocol' };
     if (lower.includes('decoupled backend')) return { tabId: 'decoupled_backend', badge: 'Profile Backend' };
     if (lower.includes('deterministic')) return { tabId: 'deterministic', badge: 'Sync Determinism' };
+    if (lower.includes('gameplay ability system') || lower.includes('gas') || lower.includes('asc') || lower.includes('ability system component')) return { tabId: 'gas_opt', badge: 'GAS Core' };
     return null;
   };
 
@@ -120,6 +123,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Gameplay Ability System (GAS) Optimiser & RPG Workloads', 'In-depth architectural guides mapping ASC memory boundaries, custom O(1) attribute registries, and production-grade poolers. Prevents -12.4ms CPU frame lockups in high-frequency isometric combat spikes.'],
               ['Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators', 'Augmented the visual spatial relevance bubbles navigation with a dynamic multi-region network simulator. Models real-time cross-ocean ping latencies (~150ms+), jitter deviations (±50ms), and packet loss rates, executing a C++ cyclic snapshot ring buffer to rollback and correct client path visual hitches smoothly.'],
               ['Multi-scenario Procedural AI Path-Grid Slicers', 'Upgraded path-grid slicing guides into three distinct simulators: an active CPU/RAM frame time budget workload comparer against raw dynamic A* Recast algorithms, an interactive top-down 10x10 tile matrix height field projector revealing bit-packed hex data indexes in real-time, and background multi-threaded async FRunnable slicing thread log schedulers.'],
               ['PoE-Inspired Combat Pipeline & Bitmask Filtering', 'Implements 64-bit Bitmask tags (the dynamic passport of FCombatHitPackets) combined with a linear step-by-step conveyor belt architecture (Chain of Responsibility), enabling zero-copy SIMD evaluations and O(1) attribute culling that saves up to -12.4ms CPU under heavy combat.'],
@@ -226,6 +230,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Gameplay Ability System (GAS) Core Analyser & RPG Simulator', 'Full interactive hardware budget simulation panel calculating CPU Game Thread, GPU shader, RAM, VRAM, and packet network footprints side-by-side. Provides detailed Witcher 3, PoE, and BG3 goal evaluations.'],
               ['Multi-Region Latency, Jitter & Packet Loss Simulator', 'Interactive lag, jitter, and packet drop scheduler modeling real-world cross-ocean connections (~150ms+ ping), demonstrating cyclic rollback corrections on client-side state buffers.'],
               ['Interactive O(1) AI Path-Grid Slicer Dashboard', 'Fully interactive 10x10 matrix cell height projection mapper with dynamic coordinate lookup metrics and multi-threaded async FRunnable trace thread-pool schedule logs.'],
               ['Interactive PoE Combat Pipeline & Bitmask Conveyor', 'Added active bitmask compilation controls (IS_ATTACK, IS_SPELL, IS_CRIT, etc.) with automated conveyor belt execution loops modeling how gear modifiers evaluate in less than 1 nanosecond.'],
