@@ -11,11 +11,9 @@ import {
 } from 'lucide-react';
 import { COLORS } from '../../../../constants/colors';
 import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, PageHeader, CodeBlock } from './OptimizationHelpers';
-import { WorkspaceDiagnostics } from '../WorkspaceDiagnostics';
 
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
-  // AI Studio workspace diagnostics
-  'AI Studio Workspace & Browser Sandbox Diagnostics Core': { tabId: 'overview', anchorId: 'workspace-diagnostics-container', badge: 'Studio Safe' },
+  // Engine limitations
   'Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
   'Topic-Tailored Interactive Hardware-Budget Visualizers': { tabId: 'modifier_sandbox', anchorId: 'hardware-and-ability-sim', badge: 'Visualizers' },
 
@@ -404,8 +402,6 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 While this educational application is designed for intuitive layout readability on PC, tablet, and mobile, it optimizes directly for high-end <strong>PC & Console architectures (PS5/Xbox Series X)</strong>. Real development paradigms are inspired by the physical limits of <em>The Witcher 3</em>, <em>Path of Exile</em>, and <em>Baldur's Gate 3</em>, bypassing lightweight mobile runtime constraints in favor of heavy multi-threading, hardware-accelerated streaming, global bindless descriptor tables, and GPU-driven asset decompression.
               </p>
             </HighlightBox>
-
-            <WorkspaceDiagnostics />
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
               {[
@@ -432,9 +428,6 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Real-time telemetry measuring active scripts, line counts, physical DOM elements, CPU thread lag, and JS heap buffers to protect browser states. Includes a full stress-test calibration panel to artificially inject load factors, triggering latency spikes dynamically for immediate verification.'],
-                      ['Workspace Diagnostics Mathematical Proof Verification Module', 'Integrates a dynamic calibration check panel detailing exact formulas and proof matrices used in the telemetry sampling systems (e.g. DOM/LOC overhead calculations, sandboxed heap limitations, and latency indexes), allowing users to verify mathematical stability rules interactively on-the-fly.'],
-                      ['Live-Synchronized Studio Stability Header Gauge', 'Links the primary header gauge with zero-latency global hook bindings directly to the diagnostics panel metrics, accelerating updates to 300ms of reactive real-time feedback.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Integrates 8 custom, hyper-polished animated graphic visualizers directly mapped to dynamic simulated parameters. Models L1 cache padding layouts, real-time MassEntity ECS crowd boids at 120 FPS, dual client-server packet jitter prediction timelines, World Partition streaming grid cells, HISM vs individual draw counts, opaque vs translucent overdraw pixels, sparse Radiance Cascade probes, and Slate repaint invalidation graphs.'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Bypasses standard CPU-to-GPU mesh bindings in complex scenes (Novigrad streets or active PoE boss fights). Stores thousands of texture, buffer, and constant indices inside a global descriptor heap accessed dynamically in shaders, eliminating render thread frame lockups (saves -3.2ms CPU and -1.5ms GPU, allocating 18MB RAM and 50MB VRAM).'],
@@ -505,9 +498,6 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['AI Studio Workspace & Browser Sandbox Diagnostics Core', 'Full telemetry controller tracking filesystem and system limits, featuring interactive thread blockers, file expansion sliders, and live DOM counters to calibrate gauge measurements in real-time.'],
-                      ['Workspace Diagnostics Mathematical Proof Verification Module', 'Sleek custom dashboard section executing live computations of telemetry formulas, overhead ratio equations, and sandbox safe memory allocations with real-time feedback Calibration validation.'],
-                      ['Live-Synchronized Studio Stability Header Gauge', 'Configured 300ms polling synchronization cycles with fallback direct memory indicators to enable instantaneous slider-action response across all views.'],
                       ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Engineered 8 dedicated animated architectural visualizers illustrating physical hardware limits. Solves cache miss DRAM bottlenecks (+140ns), MassEntity contiguous memory chunk stream transfers, prediction rollbacks, 5x5 dynamic camera streaming cell buffers, instanced geometry dispatches, sprite transparency instructions, sparse irradiance GI cache ray bounds, and Slate paint invalidations (saves up to -12ms CPU / -6.5ms GPU, allocating negligible RAM/VRAM).'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Dynamic D3D12 bindless array controllers for custom engine pipelines, allowing zero-copy asset binds and minimizing thread context switches under extreme rendering loads.'],
