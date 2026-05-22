@@ -498,6 +498,458 @@ const SECTOR_DATA: Record<number, SectorSpec> = {
     }
 };
 
+const renderThematicVisualizer = (
+    sectorId: number,
+    selections: Record<string, string>,
+    platform: string,
+    scenario: string,
+    metrics: any
+) => {
+    switch (sectorId) {
+        case 1: { 
+            const isPacked = selections.align === "Contiguous Size-Packed Packing";
+            
+            return (
+                <div className="bg-black/40 border border-[#ffd700]/10 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-[#ffd700] flex items-center gap-1.5 font-bold">
+                            <Icons.Hash className="w-3.5 h-3.5 text-[#ffd700]" /> L1 CPU Cache Line (64-byte Packing)
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            Active: {isPacked ? "Size aligned" : "Default unaligned"}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-8 gap-1.5 pt-1">
+                        {Array.from({ length: 16 }).map((_, idx) => {
+                            let filled = false;
+                            let label = "";
+                            let color = "";
+                            
+                            if (isPacked) {
+                                if (idx < 10) {
+                                    filled = true;
+                                    label = idx < 4 ? "Ptr" : idx < 7 ? "Flt" : "Int";
+                                    color = "bg-emerald-500/30 border-emerald-500/60 text-emerald-300";
+                                } else {
+                                    filled = false;
+                                    label = "Empty";
+                                    color = "bg-neutral-800/25 border-neutral-700/20 text-neutral-500";
+                                }
+                            } else {
+                                if (idx === 1 || idx === 2 || idx === 5 || idx === 6 || idx === 11 || idx === 12) {
+                                    filled = true;
+                                    label = idx < 4 ? "Ptr" : idx < 8 ? "Flt" : "Int";
+                                    color = "bg-blue-500/30 border-blue-500/60 text-blue-300";
+                                } else if (idx === 3 || idx === 4 || idx === 7 || idx === 8 || idx === 9 || idx === 10) {
+                                    filled = true;
+                                    label = "Pad";
+                                    color = "bg-red-500/20 border-red-500/50 text-red-400 font-bold animate-pulse";
+                                } else {
+                                    filled = false;
+                                    label = "Empty";
+                                    color = "bg-neutral-800/25 border-neutral-700/20 text-neutral-500";
+                                }
+                            }
+                            
+                            return (
+                                <div key={idx} className={`text-[9px] p-1.5 rounded border flex flex-col items-center justify-center transition-all duration-300 ${color}`}>
+                                    <span className="text-[8px] opacity-40 select-none">B{idx * 4}</span>
+                                    <strong className="text-[9px] mt-0.5">{label}</strong>
+                                </div>
+                            );
+                        })}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed pt-2 border-t border-white/5">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Cache Miss Latency:</span>
+                            <strong className="text-white">
+                                {isPacked ? "0.4 ns (L1 Cache Hit)" : "140.0 ns (DRAM Main memory stall)"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Cache Miss Ratio:</span>
+                            <strong className={isPacked ? "text-emerald-400" : "text-amber-400"}>
+                                {isPacked ? "1.8% (Highly Cache-Friendly)" : "48.5% (High L1 cache line thrashing)"}
+                            </strong>
+                        </div>
+                    </div>
+                    <div className="p-2 rounded bg-blue-500/5 border border-blue-500/10 text-[10px] text-kingfisher-muted leading-snug">
+                        <span className="text-blue-400 font-bold uppercase block text-[9.5px] mb-0.5">Witcher 3 / BG3 Precedent Study:</span>
+                        Aligning member variables by size largest-to-smallest in USTRUCTs or classes cancels compiler byte-padding gaps. This ensures a compact, contiguous memory fetch, fetching relevant data instantly without wasting clock cycles.
+                    </div>
+                </div>
+            );
+        }
+        case 2: { 
+            const isMass = selections.pipeline === "MassEntity contiguous fragments";
+            const isAnimSharing = selections.anim === "Hardware-Accelerated Animation Sharing";
+            
+            return (
+                <div className="bg-black/40 border border-blue-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-blue-400 flex items-center gap-1.5 font-bold">
+                            <Icons.Users className="w-3.5 h-3.5 text-blue-400 animate-pulse" /> Novigrad Street Crowd Arena Viewport
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            Mode: {isMass ? "Mass ECS" : "Legacy AActor"}
+                        </span>
+                    </div>
+                    <div className="relative h-24 bg-black/60 rounded-lg overflow-hidden border border-white/5 flex items-center justify-center">
+                        {isMass ? (
+                            <div className="absolute inset-0 grid grid-cols-10 grid-rows-4 gap-1 p-2">
+                                {Array.from({ length: 40 }).map((_, idx) => (
+                                    <div key={idx} className="relative flex items-center justify-center">
+                                        <div className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: `${idx * 40}ms` }} />
+                                    </div>
+                                ))}
+                                <div className="absolute inset-x-0 bottom-1 text-center text-[8px] text-emerald-400/80 uppercase font-semibold">
+                                    Simulating 200+ contiguous Mass Fragment Slices (O(1) Data Cache Stream)
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="absolute inset-0 flex items-center justify-around p-2">
+                                {Array.from({ length: 4 }).map((_, idx) => (
+                                    <div key={idx} className="flex flex-col items-center bg-red-500/10 border border-red-500/30 p-1.5 rounded text-center w-16 animate-pulse">
+                                        <Icons.User className="w-4 h-4 text-red-400" />
+                                        <span className="text-[7px] text-red-300 font-bold block mt-0.5">Actor Tick()</span>
+                                        <span className="text-[6px] text-kingfisher-muted block">Size: 1.4KB</span>
+                                    </div>
+                                ))}
+                                <div className="absolute inset-x-0 bottom-1 text-center text-[8px] text-red-400/90 uppercase font-semibold">
+                                    Severe Object Pointer Sweeping stalls on CPU Game Thread ({metrics.cpu.toFixed(1)}ms CPU Load)
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Ticking Complexity:</span>
+                            <strong className="text-white">{isMass ? "O(1) Memory Layout" : "O(N) Random Pointers Stack"}</strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Bone Skinning Cost:</span>
+                            <strong className={isAnimSharing ? "text-emerald-400" : "text-amber-400"}>
+                                {isAnimSharing ? "Vertex Shader Shared Buffer" : "Skeletal Mesh Game-Thread calculation"}
+                            </strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        case 3: { 
+            const isDormant = selections.dormancy === "Dynamic NetDormancy triggers";
+            const isPredicted = selections.sync === "Lag Rewind history tracers";
+            const isNetsim = selections.netsim === "High-Jitter Packet Loss Simulation";
+            
+            return (
+                <div className="bg-black/40 border border-purple-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-purple-400 flex items-center gap-1.5 font-bold">
+                            <Icons.Radio className="w-3.5 h-3.5 text-purple-400 animate-pulse" /> Client-Server Packets & Jitter Timeline
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            Network sim: {isNetsim ? "High Jitter Mode" : "LAN / Ideal Connection"}
+                        </span>
+                    </div>
+                    <div className="h-16 bg-black/60 rounded-lg border border-white/5 relative flex items-center px-4 overflow-hidden">
+                        <div className="absolute left-4 top-2 text-[8px] text-kingfisher-muted uppercase tracking-wider">Client (Local)</div>
+                        <div className="absolute right-4 top-2 text-[8px] text-kingfisher-muted uppercase tracking-wider">Server (Authoritative)</div>
+                        
+                        <div className="w-full h-px bg-neutral-800 relative flex items-center justify-between">
+                            <div className="w-3.5 h-3.5 rounded-full bg-blue-500 flex items-center justify-center text-[7px] font-bold text-white z-10 shrink-0">C</div>
+                            
+                            <div className="flex-1 flex justify-around relative overflow-hidden h-6">
+                                {isNetsim ? (
+                                    <>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping absolute left-1/3" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse absolute left-2/3" />
+                                        <div className="text-[7.5px] text-red-400 font-bold self-center animate-pulse tracking-wide select-none">15% Packet Loss / Redundant Jitter</div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping absolute left-1/4" />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping absolute left-2/4" />
+                                    </>
+                                )}
+                            </div>
+                            
+                            <div className="w-3.5 h-3.5 rounded-full bg-emerald-500 flex items-center justify-center text-[7px] font-bold text-white z-10 shrink-0">S</div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Hitscans Validation:</span>
+                            <strong className={isPredicted ? "text-emerald-400" : "text-amber-400"}>
+                                {isPredicted ? "Historical Rollback Cache sweep" : "Absolute coordinates mismatch desync"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Static Containers Net footprint:</span>
+                            <strong className="text-white">{isDormant ? "NetDormantAll active" : "Active Every-frame sweep"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        case 4: { 
+            const isAsync = selections.stream === "Asynchronous FStreamableManager";
+            const isAdaptive = selections.bubble === "Adaptive Cameratrigger (250m)";
+            const isBinary = selections.save === "Byte-aligned Binary FArchive";
+            
+            return (
+                <div className="bg-black/40 border border-emerald-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-emerald-400 flex items-center gap-1.5 font-bold">
+                            <Icons.Map className="w-3.5 h-3.5 text-emerald-400 animate-pulse" /> World Partition Active Cells bubble (5x5 Grid)
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            LOD Bubble: {isAdaptive ? "Camera adaptive" : "Wide Static"}
+                        </span>
+                    </div>
+                    <div className="flex justify-center pt-1">
+                        <div className="grid grid-cols-5 gap-1.5 p-2 bg-black/40 rounded-lg border border-white/5">
+                            {Array.from({ length: 25 }).map((_, idx) => {
+                                const row = Math.floor(idx / 5);
+                                const col = idx % 5;
+                                const isPlayer = row === 2 && col === 2;
+                                const isNear = Math.abs(row - 2) <= 1 && Math.abs(col - 2) <= 1;
+                                
+                                let cellColor = "bg-neutral-900 border-neutral-800 text-neutral-600";
+                                let cellLabel = "";
+                                
+                                if (isPlayer) {
+                                    cellColor = "bg-blue-500/30 border-blue-500 text-blue-300 font-bold animate-pulse";
+                                    cellLabel = "PLY";
+                                } else if (isNear) {
+                                    cellColor = "bg-emerald-500/25 border-emerald-600 text-emerald-300";
+                                    cellLabel = "LOD0";
+                                } else if (!isAdaptive) {
+                                    cellColor = "bg-pink-500/20 border-pink-500 text-pink-300";
+                                    cellLabel = "LOD1";
+                                }
+                                
+                                return (
+                                    <div key={idx} className={`w-8 h-8 rounded border text-[8px] flex items-center justify-center transition-all duration-300 ${cellColor}`}>
+                                        {cellLabel}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Disk saving speed:</span>
+                            <strong className={isBinary ? "text-emerald-400" : "text-amber-400"}>
+                                {isBinary ? "FArchive Binary binary (<2ms)" : "Standard JSON write (~380ms load)"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Streaming thread lock:</span>
+                            <strong className="text-white">{isAsync ? "FStreamable Async active" : "Synchronous load blocking thread"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        case 5: { 
+            const isNanite = selections.engine === "Nanite Micro-polygon Streaming";
+            const isHism = selections.batch === "Hierarchical Instanced Component (HISM)";
+            const isOcclusionPools = selections.cull === "Dynamic GPU Occlusion Query Pools";
+            
+            return (
+                <div className="bg-black/40 border border-[#ffd700]/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-[#ffd700] flex items-center gap-1.5 font-bold">
+                            <Icons.Box className="w-3.5 h-3.5 text-[#ffd700]" /> Geometry Draw Instancing & Triangle Clusters
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            Model: {isNanite ? "Nanite Cluster Map" : "Standard LOD Grid"}
+                        </span>
+                    </div>
+                    <div className="h-20 bg-black/60 rounded-lg border border-white/5 flex items-center justify-around overflow-hidden relative p-1">
+                        {isHism ? (
+                            <div className="flex flex-col items-center">
+                                <div className="text-[8px] text-pink-400 font-bold uppercase mb-1">HISM Instance dispatch mapping (Single Draw Call)</div>
+                                <div className="flex gap-2">
+                                    {Array.from({ length: 8 }).map((_, i) => (
+                                        <div key={i} className="w-5 h-5 bg-pink-500/25 border border-pink-400/50 rounded flex items-center justify-center text-[7.5px] text-pink-200">
+                                            HISM
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="flex flex-col items-center">
+                                <div className="text-[8px] text-red-400 font-bold uppercase mb-1">Separate AActor Mesh Draw Calls (CPU Overload)</div>
+                                <div className="flex gap-1.5">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <div key={i} className="w-8 h-5 bg-red-500/10 border border-red-500/40 rounded flex flex-col items-center justify-center text-[5.5px] text-red-300 animate-pulse">
+                                            <span>Draw Call</span>
+                                            <span>Index #{i}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Foliage Popping artifacts:</span>
+                            <strong className={isNanite ? "text-emerald-400" : "text-amber-400"}>
+                                {isNanite ? "Seamless Cluster density" : "Standard discrete LOD bands"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">GPU Visibility Occlusion:</span>
+                            <strong className="text-white">{isOcclusionPools ? "HZB spatial culling active" : "Frustum check only (Hides nothing)"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        case 6: { 
+            const isPSO = selections.pso === "PSO Cache pre-compiled loading";
+            const isLocked = selections.sway === "Wind material locks (>45m)";
+            const isOpaque = selections.blend === "Opaque blocks with depth offsets";
+            
+            return (
+                <div className="bg-black/40 border border-orange-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-orange-400 flex items-center gap-1.5 font-bold">
+                            <Icons.Flame className="w-3.5 h-3.5 text-orange-400 animate-pulse" /> Shader Complexity & Translucency Overdraw Maps
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            Sway locks: {isLocked ? "Sway Locks Enabled" : "Full Wind recalculation"}
+                        </span>
+                    </div>
+                    <div className="h-16 bg-black/60 rounded-lg border border-white/5 relative flex items-center justify-center overflow-hidden">
+                        {isOpaque ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-12 h-8 bg-emerald-500/20 border border-emerald-500 text-emerald-300 rounded text-[7.5px] font-bold text-center flex flex-col justify-center">
+                                    <span>Opaque</span>
+                                    <span>Depth Masked</span>
+                                </div>
+                                <div className="text-[8.5px] text-emerald-400 uppercase font-semibold">
+                                    Overlap blend bypassed. Instructions: 28 per pixel (Very Light)
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="relative w-full h-full flex flex-col items-center justify-center">
+                                <div className="absolute inset-0 bg-red-600/15 animate-pulse flex items-center justify-center border border-red-500/20 rounded-md">
+                                    <span className="text-[8px] text-red-400 font-extrabold tracking-widest uppercase">CRITICAL GPU OVERDRAW: overlapping layers instruction multiplier x5</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">PSO cast stutter stalls:</span>
+                            <strong className={isPSO ? "text-emerald-400" : "text-amber-400"}>
+                                {isPSO ? "All cached precompiled" : "Dynamic runtime compile risk"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">VSM shadow map cache:</span>
+                            <strong className="text-white">{isLocked ? "Sway locked beyond 45m" : "Dynamic invalidation sweeps"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        case 7: { 
+            const isRC = selections.gi === "Sparse Camera-Targeted Radiance Cascades";
+            const isMega = selections.direct === "Stochastic Sampling (MegaLights)";
+            const isBaked = selections.preset === "Stationary Lightmass + Probe grid";
+            
+            return (
+                <div className="bg-black/40 border border-yellow-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-yellow-500 flex items-center gap-1.5 font-bold">
+                            <Icons.Sun className="w-3.5 h-3.5 text-yellow-500 animate-pulse" /> Indirect Illumination & Ray Bouncing
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            System: {isRC ? "Radiance Cascades" : isBaked ? "Fully Baked" : "Lumen Ray Trace"}
+                        </span>
+                    </div>
+                    <div className="h-16 bg-black/60 rounded-lg border border-white/5 relative overflow-hidden flex items-center justify-center">
+                        {isRC ? (
+                            <div className="flex flex-col items-center text-center p-1 font-sans">
+                                <span className="text-white text-xs font-bold leading-tight">✦ Sparse 3D Irradiance Probe Hash Grids</span>
+                                <span className="text-[8.5px] text-blue-300 font-mono mt-0.5">Camera-oriented cascade probes saving 6.5ms GPU overhead in Novigrad streets</span>
+                            </div>
+                        ) : isBaked ? (
+                            <div className="text-center">
+                                <span className="text-emerald-400 text-xs font-bold font-sans uppercase">Lightmass Volumetric Lightmap Probes</span>
+                                <span className="text-[8.5px] text-emerald-300 block font-mono mt-0.5">0.0ms real-time indirect GPU shadow calculation (Static pre-computed irradiance)</span>
+                            </div>
+                        ) : (
+                            <div className="text-center p-1">
+                                <span className="text-red-400 text-xs font-bold font-sans uppercase">Continuous Dynamic GI RT rays</span>
+                                <span className="text-[8.5px] text-red-300 block font-mono mt-0.5">850,000 ray hits sweep per frame on G-Buffer surfaces. Timings: ~25.8ms GPU Load</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Overlapping Point Lights:</span>
+                            <strong className={isMega ? "text-emerald-400" : "text-amber-400"}>
+                                {isMega ? "Stochastic MegaLights Direct Solver" : "Legacy deferred overlapping channels"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Console Day-Night Cycle:</span>
+                            <strong className="text-white">{isBaked ? "Locked precomputed shadows" : "Lumen Dynamic indirect light cycle"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+        default: { 
+            const isCullSound = selections.audio === "Obstacle-tracking Raycast Culler";
+            const isInvalidated = selections.ui === "UMG Slate Invalidation Box";
+            
+            return (
+                <div className="bg-black/40 border border-blue-500/15 rounded-xl p-4 font-mono space-y-3">
+                    <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                        <span className="text-[10px] uppercase text-blue-400 flex items-center gap-1.5 font-bold">
+                            <Icons.Sliders className="w-3.5 h-3.5 text-blue-400" /> Slate Widget Paint Caches & Acoustic Raycaster
+                        </span>
+                        <span className="text-[10px] text-kingfisher-muted">
+                            HUD paint: {isInvalidated ? "UMG Invalidation" : "Every-frame Redraw"}
+                        </span>
+                    </div>
+                    <div className="h-16 bg-black/60 rounded-lg border border-white/5 flex items-center justify-around overflow-hidden relative p-1">
+                        <div className="text-center p-1 bg-black/45 rounded border border-white/5">
+                            <span className="text-[8px] text-kingfisher-muted block uppercase font-sans">Widget Paint cache</span>
+                            <strong className={isInvalidated ? "text-emerald-400 text-xs block mt-0.5" : "text-red-400 text-xs block mt-0.5 animate-pulse"}>
+                                {isInvalidated ? "0% Constant Redraw" : "100% Paint Redraw"}
+                            </strong>
+                        </div>
+                        <div className="text-center p-1 bg-black/45 rounded border border-white/5">
+                            <span className="text-[8px] text-kingfisher-muted block uppercase font-sans">Acoustic Occlusion</span>
+                            <strong className={isCullSound ? "text-emerald-400 text-xs block mt-0.5" : "text-amber-400 text-xs block mt-0.5"}>
+                                {isCullSound ? "Obstacle tracing Cull active" : "Distance culling only"}
+                            </strong>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3 text-[10.5px] leading-relaxed">
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Slate Paint CPU Tick:</span>
+                            <strong className={isInvalidated ? "text-emerald-400" : "text-amber-400"}>
+                                {isInvalidated ? "Sub-0.1ms (Cached layouts)" : "3.8ms CPU paint loops"}
+                            </strong>
+                        </div>
+                        <div className="p-2 bg-black/35 rounded border border-white/5">
+                            <span className="text-kingfisher-muted uppercase block text-[8px]">Acoustic prioritize channel:</span>
+                            <strong className="text-white">{isCullSound ? "32 prioritized / 64 culled" : "96 dynamic sound mixers ticking"}</strong>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+};
+
 const getSectorForTab = (tabId: string): number => {
     const cpumem = ['PipelineTab', 'ArchitectureTab', 'CppOptimalTab', 'MemoryStateTab', 'SubsystemsTab', 'HeadManagerTab', 'MultithreadingTab'];
     const ai = ['MassEntityTab', 'AITab', 'BoidsFlockingTab', 'CollisionTab', 'OptimalAlgorithmsTab'];
@@ -1081,6 +1533,15 @@ export const UniversalSimulator: React.FC<{ tabId: string }> = ({ tabId }) => {
                                 </div>
                             </div>
                         )}
+                    </div>
+
+                    {/* ACTIVE ENGINE ARCHITECTURE VISUALIZATION */}
+                    <div className="mt-4">
+                        <div className="text-[10px] text-blue-300 mb-2 flex items-center gap-1.5 font-bold uppercase tracking-wider font-mono">
+                            <Icons.Activity className="w-3.5 h-3.5 text-blue-400 animate-pulse" />
+                            <span>✦ Active Engine Architecture Visualizer</span>
+                        </div>
+                        {renderThematicVisualizer(sectorId, selections, platform, scenario, metrics)}
                     </div>
 
                     {/* CONTEXT LOG REPORT OUT (MAPPED TO SELECTED OPTIONS & MATH VERDICTS) */}
