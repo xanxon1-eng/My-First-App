@@ -656,13 +656,13 @@ export const ProjectApplicationTab: React.FC = () => {
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.8 Capabilities</h5>
+                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.5 Capabilities</h5>
                   <div className="space-y-2 bg-black/15 p-4 rounded-xl border border-kingfisher-border/30 text-xs text-kingfisher-muted leading-relaxed">
                     <p>
-                      ✅ <strong>UE 5.8 Has:</strong> Robust runtime grid partitioning managers, automatic Tier-1/Tier-2 HLOD compilers that merge thousands of foliage leaves into unified Nanite vistas, and One File Per Actor (OFPA) to prevent merge conflicts during team world building.
+                      ✅ <strong>UE 5.5 Has:</strong> Robust runtime grid partitioning managers, automatic Tier-1/Tier-2 HLOD compilers that merge thousands of foliage leaves into unified Nanite vistas, and One File Per Actor (OFPA) to prevent merge conflicts during team world building.
                     </p>
                     <p>
-                      ❌ <strong>UE 5.8 Lacks:</strong> Native, dynamic grid cell resizing that adjusts based on real-time client velocity. If a player boards a fast dragon, you must manually capture that in C++ and instruct the World Partition manager to temporarily expand cell buffers.
+                      ❌ <strong>UE 5.5 Lacks:</strong> Native, dynamic grid cell resizing that adjusts based on real-time client velocity. If a player boards a fast dragon, you must manually capture that in C++ and instruct the World Partition manager to temporarily expand cell buffers.
                     </p>
                     <div className="mt-3 p-2 bg-kingfisher-dark/50 rounded border border-kingfisher-border/30 text-[10px]">
                       <span className="text-[#ffd700] font-bold">Non-Native Alternative:</span> Many multiplayer MMOs (Client-Authoritative) drop World Partition entirely in favor of flat <strong>C++ Orthogonal Octree custom mesh streamers</strong> to decouple server-calculations from direct high-cost game actors, dropping client-dependency.
@@ -699,7 +699,7 @@ public:
         
         if (WP)
         {
-            // Unreal 5.8 missing: native runtime cell-expansion bounds. 
+            // Unreal 5.5 missing: native runtime cell-expansion bounds. 
             // Workaround: We push a custom spatial grid loading volume target around the client
             FWorldPartitionStreamingQuery SourceQuery;
             SourceQuery.ExtraQueryRanges.Add(bIsFlying ? 51200.0f : 12800.0f); // 512m for flight vs 128m walk
@@ -737,13 +737,13 @@ public:
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.8 Capabilities</h5>
+                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.5 Capabilities</h5>
                   <div className="space-y-2 bg-black/15 p-4 rounded-xl border border-kingfisher-border/30 text-xs text-kingfisher-muted leading-relaxed">
                     <p>
-                      ✅ <strong>UE 5.8 Has:</strong> Sophisticated dynamic Procedural Foliage Volumes, Attribute Spawners, and Procedural Vegetation Editors (PVE) to blend rock edges into terrain materials seamlessly.
+                      ✅ <strong>UE 5.5 Has:</strong> Sophisticated dynamic Procedural Foliage Volumes, Attribute Spawners, and Procedural Vegetation Editors (PVE) to blend rock edges into terrain materials seamlessly.
                     </p>
                     <p>
-                      ❌ <strong>UE 5.8 Lacks:</strong> Out-of-the-box non-interactive offline mesh baking that runs entirely decoupled from the editor runtime, making heavy background memory updates during scene opening difficult to bypass.
+                      ❌ <strong>UE 5.5 Lacks:</strong> Out-of-the-box non-interactive offline mesh baking that runs entirely decoupled from the editor runtime, making heavy background memory updates during scene opening difficult to bypass.
                     </p>
                     <div className="mt-3 p-2 bg-kingfisher-dark/50 rounded border border-kingfisher-border/30 text-[10px]">
                       <span className="text-[#ffd700] font-bold">Alternative: SideFX Houdini Engine.</span> The industry standard for CD Projekt Red and Guerrilla. Statically compiles assets into packaged meshes offline. Zero runtime overhead because there is no generator logic loaded in-engine. Highly rigid for active level editing, but the ultimate tooling setup for persistent biomes.
@@ -834,13 +834,13 @@ public:
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.8 Capabilities</h5>
+                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.5 Capabilities</h5>
                   <div className="space-y-2 bg-black/15 p-4 rounded-xl border border-kingfisher-border/30 text-xs text-kingfisher-muted leading-relaxed">
                     <p>
-                      ✅ <strong>UE 5.8 Has:</strong> Production-ready StateTree editors inside the standard gameplay framework, vectorized MassProcessor pipelines, and Iris integration.
+                      ✅ <strong>UE 5.5 Has:</strong> Production-ready StateTree editors inside the standard gameplay framework, vectorized MassProcessor pipelines, and Iris integration.
                     </p>
                     <p>
-                      ❌ <strong>UE 5.8 Lacks:</strong> Direct support for complex dynamic skeletal collision shapes inside Mass (standard ECS entities do not have rigid capsule sweeps natively, they require custom spatial hashing plugins).
+                      ❌ <strong>UE 5.5 Lacks:</strong> Direct support for complex dynamic skeletal collision shapes inside Mass (standard ECS entities do not have rigid capsule sweeps natively, they require custom spatial hashing plugins).
                     </p>
                     <div className="mt-3 p-2 bg-kingfisher-dark/50 rounded border border-kingfisher-border/30 text-[10px]">
                       <span className="text-[#ffd700] font-bold">Alternative: GOAP (Goal-Oriented Action Planning).</span> Excellent for Baldur's Gate 3 emergent reactions. NPCs plan behavioral workflows. Highly complex and slow on the CPU unless implemented inside raw vectorized C++ arrays, but incomparable for emergent, unscripted reactivity compared to rigid trees.
@@ -918,13 +918,13 @@ struct RPG_API FMassCacheOptimizedAggro : public FMassFragment
                 </div>
 
                 <div>
-                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.8 Capabilities</h5>
+                  <h5 className="text-xs font-bold text-white uppercase tracking-wider mb-2 text-[#ffd700]">Unreal Engine 5.5 Capabilities</h5>
                   <div className="space-y-2 bg-black/15 p-4 rounded-xl border border-kingfisher-border/30 text-xs text-kingfisher-muted leading-relaxed">
                     <p>
-                      ✅ <strong>UE 5.8 Has:</strong> A highly capable Primary Asset Manager subsystem, async loading queues `FStreamableManager`, and asset auditors.
+                      ✅ <strong>UE 5.5 Has:</strong> A highly capable Primary Asset Manager subsystem, async loading queues `FStreamableManager`, and asset auditors.
                     </p>
                     <p>
-                      ❌ <strong>UE 5.8 Lacking:</strong> Integrated automatic save serialization compression natively configured to offload complex nested UObjects to database engines safely.
+                      ❌ <strong>UE 5.5 Lacking:</strong> Integrated automatic save serialization compression natively configured to offload complex nested UObjects to database engines safely.
                     </p>
                     <div className="mt-3 p-2 bg-kingfisher-dark/50 rounded border border-kingfisher-border/30 text-[10px]">
                       <span className="text-[#ffd700] font-bold">Alternative: SQLite External DB.</span> Storing structures inside external tables. Extremely useful for quick balance sheet fixes on production systems without updating level cookies. However, it lacks native garbage collection, requiring custom manual pointer sweeps to avoid memory leaks.

@@ -14,7 +14,7 @@ import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, P
 
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
   // Engine limitations
-  'Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
+  'Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
   'Topic-Tailored Interactive Hardware-Budget Visualizers': { tabId: 'modifier_sandbox', anchorId: 'hardware-and-ability-sim', badge: 'Visualizers' },
 
   // Co-op & Netcode
@@ -402,7 +402,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
           }`}
         >
           <Sliders className="w-3.5 h-3.5" />
-          UE 5.8 Default Capability Ceilings
+          UE 5.5 Default Capability Ceilings
         </button>
       </div>
 
@@ -443,7 +443,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
+                      ['Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Integrates 8 custom, hyper-polished animated graphic visualizers directly mapped to dynamic simulated parameters. Models L1 cache padding layouts, real-time MassEntity ECS crowd boids at 120 FPS, dual client-server packet jitter prediction timelines, World Partition streaming grid cells, HISM vs individual draw counts, opaque vs translucent overdraw pixels, sparse Radiance Cascade probes, and Slate repaint invalidation graphs.'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Bypasses standard CPU-to-GPU mesh bindings in complex scenes (Novigrad streets or active PoE boss fights). Stores thousands of texture, buffer, and constant indices inside a global descriptor heap accessed dynamically in shaders, eliminating render thread frame lockups (saves -3.2ms CPU and -1.5ms GPU, allocating 18MB RAM and 50MB VRAM).'],
                       ['DirectStorage GPU Decompression Pipeline', 'Streams heavy asset packages directly from NVMe solid-state drives to VRAM using dynamic GDeflate GPU shader decompression, skipping slower CPU-bound decompression thread cycles in active travel (saves -8.5ms CPU and -1.5GB system RAM cache buffers, with a minor +120MB VRAM overhead).'],
@@ -479,17 +479,13 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       return (
                         <li 
                           key={title} 
-                          onClick={() => {
-                            if (target) {
-                              onNavigate(target.tabId, target.anchorId);
-                            }
-                          }}
                           className={`flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 ${
                             target 
                               ? 'cursor-pointer hover:bg-kingfisher-blue/5 hover:border-kingfisher-blue/30 group' 
                               : ''
                           }`}
                         >
+                          <a href={target ? "#" + (target.anchorId || target.tabId) : "#"} onClick={(e) => { e.preventDefault(); if (target) onNavigate(target.tabId, target.anchorId); }} className="contents flex items-start gap-3 w-full">
                           <div className={`mt-1 rounded-full p-0.5 border transition-colors ${
                             target 
                               ? 'bg-emerald-500/10 border-emerald-500/30 group-hover:bg-emerald-500/20 group-hover:border-emerald-500/50' 
@@ -513,8 +509,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                               )}
                             </div>
                             <span className="text-kingfisher-muted text-xs leading-relaxed block">{desc}</span>
-                          </div>
-                        </li>
+      </div>
+    </a>
+  </li>
                       );
                     })}
                   </ul>
@@ -525,7 +522,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['Unreal Engine 5.8 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
+                      ['Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
                       ['Topic-Tailored Interactive Hardware-Budget Visualizers', 'Engineered 8 dedicated animated architectural visualizers illustrating physical hardware limits. Solves cache miss DRAM bottlenecks (+140ns), MassEntity contiguous memory chunk stream transfers, prediction rollbacks, 5x5 dynamic camera streaming cell buffers, instanced geometry dispatches, sprite transparency instructions, sparse irradiance GI cache ray bounds, and Slate paint invalidations (saves up to -12ms CPU / -6.5ms GPU, allocating negligible RAM/VRAM).'],
                       ['Direct3D 12 Bindless Resources Descriptor Heap Manager', 'Dynamic D3D12 bindless array controllers for custom engine pipelines, allowing zero-copy asset binds and minimizing thread context switches under extreme rendering loads.'],
                       ['DirectStorage GPU Decompression Pipeline', 'Direct-to-VRAM decompression scripts, integrating custom streaming priorities to completely remove GC loading hitches during fast travels across open world environments.'],
@@ -552,17 +549,13 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       return (
                         <li 
                           key={title} 
-                          onClick={() => {
-                            if (target) {
-                              onNavigate(target.tabId, target.anchorId);
-                            }
-                          }}
                           className={`flex items-start gap-3 p-2.5 rounded-xl border border-transparent transition-all duration-200 ${
                             target 
                               ? 'cursor-pointer hover:bg-kingfisher-blue/5 hover:border-kingfisher-blue/30 group' 
                               : ''
                           }`}
                         >
+                          <a href={target ? "#" + (target.anchorId || target.tabId) : "#"} onClick={(e) => { e.preventDefault(); if (target) onNavigate(target.tabId, target.anchorId); }} className="contents flex items-start gap-3 w-full">
                           <div className={`mt-1 rounded-full p-0.5 border transition-colors ${
                             target 
                               ? 'bg-blue-500/10 border-blue-500/30 group-hover:bg-blue-500/20 group-hover:border-blue-500/50' 
@@ -586,13 +579,49 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                               )}
                             </div>
                             <span className="text-kingfisher-muted text-xs leading-relaxed block">{desc}</span>
-                          </div>
-                        </li>
+      </div>
+    </a>
+  </li>
                       );
                     })}
                   </ul>
                 </div>
               </SectionCard>
+              <SectionCard title="Still Missing (Major & Minor Systems)" icon={CircleDashed} color={COLORS.status.warning}>
+                <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                  <ul className="space-y-3 pt-1 text-kingfisher-surface text-xs leading-relaxed">
+                    <li className="flex items-start gap-3 p-2 border-b border-white/5">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <div>
+                        <strong className="text-white block mb-0.5">Asset Streaming Virtualization (Minor System)</strong>
+                        <span>Needs concrete implementation for predictive texture streaming based on player controller velocity vectors to prevent mounting hitches.</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 p-2 border-b border-white/5">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <div>
+                        <strong className="text-white block mb-0.5">Automated Shader Permutation Stripping (Major System)</strong>
+                        <span>Missing a dedicated dashboard detailing how to cull permutations effectively to keep the shader cache sizes under 50MB during cooking.</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 p-2 border-b border-white/5">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <div>
+                        <strong className="text-white block mb-0.5">Save-game Delta Tracking (Sub System)</strong>
+                        <span>Serialization compression for save states that only records what changed (deltas) instead of dumping massive struct arrays (prevents 200ms save stutters).</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3 p-2 border-b border-white/5">
+                      <span className="text-amber-400 mt-0.5">•</span>
+                      <div>
+                        <strong className="text-white block mb-0.5">Animation ML Deformer integration (Sub System)</strong>
+                        <span>Needs a dedicated sandbox for evaluating GPU memory cost vs CPU Game Thread cost when using machine learning bone setups for bosses.</span>
+                      </div>
+                    </li>
+                  </ul>
+                </div>
+              </SectionCard>
+
             </div>
 
             {/* AAA RPG COMPARISON TARGET MATRIX */}
@@ -855,10 +884,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
             <HighlightBox type="warning" className="my-2 text-xs">
               <div className="flex items-center gap-2 mb-2 text-amber-400">
                 <AlertTriangle className="w-4 h-4 text-amber-400" />
-                <strong className="font-bold uppercase tracking-widest text-[10px]">Unreal Engine 5.8 Out-of-the-Box Limits (Default Configs)</strong>
+                <strong className="font-bold uppercase tracking-widest text-[10px]">Unreal Engine 5.5 Out-of-the-Box Limits (Default Configs)</strong>
               </div>
               <p className="text-amber-100/90 leading-relaxed">
-                This diagnostic database details the <strong>literal maximum capacity thresholds</strong> of Unreal Engine 5.8 using <strong>standard default / basic settings with zero custom optimization code</strong>. Tested against high-end target environments (high-spec PC and PS5/Xbox Series X equivalents). It outlines specific hardware bottlenecks (ms penalties and MB footprints), native features, default voids, and C++ instructions for Witcher 3, PoE, and Baldur's Gate 3 inspired games.
+                This diagnostic database details the <strong>literal maximum capacity thresholds</strong> of Unreal Engine 5.5 using <strong>standard default / basic settings with zero custom optimization code</strong>. Tested against high-end target environments (high-spec PC and PS5/Xbox Series X equivalents). It outlines specific hardware bottlenecks (ms penalties and MB footprints), native features, default voids, and C++ instructions for Witcher 3, PoE, and Baldur's Gate 3 inspired games.
               </p>
             </HighlightBox>
 
@@ -945,7 +974,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-3 border-t border-kingfisher-border/30">
                         <div className="p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/20">
                           <div className="flex items-center gap-2 mb-2 text-emerald-400 font-bold text-[10px] uppercase tracking-wider">
-                            <CheckCircle className="w-3.5 h-3.5 shrink-0" /> UE 5.8 Out-of-the-box Tooling
+                            <CheckCircle className="w-3.5 h-3.5 shrink-0" /> UE 5.5 Out-of-the-box Tooling
                           </div>
                           <ul className="space-y-1.5">
                             {c.ueHas.map((item, i) => (

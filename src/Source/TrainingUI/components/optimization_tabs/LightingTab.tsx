@@ -909,7 +909,7 @@ export const LightingTab: React.FC = () => {
         {currentInfoTab === 'blueprints' && (
           <div className="space-y-6">
             <HighlightBox type="warning">
-              <strong>Source-Code Injection Requirement:</strong> Integrating third-party GI setups into Unreal 5.8 cannot be done via Material Nodes or Blueprints. You must write a custom C++ rendering pass utilizing the <strong>Render Dependency Graph (RDG)</strong> and manual HLSL Compute Shaders.
+              <strong>Source-Code Injection Requirement:</strong> Integrating third-party GI setups into Unreal 5.5 cannot be done via Material Nodes or Blueprints. You must write a custom C++ rendering pass utilizing the <strong>Render Dependency Graph (RDG)</strong> and manual HLSL Compute Shaders.
             </HighlightBox>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
