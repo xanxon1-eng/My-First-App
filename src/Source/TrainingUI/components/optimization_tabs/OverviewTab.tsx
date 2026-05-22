@@ -41,6 +41,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Modder-Friendly & Optimized Engine Architecture', 'Compiles human-readable configuration files (JSON/Lua) into highly optimized, binary-aligned arrays at boot-time with an interactive FNV-1a String Hashing visualizer (saving up to -5.5ms CPU by bypassing string comparisons in loops) and pre-allocated static ring buffers (preventing GC hitches).'],
+              ['Listen Server Co-op Multiplayer with Spatial Relevance Bubbles', 'Implements 2D real-time visual relevance culling for co-op lobby designs, calculating overlapping client scopes and putting far-away monster records into net dormant states to save up to 113.6 KB/s of precious peer upload bandwidth.'],
               ['C++ School Intelligent Memory & Layout Enhancements', 'Upgraded the C++ Sandbox modules (Pointers, Arrays, Loops, Switches) with intelligent framer-motion layout tracking, making memory allocations and cache access latency differences visually distinct with concrete ~ms evaluation markers.'],
               ['Procedural AI Path-Grid Slicers', 'Multi-threaded generator mapping Recast layout points into extremely dense O(1) integer 2D arrays on boot. Eliminates A* Game Thread bottlenecks when rendering AI armies, recovering -8.2ms CPU.'],
               ['Geometry Tab Expansion: SSDM Implementation', 'Detailed precisely how Screen Space Displacement Mapping works relative to Nanite. Included bandwidth impacts (-250MB VRAM, -1.5ms GPU), the flipped importance of height vs albedo textures, and specific Unreal Engine integration limitations regarding collision offsets.'],
@@ -106,6 +108,8 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string) => void }> = ({
         <div className="max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
           <ul className="space-y-3 pt-1">
             {[
+              ['Modder-Friendly & Optimized Engine Architecture Support', 'Introduced dynamic boot-time compile sandboxes, FNV-1a custom text-to-integer hashing visualizers, C++ zero-malloc static buffer structures, and memory-saving enemy archetype comparison models.'],
+              ['Listen Server Co-op Network Relevance Bubble Simulator', 'Added clickable 2D relevance boundary maps, overlapping observer scopes, dormant state triggers, automated upload bandwidth computation curves, and authoritative RPC combat conveyors.'],
               ['Interactive Visuals Improvement for C++ School', 'Deep visual overhaul in CppSchoolVisualizer using framer-motion layout transitions. Brought concrete multi-threaded hardware tracking into the UI, mapping read speeds (e.g. 100ns vs 0.4ns cache gaps) seamlessly across loops, assertions, and hashing bins.'],
               ['Procedural AI Path-Grid Slicers Implemented', 'Mapped an O(1) vector array evaluation scheme to entirely substitute Recast Navmesh polygon search queues on massive crowd paths. Dropped CPU load by -8.2ms directly.'],
               ['Geometry Tab Expansion: SSDM Implementation', 'Detailed precisely how Screen Space Displacement Mapping works relative to Nanite. Included bandwidth impacts (-250MB VRAM, -1.5ms GPU), the flipped importance of height vs albedo textures, and specific Unreal Engine integration limitations regarding collision offsets.'],

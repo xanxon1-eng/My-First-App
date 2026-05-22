@@ -5,3 +5,5 @@ export * from './AAAQualityProfilingTab';
 export * from './ModifierSandboxTab';
 export * from './AspectOverlapsTab';
 export * from './AIPathGridSlicersTab';
+export * from './ModderOptimizationTab';
+export * from './CoopNetTab';

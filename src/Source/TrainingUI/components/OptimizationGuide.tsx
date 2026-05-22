@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -78,6 +78,7 @@ const TAB_GROUPS = [
     tabs: [
       { id: 'pipeline',         label: '16.7ms Pipeline',          icon: Activity },
       { id: 'architecture',     label: 'CPU & RAM Architecture',   icon: Cpu },
+      { id: 'modder_opt',       label: 'Modder & Performance Core', icon: Settings },
       { id: 'mass_entity',      label: 'Mass Entity / ECS Rollout',icon: Grid },
       { id: 'head_manager',     label: 'Head Manager Pattern',     icon: Hexagon },
       { id: 'multithreading',   label: 'Multithreading & Async',   icon: Network },
@@ -91,6 +92,7 @@ const TAB_GROUPS = [
   {
     title: 'Multiplayer & Netcode',
     tabs: [
+      { id: 'coop_net',         label: 'Co-op & Listen Server Net', icon: Users },
       { id: 'network_physics',  label: 'Networking & Physics',     icon: Globe },
       { id: 'rewind_physics',   label: 'Server Rewind Physics',    icon: Radio },
       { id: 'iris_replication', label: 'IRIS Replication Engine',  icon: Wifi },
@@ -184,6 +186,8 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'overview') return <OverviewTab onNavigate={setActiveTab} />;
     if (activeTab === 'aspect_overlaps') return <AspectOverlapsTab />;
     if (activeTab === 'project_appl') return <ProjectApplicationTab />;
+    if (activeTab === 'modder_opt') return <ModderOptimizationTab />;
+    if (activeTab === 'coop_net') return <CoopNetTab />;
     if (activeTab === 'lighting') return <LightingTab />;
     if (activeTab === 'aaa_profiling') return <AAAQualityProfilingTab />;
     if (activeTab === 'modifier_sandbox') return <ModifierSandboxTab />;
