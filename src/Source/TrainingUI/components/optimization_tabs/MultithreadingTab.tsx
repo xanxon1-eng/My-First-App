@@ -58,7 +58,11 @@ export const MultithreadingTab = () => (
           </div>
           <div className="p-3 bg-black/20 rounded border border-kingfisher-border/30">
             <span className="text-emerald-400">Pass structs/primitives by value.</span>
-            <p className="text-kingfisher-muted text-xs mt-1">Do not pass UObject pointers to background threads.</p>
+            <p className="text-kingfisher-muted text-xs mt-1">Do not pass UObject pointers to background threads unless wrapped in a <strong>TWeakObjectPtr</strong>. <a href="#cpp-school-diagnostics" onClick={(e) => { e.preventDefault(); document.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics' }})); }} className="text-blue-400 hover:underline">See C++ School: TWeakObjectPtr in Async Lambdas</a>.</p>
+          </div>
+          <div className="p-3 bg-black/20 rounded border border-kingfisher-border/30">
+            <span className="text-purple-400">TSharedPtr&lt;FMyData, ESPMode::ThreadSafe&gt;</span>
+            <p className="text-kingfisher-muted text-xs mt-1">Standard shared pointers crash on race conditions. You must explicitly declare them as ThreadSafe. <a href="#cpp-school-diagnostics" onClick={(e) => { e.preventDefault(); document.dispatchEvent(new CustomEvent('navigate-to-tab', { detail: { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics' }})); }} className="text-blue-400 hover:underline">See C++ School: Thread-Safe TSharedPtr</a>.</p>
           </div>
         </div>
       </SectionCard>
