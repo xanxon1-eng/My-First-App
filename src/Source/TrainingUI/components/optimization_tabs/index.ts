@@ -8,3 +8,6 @@ export * from './AIPathGridSlicersTab';
 export * from './ModderOptimizationTab';
 export * from './CoopNetTab';
 export * from './GASTab';
+export * from './QuestDialogueTab';
+export * from './MemoryStateTab';
+export * from './AnimationAudioTab';

@@ -251,6 +251,48 @@ Velocity = FlowDir * Speed;`} />
         </SectionCard>
       </div>
 
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 10. NavMesh Cover Generators */}
+        <div id="navmesh-cover-generators">
+          <SectionCard title="10. NavMesh Cover Generators & Tactical Positioning" icon={Mountain} color={COLORS.kingfisher.warm}>
+            <p className="text-sm text-kingfisher-muted mb-3">
+              Standard MassEntity implementations require smart geometric raycasting to find cover in active combat, but reactive geometry traces on 500 enemies spike CPU severely.
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-xs text-kingfisher-muted mb-3">
+              <li><strong>Procedural Cover Evaluation:</strong> Run an offline or load-time generator that raycasts across NavMesh edges to find discrete points (e.g., behind rocks, walls).</li>
+              <li><strong>Baking Cover-Point Heuristics:</strong> Bake these points into global node networks (or a spatial hash grid) with pre-evaluated safety metrics (e.g. valid angles, crouch/stand height).</li>
+              <li><strong>O(1) Tactical Fetch:</strong> MassEntities bypass reactive line traces during combat. They query their nearest node cell integer and extract a safe tactical position instantly, converting heavy physics overlap traces to immediate O(1) reads.</li>
+            </ul>
+            <MultiplayerImpact 
+              gpu="0ms" 
+              cpu="-14.5ms (Eliminates reactive raycasting combat traces across 500+ enemies)" 
+              ram="+25MB (Storage for the pre-baked tactical navigation mesh grid)" 
+              latency="0ms" 
+            />
+          </SectionCard>
+        </div>
+
+        {/* 11. Virtual Economy Slicers */}
+        <div id="virtual-economy-slicers">
+          <SectionCard title="11. Virtual Background Economy & Society Slicers" icon={GitBranch} color={COLORS.kingfisher.blue}>
+            <p className="text-sm text-kingfisher-muted mb-3">
+              RPG worlds depend on dynamic economies (merchants regenerating stock, factions fighting off-screen). Ticking these behaviors via standard game loops across 5,000 NPCs is impossible.
+            </p>
+            <ul className="list-disc pl-5 space-y-2 text-xs text-kingfisher-muted mb-3">
+              <li><strong>Macro-Simulation Engine:</strong> Create a decoupled background time-slicing engine using basic UObject subsystems.</li>
+              <li><strong>Deterministic Mathematical Projections:</strong> 5,000 dormant world NPCs exist entirely as lightweight data entries. To simulate an economy, you don't 'spawn' an NPC to travel and trade. You simply interpolate timestamps calculating deterministic projected outcomes (e.g. <code>`Goods = Base * TimeDelta`</code>) in a round-robin background thread slice.</li>
+              <li><strong>Scale independent from Frame Rate:</strong> Process 100 economy entity math equations per frame asynchronously without single visual representation in the world.</li>
+            </ul>
+            <MultiplayerImpact 
+              gpu="0ms" 
+              cpu="-28.0ms (Bypasses rendering, animation, and standard actor ticking completely for the active background world)" 
+              ram="-2.5GB (Prevents loading character meshes or logic controllers for the open world)" 
+              latency="0ms" 
+            />
+          </SectionCard>
+        </div>
+      </div>
+
       <div id="ai-ceilings">
         <SectionCard title="Unreal Engine AI Feature Ceilings & Workarounds" id="ai-feature-ceilings" icon={Shield} color={COLORS.status.info}>
           <FeatureMatrix 

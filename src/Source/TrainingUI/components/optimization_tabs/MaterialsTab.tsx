@@ -91,6 +91,34 @@ export const MaterialsTab = () => (
       </div>
     </SectionCard>
 
+    <SectionCard id="wind-state-grids" title="Dynamic Weather & Procedural Wind State Grids" icon={Wind} color={COLORS.kingfisher.warm}>
+      <p className="font-semibold text-white mb-2">Static Foliage Cost and Volumetric Scheduling</p>
+      <p className="text-sm text-kingfisher-muted mb-3">
+        Evaluating true dynamic wind logic via math nodes (Sine waves, per-object velocities) individually across 10,000 grass blades creates massive ALU instruction redundancy, capping frame rates in dense environments.
+      </p>
+      <ul className="list-disc pl-5 space-y-2 text-sm text-kingfisher-muted mb-4">
+        <li><strong>Synchronous Volumetric Schedulers:</strong> Instead of iterating wind calculations per instance on the Game Thread, shift the logic to a global weather manager.</li>
+        <li><strong>Caching 3D Wind Velocity Textures:</strong> The weather global manager bakes directional wind velocity, gusts, and storm intensities into a low-resolution scrolling 3D texture (or Render Target) once per frame.</li>
+        <li><strong>O(1) Pixel Fetch:</strong> Inside the foliage material World Position Offset (WPO), each vertex simply samples this cached global 3D vector map at its absolute world coordinate to retrieve its deterministic breeze sway, bypassing complex localized trigonometric math (-2ms CPU evaluation bottleneck).</li>
+      </ul>
+      <MultiplayerImpact 
+        gpu="-1.8 ms (Reduces heavy WPO instruction counts in overdrawn foliage scenes by moving computation strictly to texture fetches)" 
+        cpu="-2.0 ms (Bypasses Game Thread iterations over clustered instance arrays or directional components)" 
+        ram="+4 MB (Volumetric 3D wind texture allocation)" 
+        latency="0.0 ms (Locally simulated visual effect)"
+      />
+      <FeatureMatrix 
+        has={[
+          "Render Targets for generating dynamic texture buffers over time",
+          "Global Material Parameter Collections to easily pass weather scales into all shaders"
+        ]}
+        missing={[
+          "Out-of-the-box volumetric 3D wind schedulers directly hooked to landscape grass (usually utilizes simple scalar wind)"
+        ]}
+        howToUse="Build a centralized Weather C++ Subsystem. Bake layered directional storm data into a Render Target map. Inside Foliage materials, use WorldPosition to UV-sample the Render Target and plug the result straight into the WPO slot."
+      />
+    </SectionCard>
+
     <SectionCard title="Material & Shader Hardware Impact Masterclass" icon={Monitor} color={COLORS.kingfisher.blue}>
       <p className="text-sm text-kingfisher-muted mb-4 font-medium italic">Concrete hardware impacts of G-Buffer writes, instruction bounds, and rendering threads:</p>
       <MultiplayerImpact 

@@ -58,7 +58,7 @@ export const MemoryStateTab = () => (
       />
     </SectionCard>
 
-    <SectionCard title="C++ Implementation: Fast Binary Delta Saving (FArchive)" icon={Code} color={COLORS.status.info}>
+    <SectionCard id="delta-compression" title="C++ Implementation: Fast Binary Delta Saving (FArchive)" icon={Code} color={COLORS.status.info}>
       <p className="text-sm text-kingfisher-muted mb-3">
         Creating a custom binary stream archive in C++ that writes state deltas directly to raw byte arrays:
       </p>

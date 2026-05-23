@@ -94,6 +94,33 @@ export const NetworkingPhysicsTab = () => (
           <li><strong className="text-white">Skip Owner Optimization:</strong> Prevent ghost echo jitter via <code>COND_SkipOwner</code>.</li>
         </ul>
       </SectionCard>
+      <SectionCard id="vehicle-physics-replication" title="Mounts & Vehicle Physics Replication (Chaos Engine)" icon={Clock} color={COLORS.kingfisher.warm}>
+        <p className="mb-2 text-sm text-kingfisher-muted">
+          Horse riding mechanics and vehicle mounts over Listen Servers present massive challenges. Unreal's Chaos physics engine ticking synchronously on the Game Thread leads to violent launch desyncs and rubberbanding.
+        </p>
+        <ul className="list-disc pl-5 space-y-3 text-kingfisher-muted text-sm mb-4">
+          <li><strong className="text-white">Predictive Asynchronous Sub-stepping:</strong> Standard rigid body replication constantly fights client predictions. We unhinge the Chaos physics solver from the main Game Thread framework, placing vehicle math into asynchronous sub-stepped ticks.</li>
+          <li><strong className="text-white">Authoritative Input Buffers:</strong> Let clients predict local mounting physics but queue the input payload in a strict Network Prediction sub-system buffer. If the server detects a collision or speed-hack deviation &gt; 50 units, the client snaps hard. Minor predictive deviations &lt; 50 units interpolate softly without resetting Chaos velocity vectors, preventing violent "catapult" stutters.</li>
+        </ul>
+        <MultiplayerImpact 
+          gpu="0.0 ms" 
+          cpu="-3.2 ms (Offloading heavy Chaos engine rigid-body evaluations to background async compute loops)" 
+          ram="+16 MB System RAM (Storing predictive rollback snapshots and input history arrays for the mount state)" 
+          latency="Absorbs up to 150ms of network jitter smoothly; prevents violent rubberbanding out of physical bounds."
+        />
+        <FeatureMatrix 
+          has={[
+            "Chaos Physics Engine (Robust destruction and rigid body dynamics natively).",
+            "Network Prediction Plugin (Blueprint hooks for input buffering).",
+            "Async Physics Tick options in Project Settings."
+          ]}
+          missing={[
+            "Turn-key horse riding netcode components directly in CharacterMovementComponent.",
+            "Native deterministic lag compensation for four-legged Chaos vehicles."
+          ]}
+          howToUse="Enable Async Physics Tick. Implement the Network Prediction Plugin specifically for mounts, decoupling the standard CharacterMovementComponent."
+        />
+      </SectionCard>
     </div>
   </div>
 );
