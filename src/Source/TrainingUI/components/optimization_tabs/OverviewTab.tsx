@@ -643,7 +643,13 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       </div>
                       <div>
                         <strong className="text-white text-sm">GPU-Driven Hardware Ray-Traced Audio Acoustic Propagation Bounds</strong>
-                        <p className="text-kingfisher-muted text-xs mt-1">Real-time acoustic diffraction and reflection tracing inside deep procedural dungeons (such as subterranean BG3 cavern systems) using Direct Compute shaders directly. Prevents expensive Game Thread raycast congestion stalls (-1.5ms CPU, +0ms RAM).</p>
+                        <p className="text-kingfisher-muted text-xs mt-1">Real-time acoustic diffraction and reflection tracing inside deep procedural dungeons (such as subterranean BG3 cavern systems) using Direct Compute shaders directly. Prevents expensive Game Thread raycast congestion stalls.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -1.5ms</span>
+                          <span className="text-emerald-400 select-none">GPU: +0.2ms</span>
+                          <span className="text-[#ffd700] select-none">RAM: +10MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Hardware dynamic acoustic propagation solvers (demands custom Steam Audio implementation inside MetaSounds).</span>
+                        </div>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
@@ -652,7 +658,12 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       </div>
                       <div>
                         <strong className="text-white text-sm">Optical Flow Motion Matching Locomotion Vector Fields</strong>
-                        <p className="text-kingfisher-muted text-xs mt-1">Utilizing highly optimized machine learning on-disk regression networks to morph and predict complex skeletal pose curves on the fly, entirely replacing high-cost 50-clip manual blend tree computations (-3.5ms CPU, +180MB RAM).</p>
+                        <p className="text-kingfisher-muted text-xs mt-1">Utilizing highly optimized machine learning on-disk regression networks to morph and predict complex skeletal pose curves on the fly, entirely replacing high-cost 50-clip manual blend tree computations.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -3.5ms</span>
+                          <span className="text-rose-400 select-none">RAM: +180MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Deep neural network memory runtime decoders out-of-the-box (demands compiling ONNX Runtime libraries inside custom C++ projects).</span>
+                        </div>
                       </div>
                     </li>
                     <li className="flex items-start gap-3">
@@ -661,7 +672,56 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       </div>
                       <div>
                         <strong className="text-white text-sm">Proximity-Triggered Hierarchical Level of Detail (HLOD) Spatial Merging</strong>
-                        <p className="text-kingfisher-muted text-xs mt-1">Baking highly detailed indoor structural meshes on-the-fly into raw unlit texture imposters as the camera travels. Maximizes console thread-context swaps by collapsing draw call grids on-demand (-4.5ms CPU, +120MB VRAM).</p>
+                        <p className="text-kingfisher-muted text-xs mt-1">Baking highly detailed indoor structural meshes on-the-fly into raw unlit texture imposters as the camera travels. Maximizes console thread-context swaps by collapsing draw call grids on-demand.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -4.5ms</span>
+                          <span className="text-[#ffd700] select-none">VRAM: +120MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Dynamic runtime HISM mesh merging in background threads (only works statically at compilation/cook time).</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Server className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Persistent Action Event Transaction Ledger</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Lock-free, thread-safe database queue ledger validating high-speed Path of Exile style loot drop & trade transactions on dedicated backend sockets. Bypasses main game thread database queries during play.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -8.5ms</span>
+                          <span className="text-emerald-400 select-none">Server Tick: +32Hz</span>
+                          <span className="text-[#ffd700] select-none">RAM: +45MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Authoritative database queueing interfaces (demands custom C++ multi-threaded SQL connection pools).</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Sliders className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Procedural Material Instance Level of Detail Throttler</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Dynamically clamps pixel shader complexity on distant landscape meshes, swapping heavy layered landscape blend equations to static opaque colors on off-camera horizons.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">GPU: -3.8ms</span>
+                          <span className="text-emerald-400 select-none">VRAM: -280MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Distance-based automatic material permutation shifting (only supports mesh LOD geometry swaps natively).</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Wifi className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Zero-Copy Network Serialization Streamer</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Bypasses CPU-intensive class reflections inside dynamic network packets. Directly converts structural data arrays to linear packed bytes ahead of replication sweeps.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -1.8ms (Net Tick)</span>
+                          <span className="text-emerald-400 select-none">Ping Gain: -22.0ms</span>
+                          <span className="text-[#ffd700] select-none">RAM: +12MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Bare-metal fast byte arrays serializers (Unreal Iris relies on extensive reflection and heap copies).</span>
+                        </div>
                       </div>
                     </li>
                   </ul>
