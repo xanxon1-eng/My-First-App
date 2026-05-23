@@ -15,7 +15,7 @@ export const CppOptimalTab = () => (
       <strong>The Core Insight:</strong> Optimal C++ in Unreal is about respecting the L1/L2 cache and minimizing heap allocations. By keeping data packed, aligned, and using Unreal's natively optimized allocators, you keep the CPU continuously fed with data during a tight 16.7ms frame budget.
     </HighlightBox>
 
-    <SectionCard title="1. Data Alignment & Struct Padding" icon={Database} color={COLORS.status.success}>
+    <SectionCard id="data-alignment-padding" title="1. Data Alignment & Struct Padding" icon={Database} color={COLORS.status.success}>
       <p className="text-sm mb-3"><strong>Do: Order Variables from Largest to Smallest.</strong> C++ organically pads structs to match alignment requirements of their largest members. Ordering from largest (64-bit pointers/doubles) to smallest (8-bit bools) packs the data tightly, eliminating wasted RAM and massively improving CPU cache line utilization.</p>
       <div className="p-3 bg-black/20 rounded border border-emerald-500/10 text-xs mb-3">
         <strong className="text-emerald-400 block mb-1">BG3-style Entity Padding:</strong>
@@ -45,7 +45,7 @@ struct FCombatState
       />
     </SectionCard>
 
-    <SectionCard title="2. Fast Stack Allocations (TInlineAllocator)" icon={Cpu} color={COLORS.kingfisher.warm}>
+    <SectionCard id="fast-stack-allocations" title="2. Fast Stack Allocations (TInlineAllocator)" icon={Cpu} color={COLORS.kingfisher.warm}>
       <p className="text-sm mb-3"><strong>Do: Use TInlineAllocator for hot-path local arrays.</strong> When gathering items for a loop (like finding nearby actors or physics traces) where the maximum count is generally known, use <code>TInlineAllocator</code>. This allocates the array directly on the <em>Stack</em> rather than the <em>Heap</em>, entirely bypassing expensive contiguous RAM allocation calls.</p>
       <div className="p-3 bg-black/20 rounded border border-amber-500/10 text-xs mb-3">
         <strong className="text-amber-400 block mb-1">Witcher 3-style Attack Sweeps:</strong>
@@ -66,7 +66,7 @@ GetWorld()->SweepMultiByChannel(HitResults, Start, End, ...);`} />
       />
     </SectionCard>
 
-    <SectionCard title="3. Bitmask Replication (Network Bandwidth)" icon={Radio} color={COLORS.status.info}>
+    <SectionCard id="bitmask-replication" title="3. Bitmask Replication (Network Bandwidth)" icon={Radio} color={COLORS.status.info}>
       <p className="text-sm mb-3"><strong>Do: Pack grouped booleans into a single bitmask integer.</strong> Instead of replicating multiple separate boolean properties (which each incur RPC and property header byte overhead), tightly pack states into a single replicated <code>uint8</code> or <code>uint16</code> bitmask using standard C++ bitwise operators.</p>
       <div className="p-3 bg-black/20 rounded border border-blue-500/10 text-xs mb-3">
         <strong className="text-blue-400 block mb-1">PoE-style Status Effect Stacks:</strong>
@@ -90,7 +90,7 @@ void SetState(EPlayerStateFlag Flag, bool bEnabled)
       />
     </SectionCard>
 
-    <SectionCard title="4. Engine Subsystems (Decoupled Singletons)" icon={Layers} color={COLORS.kingfisher.blue}>
+    <SectionCard id="engine-subsystems" title="4. Engine Subsystems (Decoupled Singletons)" icon={Layers} color={COLORS.kingfisher.blue}>
       <p className="text-sm mb-3"><strong>Do: Use UWorldSubsystem / UGameInstanceSubsystem for Managers.</strong> Do not use singletons or <code>AActor</code> manager classes dropped in a level. Subsystems have zero physical transform overhead, zero baseline network replication cost, and have their lifecycles automatically managed by the engine (auto-created and destroyed).</p>
       <MultiplayerImpact 
         gpu="0ms" 

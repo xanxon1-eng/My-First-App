@@ -590,7 +590,7 @@ export function CppSchoolVisualizer() {
     if (taskId.startsWith('task_7')) return 'loops';
     if (['task_13', 'task_14', 'task_45', 'task_46'].includes(taskId)) return 'actor_lifecycle';
     if (['task_8', 'task_11', 'task_12', 'task_17', 'task_18', 'task_20', 'task_26', 'task_27', 'task_28', 'task_29', 'task_33', 'task_44'].includes(taskId)) return 'reflection_bp';
-    if (['task_NEW_LIGHTING', 'task_opt_1', 'task_opt_2', 'task_opt_3', 'task_opt_4', 'task_opt_5', 'task_opt_6'].includes(taskId)) return 'optimization_pro';
+    if (['task_NEW_LIGHTING', 'task_opt_1', 'task_opt_2', 'task_opt_3', 'task_opt_4', 'task_opt_5', 'task_opt_6', 'task_opt_7', 'task_opt_8', 'task_opt_9', 'task_opt_10', 'task_opt_11'].includes(taskId)) return 'optimization_pro';
     return 'assets_pro';
   };
 

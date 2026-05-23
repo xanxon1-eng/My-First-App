@@ -260,6 +260,56 @@ const diagnosticsMap: Record<string, UTaskDiagnostic> = {
     info: 'Optimizing graphics pipelines. pre-compiling PSOs (Pipeline State Objects) during initial loading cards completely mitigates 250ms DX12 compilation frame hitchings on casting spells, and HISM groups repetitive assets.',
     ueFeatures: ['Hierarchical Instanced Static Mesh (HISM) batches', 'DX12 PSO Cache compilations'],
     missingFeatures: ['Automated shader permutation optimization (unused static switches compile and consume GPU memory unless culled manually via CVar overrides)']
+  },
+  'task_opt_7': {
+    gpu: '0.00ms',
+    cpu: '-1.80ms (Eradicates duplicate memory fetches via custom cache line alignment)',
+    ram: '-10MB (Saves variable spacing padding byte waste within structs)',
+    vram: '0.00ms',
+    ping: 'None',
+    info: 'Memory alignas(16) optimization. Forces the compilers to pack properties inside exact standard CPU vector sizes, preventing redundant memory fetch subdivisions.',
+    ueFeatures: ['explicit alignas(16) boundary mapping', 'MS_ALIGN memory pack attributes'],
+    missingFeatures: ['Automatic alignment padding analysis inside native IDE tools (requires external profilers like Intel VTune)']
+  },
+  'task_opt_8': {
+    gpu: '0.00ms (Bypasses CPU wait locks)',
+    cpu: '-3.50ms (Zeroes down multi-thread synchronization wait times)',
+    ram: '0.00MB (Preallocated static circular array bounds)',
+    vram: '0.00ms',
+    ping: '<1ns delay (Immediate index update thread operations)',
+    info: 'Lock-free thread communication format. Employs std::atomic head and tail pointers on circular buffers, bypassing operating-system mutex context-switches completely.',
+    ueFeatures: ['std::atomic standard thread checks', 'TQueue Lock-Free FIFO concurrency modes'],
+    missingFeatures: ['Standard variable dynamic sizing under atomic locks (requires manual lock controllers if sizes expand)']
+  },
+  'task_opt_9': {
+    gpu: '0.00ms',
+    cpu: '-8.50ms (Eradicates string-handling and layout serialization overheads)',
+    ram: '-120MB (By-passes high dynamic memory copy allocations)',
+    vram: '0.00ms',
+    ping: 'None',
+    info: 'Low-level FArchive saving and loading paths. Replaces heavy dynamic structures and JSON string transformations with compact, zero-copy byte streams.',
+    ueFeatures: ['FArchive output byte operations', 'Unified << streaming operators'],
+    missingFeatures: ['Automatic save compilation pruning (redundant fields write to files unless managed by developers)']
+  },
+  'task_opt_10': {
+    gpu: '0.00ms',
+    cpu: '-1.20ms (Removes runtime character lookup loops entirely)',
+    ram: '0.00MB (Bakes static integers directly into execution vectors)',
+    vram: '0.00ms',
+    ping: 'None',
+    info: 'Compile-time FNV-1a constexpr hashing. Computes static text characters to 32-bit integers during compilers run, allowing O(1) integer checks at play-time.',
+    ueFeatures: ['constexpr compile-time function evaluations', 'FName string dictionary hashing'],
+    missingFeatures: ['Dynamic run-time string caching via constexpr (constexpr parameters MUST be static literals)']
+  },
+  'task_opt_11': {
+    gpu: '0.00ms',
+    cpu: '-1.50ms (Packs multiple boolean checks into singular register operations)',
+    ram: '-8 bytes (Replaces multiple individual class storage spaces)',
+    vram: '0.00ms',
+    ping: 'None',
+    info: 'Bitmask tagging flags structures. Collapses 64 distinct boolean states into static uint64 integers, checking active properties in under a single clock cycle.',
+    ueFeatures: ['enum class : uint64 explicit memory specifications', 'ENUM_CLASS_FLAGS bitwise operation handlers'],
+    missingFeatures: ['Native Blueprint interface support for bitwise arithmetic (requires C++ helper nodes)']
   }
 };
 

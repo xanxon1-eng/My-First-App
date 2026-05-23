@@ -56,6 +56,11 @@ import { task_opt_3 } from './task_opt_3';
 import { task_opt_4 } from './task_opt_4';
 import { task_opt_5 } from './task_opt_5';
 import { task_opt_6 } from './task_opt_6';
+import { task_opt_7 } from './task_opt_7';
+import { task_opt_8 } from './task_opt_8';
+import { task_opt_9 } from './task_opt_9';
+import { task_opt_10 } from './task_opt_10';
+import { task_opt_11 } from './task_opt_11';
 
 import { UTaskDefinition } from '../TrainingCore';
 
@@ -117,5 +122,10 @@ export const embeddedTasks: UTaskDefinition[] = [
   task_opt_3,
   task_opt_4,
   task_opt_5,
-  task_opt_6
+  task_opt_6,
+  task_opt_7,
+  task_opt_8,
+  task_opt_9,
+  task_opt_10,
+  task_opt_11
 ];
