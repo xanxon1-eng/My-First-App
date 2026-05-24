@@ -11,3 +11,5 @@ export * from './GASTab';
 export * from './QuestDialogueTab';
 export * from './MemoryStateTab';
 export * from './AnimationAudioTab';
+export * from './OpenWorldSystemsTab';
+export * from './InventoryLootTab';

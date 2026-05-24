@@ -74,7 +74,12 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Direct3D 12 Bindless Resources Descriptor Heap Manager': { tabId: 'draw_calls', badge: 'D3D12 Bindless' },
   'DirectStorage GPU Decompression Pipeline': { tabId: 'storage', badge: 'DirectStorage' },
   
+  // Architecture & CPU Core
+  'The Architectural Choice Grid (OOP vs DOD)': { tabId: 'architecture', anchorId: 'oop-vs-dod-matrix', badge: 'OOP vs DOD' },
+  'OOP vs DOD Hybrid One-Way Architectural Barrier': { tabId: 'architecture', anchorId: 'one-way-barrier', badge: 'Barrier' },
+  
   // Custom lessons and systems
+
   'C++ School: Pass-by-Const-Reference (const T&)': { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics', badge: 'Const Ref' },
   'C++ School: TArray Memory Pre-allocation (Reserve)': { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics', badge: 'Array Reserve' },
   'C++ School: Cache Padding & Alignment (USTRUCT)': { tabId: 'live_memory', anchorId: 'cpp-school-diagnostics', badge: 'Cache Padding' },
@@ -116,6 +121,15 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Procedural Facial Animations & OGG V.O. Streaming': { tabId: 'quest_dialogue', anchorId: 'audio-facial-streaming', badge: 'FaceFX Audio' },
   'Skeletal Animation Culling & Audio Ducking Priorities': { tabId: 'animation_audio', badge: 'Anim Culling' },
   'ML Deformer & Pose Space Adjustments': { tabId: 'animation_audio', badge: 'GPU Deformer' },
+
+  // Open World Systems
+  'Procedural Content Generation (PCG) & Foliage': { tabId: 'open_world', anchorId: 'pcg-foliage-framework', badge: 'PCG Foliage' },
+  'Motion Matching & Fluid Locomotion': { tabId: 'open_world', anchorId: 'motion-matching-locomotion', badge: 'Motion Match' },
+  'Branching Delta-Persistence (BG3 Style)': { tabId: 'open_world', anchorId: 'branching-world-persistence', badge: 'Delta Persistence' },
+  
+  // Inventory Loot
+  'Massive Loot Drops & HISM Instancing': { tabId: 'inventory_loot', anchorId: 'mass-loot-drops', badge: 'Loot HISM' },
+  'O(1) Grid Inventory Spatial Algorithms': { tabId: 'inventory_loot', anchorId: 'grid-inventory', badge: 'Grid Algo' },
 
   // World Simulation & Vehicle Expansion
   'NavMesh Cover Generators & Tactical Positioning': { tabId: 'npc', anchorId: 'navmesh-cover-generators', badge: 'Cover Gen' },
@@ -493,12 +507,19 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
+                      ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
+                      ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
+                      ['Motion Matching & Fluid Locomotion', 'Bypasses complex spaghetti logic of state machines by querying massive MoCap databases at runtime via KD-Trees, predicting trajectory arrays and reducing CPU evaluation frames by -4.2ms.'],
+                      ['Branching Delta-Persistence (BG3 Style)', 'Optimizes massive branching quest worlds by packing only modified changes (deltas) into ultra-lightweight binary structs, erasing the standard 150ms synchronous save-file stutter delays.'],
                       ['C++ School: Pass-by-Const-Reference (const T&)', 'Replaces expensive struct copies with lightweight const memory address references across loops, eliminating millisecond cache dirtying.'],
                       ['C++ School: TArray Memory Pre-allocation (Reserve)', 'Pre-allocates contiguous block memory ahead of loops, bypassing OS heap dynamic resizing overhead (-6.5ms CPU drops).'],
                       ['C++ School: Cache Padding & Alignment (USTRUCT)', 'Reorders C++ struct members largest-to-smallest to eliminate invisible compiler padding, optimizing L1 cache fetches.'],
                       ['C++ School: Object Pools vs Full GC Destruction', 'Bypasses garbage collection hitch spikes by faking destruction, preserving pointers inside inactive TArrays for instant reuse (-14.0ms GC Spikes).'],
                       ['C++ School: Fast Type Checking (ExactCast)', 'Uses pointer memory IsA checks to safely test types, skipping expensive dynamic RTTI reflection trees.'],
                       ['C++ School: Inlining & FORCEINLINE', 'Pastes tiny function logic directly at the call site, avoiding context-switching jump instruction stalls on the CPU (-1.5ms overhead).'],
+                      ['The Architectural Choice Grid (OOP vs DOD)', 'An exhaustive matrix dictating exactly when to use Object-Oriented patterns (UI, Quests) versus Data-Oriented sets (Projectiles, Particles) aligned with the exact design layout of massive RPGs like PoE and BG3, preventing major cache-miss stutter cycles.'],
+                      ['OOP vs DOD Hybrid One-Way Architectural Barrier', 'Outlines event-driven decoupled command buffers which prevent the high-performance DOD physics threads from jumping and locking the Game Thread to trigger sounds or UI updates, saving over -4.2ms CPU frames.'],
                       ['Witcher, PoE & BG3 Architectural Masterplan', 'Comprehensive chronological pre-production roadmap detailing Phase 1–5 design patterns across threading core setups, World Partition biome streaming, PoE-style combat conveyor pipelines, BG3-style conditional dialogue compile bitmasks, and CPU-efficient MetaSound acoustic raycasts, complete with individual GPU, CPU, RAM, and ping latency metrics.'],
                       ['Self-Correction & Refined Strategic Blueprint', 'Self-reflective technical critique highlighting GAS class memory bloat and MassEntity synchronous loading stalls. Presents a highly refined dual-representation entity promotion design pattern in C++ that keeps dormant actors inside lightweight off-screen simulation structs before transition to active rendering.'],
                       ['Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard', 'Interactive data matrix comparing unoptimized engine baselines to high-end architectural targets across all 10 major guide topics, containing strict ms latency penalties.'],
@@ -613,12 +634,19 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
+                      ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
+                      ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
+                      ['Motion Matching & Fluid Locomotion', 'Bypasses complex spaghetti logic of state machines by querying massive MoCap databases at runtime via KD-Trees, predicting trajectory arrays and reducing CPU evaluation frames by -4.2ms.'],
+                      ['Branching Delta-Persistence (BG3 Style)', 'Optimizes massive branching quest worlds by packing only modified changes (deltas) into ultra-lightweight binary structs, erasing the standard 150ms synchronous save-file stutter delays.'],
                       ['C++ School: Pass-by-Const-Reference (const T&)', 'Replaces expensive struct copies with lightweight const memory address references across loops, eliminating millisecond cache dirtying.'],
                       ['C++ School: TArray Memory Pre-allocation (Reserve)', 'Pre-allocates contiguous block memory ahead of loops, bypassing OS heap dynamic resizing overhead (-6.5ms CPU drops).'],
                       ['C++ School: Cache Padding & Alignment (USTRUCT)', 'Reorders C++ struct members largest-to-smallest to eliminate invisible compiler padding, optimizing L1 cache fetches.'],
                       ['C++ School: Object Pools vs Full GC Destruction', 'Bypasses garbage collection hitch spikes by faking destruction, preserving pointers inside inactive TArrays for instant reuse (-14.0ms GC Spikes).'],
                       ['C++ School: Fast Type Checking (ExactCast)', 'Uses pointer memory IsA checks to safely test types, skipping expensive dynamic RTTI reflection trees.'],
                       ['C++ School: Inlining & FORCEINLINE', 'Pastes tiny function logic directly at the call site, avoiding context-switching jump instruction stalls on the CPU (-1.5ms overhead).'],
+                      ['The Architectural Choice Grid (OOP vs DOD)', 'An exhaustive matrix dictating exactly when to use Object-Oriented patterns (UI, Quests) versus Data-Oriented sets (Projectiles, Particles) aligned with the exact design layout of massive RPGs like PoE and BG3, preventing major cache-miss stutter cycles.'],
+                      ['OOP vs DOD Hybrid One-Way Architectural Barrier', 'Outlines event-driven decoupled command buffers which prevent the high-performance DOD physics threads from jumping and locking the Game Thread to trigger sounds or UI updates, saving over -4.2ms CPU frames.'],
                       ['Witcher, PoE & BG3 Architectural Masterplan', 'Comprehensive chronological pre-production roadmap detailing Phase 1–5 design patterns across threading core setups, World Partition biome streaming, PoE-style combat conveyor pipelines, BG3-style conditional dialogue compile bitmasks, and CPU-efficient MetaSound acoustic raycasts, complete with individual GPU, CPU, RAM, and ping latency metrics.'],
                       ['Self-Correction & Refined Strategic Blueprint', 'Self-reflective technical critique highlighting GAS class memory bloat and MassEntity synchronous loading stalls. Presents a highly refined dual-representation entity promotion design pattern in C++ that keeps dormant actors inside lightweight off-screen simulation structs before transition to active rendering.'],
                       ['Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard', 'Comprehensive, in-depth evaluation covering 10 major structural topics, illustrating how default settings bottleneck CPU, GPU, and Network parameters with real millisecond numbers.'],
@@ -805,6 +833,21 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                           <span className="text-emerald-400 select-none">Ping Gain: -22.0ms</span>
                           <span className="text-[#ffd700] select-none">RAM: +12MB</span>
                           <span className="text-zinc-400 select-none">Lacks in UE5: Bare-metal fast byte arrays serializers (Unreal Iris relies on extensive reflection and heap copies).</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Waves className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Dynamic Pipeline State Object (PSO) Caching Hitch Eliminators</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Collecting thousands of material/shader pipelines in an automated background headless process, ensuring open-world transitions never hitch with "compiling shaders" lock-ups when encountering new spell effects or biomes.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -250.0ms (No Hitches)</span>
+                          <span className="text-[#ffd700] select-none">VRAM: +350MB</span>
+                          <span className="text-[#ffd700] select-none">Storage: +150MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Fully automated on-the-fly PSO recompilation (still requires manual ODC captures).</span>
                         </div>
                       </div>
                     </li>

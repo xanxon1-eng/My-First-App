@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -57,7 +57,9 @@ const TAB_TO_COMPONENT_NAME: Record<string, string> = {
   subsystems: 'SubsystemsTab',
   shader_permutations: 'ShaderPermutationsTab',
   ui_umg: 'UIUMGTab',
-  optimal_algorithms: 'OptimalAlgorithmsTab'
+  optimal_algorithms: 'OptimalAlgorithmsTab',
+  open_world: 'OpenWorldSystemsTab',
+  inventory_loot: 'InventoryLootTab'
 };
 
 interface OptimizationGuideProps {
@@ -133,6 +135,8 @@ const TAB_GROUPS = [
       { id: 'hud_ui',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
       { id: 'gas_opt',          label: 'Gameplay Ability (GAS)',   icon: Sword },
       { id: 'quest_dialogue',   label: 'Quest & Dialogue Arch',    icon: Database },
+      { id: 'open_world',       label: 'Open World Systems',       icon: Map },
+      { id: 'inventory_loot',   label: 'Inventory & Loot',         icon: Package },
     ]
   },
   {
@@ -236,6 +240,8 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'ai_path_grid_slicers') return <AIPathGridSlicersTab />;
     if (activeTab === 'gas_opt') return <GASTab />;
     if (activeTab === 'quest_dialogue') return <QuestDialogueTab />;
+    if (activeTab === 'open_world') return <OpenWorldSystemsTab />;
+    if (activeTab === 'inventory_loot') return <InventoryLootTab />;
     
     const componentName = TAB_TO_COMPONENT_NAME[activeTab];
     if (componentName) {
