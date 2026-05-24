@@ -13,3 +13,4 @@ export * from './MemoryStateTab';
 export * from './AnimationAudioTab';
 export * from './OpenWorldSystemsTab';
 export * from './InventoryLootTab';
+export * from './CombatCalculationTab';

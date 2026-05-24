@@ -1,4 +1,19 @@
 {
+  "CombatCalculationTab": {
+    "type": "div",
+    "props": {
+      "className": "space-y-6"
+    },
+    "children": [
+      {
+        "type": "PageHeader",
+        "props": {
+          "title": "Combat Calculation & Resolution System",
+          "subtitle": "Lock-free multithreaded combat processing, bitmask filtering, and rollback correction architectures."
+        }
+      }
+    ]
+  },
   "AAAQualityProfilingTab": {
     "type": "div",
     "props": {

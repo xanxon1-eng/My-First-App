@@ -131,6 +131,9 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Massive Loot Drops & HISM Instancing': { tabId: 'inventory_loot', anchorId: 'mass-loot-drops', badge: 'Loot HISM' },
   'O(1) Grid Inventory Spatial Algorithms': { tabId: 'inventory_loot', anchorId: 'grid-inventory', badge: 'Grid Algo' },
 
+  // Combat Calculation
+  'Combat Calculation & Resolution System (Lock-Free)': { tabId: 'combat_calculation', anchorId: 'lock-free-queues', badge: 'Combat Resolution' },
+
   // World Simulation & Vehicle Expansion
   'NavMesh Cover Generators & Tactical Positioning': { tabId: 'npc', anchorId: 'navmesh-cover-generators', badge: 'Cover Gen' },
   'Virtual Background Economy & Society Slicers': { tabId: 'npc', anchorId: 'virtual-economy-slicers', badge: 'Macro-Economy' },
@@ -428,6 +431,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
     if (lower.includes('gameplay ability system') || lower.includes('gas') || lower.includes('asc') || lower.includes('ability system component')) return { tabId: 'gas_opt', badge: 'GAS Core' };
     if (lower.includes('bindless') || lower.includes('descriptor heap') || lower.includes('d3d12')) return { tabId: 'draw_calls', badge: 'D3D12 Bindless' };
     if (lower.includes('directstorage') || lower.includes('decompression') || lower.includes('oodle') || lower.includes('channel packing') || lower.includes('rvt')) return { tabId: 'textures', badge: 'Textures/Storage' };
+    if (lower.includes('combat calculation') || lower.includes('resolution system')) return { tabId: 'combat_calculation', badge: 'Combat Logic' };
     return null;
   };
 
@@ -507,6 +511,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Combat Calculation & Resolution System (Lock-Free)', 'Decoupled hit-resolution and damage calculations from the Game Thread by utilizing atomic lock-free queues and asynchronous background workers (Physics Substepping + Task Graph), preventing deep CPU stalls during dense 50-target AoE spikes (-8.2ms CPU).'],
                       ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
                       ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
                       ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
@@ -634,6 +639,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Combat Calculation & Resolution System (Lock-Free)', 'Decoupled hit-resolution and damage calculations from the Game Thread by utilizing atomic lock-free queues and asynchronous background workers (Physics Substepping + Task Graph), preventing deep CPU stalls during dense 50-target AoE spikes (-8.2ms CPU).'],
                       ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
                       ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
                       ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
@@ -749,6 +755,21 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
               <SectionCard title="Still Missing (Major & Minor Sub-Systems)" icon={CircleDashed} color={COLORS.status.warning}>
                 <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-4 pt-1">
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Code className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">GPU-Accelerated Fluid Blood & Gore Simulation</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Delegating thousands of dynamic fluid particles and mesh-slicing computations entirely to GPU Niagara compute shaders, eliminating synchronous Game Thread physics sweeps during intense melee combat.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -6.5ms</span>
+                          <span className="text-[#ffd700] select-none">GPU: +1.2ms</span>
+                          <span className="text-[#ffd700] select-none">VRAM: +85MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Out-of-the-box robust GPU fluid boundaries integrated natively with Skeletal Mesh collision boundaries.</span>
+                        </div>
+                      </div>
+                    </li>
                     <li className="flex items-start gap-3">
                       <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
                         <Activity className="w-4 h-4 text-amber-400" />
