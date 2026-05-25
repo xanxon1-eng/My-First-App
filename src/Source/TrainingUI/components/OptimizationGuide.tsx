@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab, WorldSkillTreeMapTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -134,6 +134,7 @@ const TAB_GROUPS = [
       { id: 'animation_audio',  label: 'Animation & Audio',        icon: Music },
       { id: 'hud_ui',           label: 'UI & UMG Optimization',    icon: LayoutTemplate },
       { id: 'gas_opt',          label: 'Gameplay Ability (GAS)',   icon: Sword },
+      { id: 'world_skill_tree', label: 'World Skill Tree Map',     icon: Map },
       { id: 'combat_calculation', label: 'Combat Calculation',      icon: Crosshair },
       { id: 'quest_dialogue',   label: 'Quest & Dialogue Arch',    icon: Database },
       { id: 'open_world',       label: 'Open World Systems',       icon: Map },
@@ -240,6 +241,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'modifier_sandbox') return <ModifierSandboxTab />;
     if (activeTab === 'ai_path_grid_slicers') return <AIPathGridSlicersTab />;
     if (activeTab === 'gas_opt') return <GASTab />;
+    if (activeTab === 'world_skill_tree') return <WorldSkillTreeMapTab />;
     if (activeTab === 'combat_calculation') return <CombatCalculationTab />;
     if (activeTab === 'quest_dialogue') return <QuestDialogueTab />;
     if (activeTab === 'open_world') return <OpenWorldSystemsTab />;

@@ -138,7 +138,14 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'NavMesh Cover Generators & Tactical Positioning': { tabId: 'npc', anchorId: 'navmesh-cover-generators', badge: 'Cover Gen' },
   'Virtual Background Economy & Society Slicers': { tabId: 'npc', anchorId: 'virtual-economy-slicers', badge: 'Macro-Economy' },
   'Dynamic Weather & Procedural Wind State Grids': { tabId: 'materials', anchorId: 'wind-state-grids', badge: 'Weather Grid' },
-  'Mounts & Vehicle Physics Replication (Chaos Engine)': { tabId: 'network_physics', anchorId: 'vehicle-physics-replication', badge: 'Vehicle Physics' }
+  'Mounts & Vehicle Physics Replication (Chaos Engine)': { tabId: 'network_physics', anchorId: 'vehicle-physics-replication', badge: 'Vehicle Physics' },
+  
+  // Custom Additions
+  'Open World Skill Tree Map Architecture': { tabId: 'world_skill_tree', badge: 'Skill Tree Map' },
+  'Interactive Open World Passive Skill Tree Map': { tabId: 'world_skill_tree', anchorId: 'world-skill-tree-interactive-sim', badge: 'Interactive Map' },
+  'Fog of War & Map Masking (GPU)': { tabId: 'world_skill_tree', anchorId: 'world-skill-tree-fog-fow', badge: 'Fog of War GPU' },
+  'Skill Node Locations & Validation (CPU/Memory)': { tabId: 'world_skill_tree', anchorId: 'world-skill-tree-node-registry', badge: 'Node Matrix' },
+  'Dynamic Node States & Story Persistence': { tabId: 'world_skill_tree', anchorId: 'world-skill-tree-story-persistence', badge: 'Story Sync' }
 };
 
 interface CeilingItem {
@@ -432,6 +439,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
     if (lower.includes('bindless') || lower.includes('descriptor heap') || lower.includes('d3d12')) return { tabId: 'draw_calls', badge: 'D3D12 Bindless' };
     if (lower.includes('directstorage') || lower.includes('decompression') || lower.includes('oodle') || lower.includes('channel packing') || lower.includes('rvt')) return { tabId: 'textures', badge: 'Textures/Storage' };
     if (lower.includes('combat calculation') || lower.includes('resolution system')) return { tabId: 'combat_calculation', badge: 'Combat Logic' };
+    if (lower.includes('skill tree') || lower.includes('open world map architecture')) return { tabId: 'world_skill_tree', badge: 'Skill Tree Map' };
     return null;
   };
 
@@ -511,6 +519,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Interactive Open World Passive Skill Tree Map', 'Exhaustive real-time simulator combining Witcher-inspired biome coordinates with PoE passive map clusters, socketable radius jewels, selectable camp configurations, and story quest outcome linkages. Bypasses typical UMG tick bottlenecks (-12.5ms Game Thread CPU, 4MB R8 GPU Fog dynamic mask VRAM, constant O(1) Quad-Tree traversals).'],
+                      ['Fog of War & Map Masking (GPU)', 'Implements a dynamic Render Target canvas drawing system that paints localized explored ranges, feeding the global Post-Process volume to obscure depth planes and mask 2D UI layouts smoothly (-1.0ms rendering overdraw, 4MB VRAM footprint).'],
+                      ['Skill Node Locations & Validation (CPU/Memory)', 'Pre-allocates an immutable block of 32-byte passive node structures on boot, querying close location points in under 0.02ms via Quad-Trees to spawn visual interactable templates, eliminating massive actor collection sweeps (-14.5ms CPU, saves 800MB heap memory).'],
+                      ['Dynamic Node States & Story Persistence', 'Binds quest outcome branches and Camp selections to localized bitfield evaluation masks, communicating state shifts over co-op nodes via lightweight delta packets (-8.5ms CPU saves, zero-latency state synchronization).'],
                       ['Combat Calculation & Resolution System (Lock-Free)', 'Decoupled hit-resolution and damage calculations from the Game Thread by utilizing atomic lock-free queues and asynchronous background workers (Physics Substepping + Task Graph), preventing deep CPU stalls during dense 50-target AoE spikes (-8.2ms CPU).'],
                       ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
                       ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
@@ -639,6 +651,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['Interactive Open World Passive Skill Tree Map', 'Exhaustive real-time simulator combining Witcher-inspired biome coordinates with PoE passive map clusters, socketable radius jewels, selectable camp configurations, and story quest outcome linkages. Bypasses typical UMG tick bottlenecks (-12.5ms Game Thread CPU, 4MB R8 GPU Fog dynamic mask VRAM, constant O(1) Quad-Tree traversals).'],
+                      ['Fog of War & Map Masking (GPU)', 'Implements a dynamic Render Target canvas drawing system that paints localized explored ranges, feeding the global Post-Process volume to obscure depth planes and mask 2D UI layouts smoothly (-1.0ms rendering overdraw, 4MB VRAM footprint).'],
+                      ['Skill Node Locations & Validation (CPU/Memory)', 'Pre-allocates an immutable block of 32-byte passive node structures on boot, querying close location points in under 0.02ms via Quad-Trees to spawn visual interactable templates, eliminating massive actor collection sweeps (-14.5ms CPU, saves 800MB heap memory).'],
+                      ['Dynamic Node States & Story Persistence', 'Binds quest outcome branches and Camp selections to localized bitfield evaluation masks, communicating state shifts over co-op nodes via lightweight delta packets (-8.5ms CPU saves, zero-latency state synchronization).'],
                       ['Combat Calculation & Resolution System (Lock-Free)', 'Decoupled hit-resolution and damage calculations from the Game Thread by utilizing atomic lock-free queues and asynchronous background workers (Physics Substepping + Task Graph), preventing deep CPU stalls during dense 50-target AoE spikes (-8.2ms CPU).'],
                       ['Massive Loot Drops & HISM Instancing', 'Eliminates 25ms server stalling during massive Path of Exile loot explosions by detaching visual ground-loot into single-drawcall HISM instances decoupled from strict memory structs.'],
                       ['O(1) Grid Inventory Spatial Algorithms', 'Removes typical frame-drops during UI grid manipulation by converting 2D grid searches into lightning-fast 1D Bitmask modulo arithmetic, bypassing complex overlapping Widget checks completely.'],
@@ -767,6 +783,21 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                           <span className="text-[#ffd700] select-none">GPU: +1.2ms</span>
                           <span className="text-[#ffd700] select-none">VRAM: +85MB</span>
                           <span className="text-zinc-400 select-none">Lacks in UE5: Out-of-the-box robust GPU fluid boundaries integrated natively with Skeletal Mesh collision boundaries.</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Activity className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Data-Driven Slate Virtualization & UI Spatial Hashing</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Natively pooling and recycling limited UI widget instances (using Canvas Panels and Retainer Boxes) instead of instantiating thousands of nodes for massive Path of Exile style passive trees or BG3 dialogue logs. Eliminates catastrophic UI tick stalls and Garbage Collector memory leaks.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -12.4ms (UI Thread)</span>
+                          <span className="text-[#ffd700] select-none">GPU: 0ms</span>
+                          <span className="text-[#ffd700] select-none">RAM: -250MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Built-in virtualized 2D canvas zooming and spatial node culling for non-list layouts.</span>
                         </div>
                       </div>
                     </li>
