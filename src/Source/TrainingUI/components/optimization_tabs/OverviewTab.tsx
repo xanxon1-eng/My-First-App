@@ -126,6 +126,9 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'Procedural Content Generation (PCG) & Foliage': { tabId: 'open_world', anchorId: 'pcg-foliage-framework', badge: 'PCG Foliage' },
   'Motion Matching & Fluid Locomotion': { tabId: 'open_world', anchorId: 'motion-matching-locomotion', badge: 'Motion Match' },
   'Branching Delta-Persistence (BG3 Style)': { tabId: 'open_world', anchorId: 'branching-world-persistence', badge: 'Delta Persistence' },
+  'Shallow Water Equation Solver (SWE) & River Buoyancy': { tabId: 'open_world', anchorId: 'shallow-water-simulation', badge: 'Shallow Water' },
+  'Hydrostatic Bucket Dynamics & IK Carrier Physics': { tabId: 'open_world', anchorId: 'shallow-water-simulation', badge: 'Hydrostatic IK' },
+  'Crimson Desert Hydrostatic Container (Bucket) & Character IK Physics Pre-planning': { tabId: 'open_world', anchorId: 'hydrostatic-preplanning', badge: 'Hydrostatic IK' },
   
   // Inventory Loot
   'Massive Loot Drops & HISM Instancing': { tabId: 'inventory_loot', anchorId: 'mass-loot-drops', badge: 'Loot HISM' },
@@ -529,6 +532,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
                       ['Motion Matching & Fluid Locomotion', 'Bypasses complex spaghetti logic of state machines by querying massive MoCap databases at runtime via KD-Trees, predicting trajectory arrays and reducing CPU evaluation frames by -4.2ms.'],
                       ['Branching Delta-Persistence (BG3 Style)', 'Optimizes massive branching quest worlds by packing only modified changes (deltas) into ultra-lightweight binary structs, erasing the standard 150ms synchronous save-file stutter delays.'],
+                      ['Shallow Water Equation Solver (SWE) & River Buoyancy', 'Solves 2D fluid Saint-Venant momentum equations in real-time. Dynamically steers current vectors around physical rock obstructions, creates foam wakes, flows floating debris, and features high-performance on-idle camera dynamic LOD blurs to save GPU fillrate (+0.45ms static vs +1.8ms active GPU).'],
+                      ['Hydrostatic Bucket Dynamics & IK Carrier Physics', 'Models Crimson Desert style hydrostatic drift carry-forces and fluid sloshing inertia within the interactive river visualizer. Integrates high-performance character bone Control Rig / FABRIK dragging templates inside C++ sample structures, detailing precise GPU, CPU, RAM, and ping weights.'],
+                      ['Crimson Desert Hydrostatic Container (Bucket) & Character IK Physics Pre-planning', 'Technical analysis detailing 3D boundary alignments, kinetic fluid mass coupled vectors, and multi-joint bone Control Rig solvers necessary to carry heavy cargo over uneven terrains safely.'],
                       ['C++ School: Pass-by-Const-Reference (const T&)', 'Replaces expensive struct copies with lightweight const memory address references across loops, eliminating millisecond cache dirtying.'],
                       ['C++ School: TArray Memory Pre-allocation (Reserve)', 'Pre-allocates contiguous block memory ahead of loops, bypassing OS heap dynamic resizing overhead (-6.5ms CPU drops).'],
                       ['C++ School: Cache Padding & Alignment (USTRUCT)', 'Reorders C++ struct members largest-to-smallest to eliminate invisible compiler padding, optimizing L1 cache fetches.'],
@@ -661,6 +667,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       ['Procedural Content Generation (PCG) & Foliage', 'Replaces massive static arrays with Rule-Based Runtime generators. Eliminates manual placement bottlenecks, reduces World Partition stream stutter, saves -1.2GB memory and yields -6.8ms CPU through async parallel creation.'],
                       ['Motion Matching & Fluid Locomotion', 'Bypasses complex spaghetti logic of state machines by querying massive MoCap databases at runtime via KD-Trees, predicting trajectory arrays and reducing CPU evaluation frames by -4.2ms.'],
                       ['Branching Delta-Persistence (BG3 Style)', 'Optimizes massive branching quest worlds by packing only modified changes (deltas) into ultra-lightweight binary structs, erasing the standard 150ms synchronous save-file stutter delays.'],
+                      ['Shallow Water Equation Solver (SWE) & River Buoyancy', 'Solves 2D fluid Saint-Venant momentum equations in real-time. Dynamically steers current vectors around physical rock obstructions, creates foam wakes, flows floating debris, and features high-performance on-idle camera dynamic LOD blurs to save GPU fillrate (+0.45ms static vs +1.8ms active GPU).'],
+                      ['Hydrostatic Bucket Dynamics & IK Carrier Physics', 'Models Crimson Desert style hydrostatic drift carry-forces and fluid sloshing inertia within the interactive river visualizer. Integrates high-performance character bone Control Rig / FABRIK dragging templates inside C++ sample structures, detailing precise GPU, CPU, RAM, and ping weights.'],
+                      ['Crimson Desert Hydrostatic Container (Bucket) & Character IK Physics Pre-planning', 'Technical analysis detailing 3D boundary alignments, kinetic fluid mass coupled vectors, and multi-joint bone Control Rig solvers necessary to carry heavy cargo over uneven terrains safely.'],
                       ['C++ School: Pass-by-Const-Reference (const T&)', 'Replaces expensive struct copies with lightweight const memory address references across loops, eliminating millisecond cache dirtying.'],
                       ['C++ School: TArray Memory Pre-allocation (Reserve)', 'Pre-allocates contiguous block memory ahead of loops, bypassing OS heap dynamic resizing overhead (-6.5ms CPU drops).'],
                       ['C++ School: Cache Padding & Alignment (USTRUCT)', 'Reorders C++ struct members largest-to-smallest to eliminate invisible compiler padding, optimizing L1 cache fetches.'],
@@ -928,6 +937,21 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                           <span className="text-emerald-400 select-none">CPU: -8.0ms (during spikes)</span>
                           <span className="text-emerald-400 select-none">RAM: 0MB</span>
                           <span className="text-zinc-400 select-none">Lacks in UE5: Global automated frame-budget load shedders logic. Significance Manager still requires heavily manual configurations per class.</span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Waves className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Asymmetric Multi-Grid FFT Spectral Ocean & Shoreline Foam Synthesizer</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Integrates high-seas deep water Fast Fourier Transform mathematical wave cascades with interactive 2D Saint-Venant shallow water solver grids, resolving physical dynamic coastal surf breakages and foam density offsets continuously near shore bounds.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -1.2ms (delegated CS)</span>
+                          <span className="text-[#ffd700] select-none">GPU: +3.5ms</span>
+                          <span className="text-[#ffd700] select-none">VRAM: +80MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Unified high-end math coupling that binds custom shallow river meshes seamlessly with ocean boundary wave formulas out of the box.</span>
                         </div>
                       </div>
                     </li>
