@@ -4,7 +4,7 @@ import {
   Map, Eye, EyeOff, Shield, Radio, Activity, Cpu, Database, HardDrive, 
   Zap, RefreshCw, Layers, Sparkles, Compass, HelpCircle, Swords, AlertCircle, 
   Heart, Trophy, BookOpen, Settings2, ShieldCheck, ToggleLeft, ToggleRight,
-  Sliders, Link2, Info, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash
+  Sliders, Link2, Info, ChevronRight, CheckCircle2, AlertTriangle, Plus, Trash, Search
 } from 'lucide-react';
 import { PageHeader, SectionCard, HighlightBox, MultiplayerImpact, FeatureMatrix, CodeBlock } from './OptimizationHelpers';
 
@@ -219,6 +219,7 @@ const CONSTANT_JEWELS: Jewel[] = [
 
 export const WorldSkillTreeMapTab: React.FC = () => {
   // Simulator State Machine
+  const [nodes, setNodes] = useState<SkillNode[]>(INITIAL_NODES);
   const [playerPos, setPlayerPos] = useState({ x: 150, y: 320 }); // starts physically at Oxenfurt
   const [spentPoints, setSpentPoints] = useState<string[]>(['oxenfurt']);
   const [maxPoints] = useState(10);
@@ -234,15 +235,144 @@ export const WorldSkillTreeMapTab: React.FC = () => {
   const [socketedJewels, setSocketedJewels] = useState<Record<string, string>>({});
   const [selectedNodeId, setSelectedNodeId] = useState<string>('oxenfurt');
 
-  // Interactive Fog of War Grid logic (8x8 grid cells)
+  // Interactive Fog of War Grid logic (row/col cell index)
   const mapSize = { width: 800, height: 500 };
   const gridRows = 8;
   const gridCols = 10;
   const cellWidth = mapSize.width / gridCols;
   const cellHeight = mapSize.height / gridRows;
 
-  // Toggle explored states easily
-  const handleCellClick = (row: number, col: number) => {
+  // Custom interactive expansion modules
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sidebarTab, setSidebarTab] = useState<'inspect' | 'craft' | 'builder' | 'scaling'>('inspect');
+  const [stresserScale, setStresserScale] = useState<number>(1000);
+  
+  // Jewel bag containing default constant jewels + custom crafted ones
+  const [inventoryJewels, setInventoryJewels] = useState<(Jewel & { shortMod?: string })[]>([
+    { id: 'ruby', name: 'Dreadful Crimson Jewel', color: '#ff3b30', effect: 'Converts neighboring note modifiers into physical and critical bonuses', influenceRadius: 100, shortMod: 'Crimson Phys Boost' },
+    { id: 'sapphire', name: 'Glacial Cobalt Jewel', color: '#007aff', effect: 'Converts neighboring note modifiers to deal chill damage and cold resistance', influenceRadius: 120, shortMod: 'Cobalt Freeze conversion' },
+    { id: 'diamond', name: 'Prismatic Diamond Jewel', color: '#ffd700', effect: 'Boosts all active stats on nodes inside the field by +25%', influenceRadius: 110, shortMod: '+25% Power Aura' }
+  ]);
+
+  // Crafting state inputs
+  const [craftName, setCraftName] = useState('Annihilating Cobalt Jewel');
+  const [craftColor, setCraftColor] = useState('#007aff');
+  const [craftRadius, setCraftRadius] = useState(120);
+  const [craftChoice, setCraftChoice] = useState('A'); // preset mods
+
+  // Node position placing states
+  const [clickedCoord, setClickedCoord] = useState<{ x: number; y: number } | null>(null);
+  const [builderName, setBuilderName] = useState('');
+  const [builderType, setBuilderType] = useState<NodeType>('small');
+  const [builderStats, setBuilderStats] = useState('+15% Spell Toxicity Boost');
+  const [builderDesc, setBuilderDesc] = useState('A modular custom coordinate embedded into the passive matrix.');
+  const [builderTargetId, setBuilderTargetId] = useState('oxenfurt');
+
+  // Word lists for random name generator
+  const prefixPool = ['Glacial', 'Indomitable', 'Dreadful', 'Whispering', 'Vivid', 'Sacred', 'Cat-School', 'Temerian'];
+  const basePool = ['Cobalt', 'Crimson', 'Viridian', 'Diamond'];
+  const suffixPool = ['of Brutality', 'of Alchemical Flow', 'of Everlasting Constitution', 'of Bitter Frosts', 'of Arcane Retribution'];
+
+  const handleGenerateRandomName = () => {
+    const p = prefixPool[Math.floor(Math.random() * prefixPool.length)];
+    const b = basePool[Math.floor(Math.random() * basePool.length)];
+    const s = suffixPool[Math.floor(Math.random() * suffixPool.length)];
+    setCraftName(`${p} ${b} Jewel ${s}`);
+    
+    // Auto adjust colors matching pool types
+    if (b === 'Cobalt') setCraftColor('#007aff');
+    else if (b === 'Crimson') setCraftColor('#ff3b30');
+    else if (b === 'Viridian') setCraftColor('#10b981');
+    else setCraftColor('#ffd700');
+  };
+
+  const handleAssembleJewel = () => {
+    let effect = 'Multiplies physical armor block limits';
+    let shortMod = 'Phys Armor Aura';
+    if (craftChoice === 'A') {
+      effect = 'Converts neighboring node modifiers into poison strike rate';
+      shortMod = 'Poison Aura';
+    } else if (craftChoice === 'B') {
+      effect = 'Adds +15% Critical Strike Multiplier and critical spell velocity';
+      shortMod = 'Weapon Crit Multi';
+    } else if (craftChoice === 'C') {
+      effect = 'Boosts maximum dynamic life and energy ward regeneration bounds';
+      shortMod = 'Regen Aura';
+    } else {
+      effect = 'Increases cold skill area damage and chill durations by +30%';
+      shortMod = '+30% Frost Range';
+    }
+
+    const uniqueId = `custom-jewel-${Date.now()}`;
+    const newJewel = {
+      id: uniqueId,
+      name: craftName,
+      color: craftColor,
+      effect,
+      influenceRadius: craftRadius,
+      shortMod
+    };
+
+    setInventoryJewels(prev => [...prev, newJewel]);
+    alert(`Assembled unique jewel added: "${craftName}"! Reach any Jewel Socket node to socket it.`);
+  };
+
+  const handleEmbedNode = () => {
+    if (!clickedCoord) {
+      alert('Please click on the main map canvas grid first to capture placement coordinates!');
+      return;
+    }
+    if (!builderName.trim()) {
+      alert('Please enter a valid node name.');
+      return;
+    }
+
+    const uniqueId = `dyn-node-${Date.now()}`;
+    const newNode: SkillNode = {
+      id: uniqueId,
+      name: builderName,
+      type: builderType,
+      x: clickedCoord.x,
+      y: clickedCoord.y,
+      baseStats: builderStats,
+      currentStats: builderStats,
+      desc: builderDesc,
+      icon: 'Compass',
+      connections: [builderTargetId]
+    };
+
+    setNodes(prev => {
+      return prev.map(n => {
+        if (n.id === builderTargetId) {
+          return {
+            ...n,
+            connections: [...n.connections, uniqueId]
+          };
+        }
+        return n;
+      }).concat(newNode);
+    });
+
+    setSelectedNodeId(uniqueId);
+    setClickedCoord(null);
+    setBuilderName('');
+    alert(`Success: Embedded node "${builderName}" and connected lines to standard mesh.`);
+  };
+
+  // Toggle explored states easily or set builder coordinates
+  const handleCellClick = (row: number, col: number, e?: React.MouseEvent) => {
+    if (sidebarTab === 'builder' && e) {
+      e.stopPropagation();
+      const rect = e.currentTarget.parentElement?.getBoundingClientRect();
+      if (rect) {
+        const x = Math.round(e.clientX - rect.left);
+        const y = Math.round(e.clientY - rect.top);
+        setClickedCoord({ x, y });
+        setBuilderName(`Continental Marker (${x}x, ${y}Y)`);
+      }
+      return;
+    }
+
     const key = `${row}-${col}`;
     setExploredCells(prev => 
       prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
@@ -260,12 +390,21 @@ export const WorldSkillTreeMapTab: React.FC = () => {
   };
 
   const handleResetMap = () => {
+    setNodes(INITIAL_NODES);
     setExploredCells(['0-1', '0-2', '0-3', '1-1', '1-2', '1-3', '2-1', '2-2', '2-3', '3-2', '3-3']);
     setSpentPoints(['oxenfurt']);
     setSocketedJewels({});
     setSpiritOutcome('cleared');
     setOrphansOutcome('cleared');
     setPlayerPos({ x: 150, y: 320 });
+    setSearchTerm('');
+    setClickedCoord(null);
+    setSelectedNodeId('oxenfurt');
+    setInventoryJewels([
+      { id: 'ruby', name: 'Dreadful Crimson Jewel', color: '#ff3b30', effect: 'Converts neighboring note modifiers into physical and critical bonuses', influenceRadius: 100, shortMod: 'Crimson Phys Boost' },
+      { id: 'sapphire', name: 'Glacial Cobalt Jewel', color: '#007aff', effect: 'Converts neighboring note modifiers to deal chill damage and cold resistance', influenceRadius: 120, shortMod: 'Cobalt Freeze conversion' },
+      { id: 'diamond', name: 'Prismatic Diamond Jewel', color: '#ffd700', effect: 'Boosts all active stats on nodes inside the field by +25%', influenceRadius: 110, shortMod: '+25% Power Aura' }
+    ]);
   };
 
   // Check if a point is covered by Fog of War in the simulator
@@ -295,138 +434,140 @@ export const WorldSkillTreeMapTab: React.FC = () => {
       }
       return copy;
     });
-  };
-
-  // Dynamically evaluate a Node's active stats based on Story quests and socketed jewels
-  const evaluateNodeStats = (node: SkillNode) => {
-    let stats = node.baseStats;
-    let desc = node.desc;
-
-    // Handle Selectable/Pick 1-out-of-3 nodes
-    if (node.type === 'selectable' && node.options && node.selectedOptionIndex !== undefined) {
-      stats = node.options[node.selectedOptionIndex];
-    }
-
-    // Handle Story nodes
-    if (node.type === 'story' && node.questDependency) {
-      const qVar = node.questDependency.conditionVar;
-      const currentVal = qVar === 'spiritOutcome' ? spiritOutcome : orphansOutcome;
-      
-      if (currentVal === 'cleared') {
-        stats = 'Locked: Story Choice Undecided';
-        desc = `Travel to the physical location of '${node.name}' and resolve the quest to permanently unlock this passive effect.`;
-      } else {
-        const outcome = node.questDependency.outcomes[currentVal];
-        if (outcome) {
-          stats = outcome.stats;
-          desc = outcome.desc;
+  };  const connectionsList = useMemo(() => {
+    const list: { from: SkillNode; to: SkillNode; isAllocated: boolean; isVisible: boolean }[] = [];
+    nodes.forEach(node => {
+      node.connections.forEach(targetId => {
+        const target = nodes.find(t => t.id === targetId);
+        if (target) {
+          const isAllocated = spentPoints.includes(node.id) && spentPoints.includes(target.id);
+          const nodeExplored = isPointExplored(node.x, node.y);
+          const targetExplored = isPointExplored(target.x, target.y);
+          const isVisible = nodeExplored || targetExplored;
+          list.push({ from: node, to: target, isAllocated, isVisible });
         }
-      }
+      });
+    });
+    return list;
+  }, [nodes, spentPoints, exploredCells]);
+
+  const evaluateNodeStats = (node: SkillNode) => {
+    if (node.type === 'selectable' && node.options) {
+      const idx = node.selectedOptionIndex ?? 0;
+      return {
+        stats: node.options[idx] || node.baseStats,
+        desc: `Altar current aspect: ${node.options[idx] || ''}. ${node.desc}`
+      };
     }
 
-    // Handle Jewel Sockets
+    if (node.type === 'story' && node.questDependency) {
+      const dep = node.questDependency;
+      const cond = dep.conditionVar === 'spiritOutcome' ? spiritOutcome : orphansOutcome;
+      const outcome = dep.outcomes[cond] || { stats: node.baseStats, desc: node.desc };
+      return {
+        stats: outcome.stats,
+        desc: outcome.desc
+      };
+    }
+
     if (node.type === 'jewel') {
       const socketedJewelId = socketedJewels[node.id];
       if (socketedJewelId) {
-        const jewel = CONSTANT_JEWELS.find(j => j.id === socketedJewelId);
+        const jewel = inventoryJewels.find(j => j.id === socketedJewelId);
         if (jewel) {
-          stats = `Jewel Socketed: ${jewel.name}`;
-          desc = `${jewel.effect}. Affected node bounds in radius: ${jewel.influenceRadius} meters.`;
+          return {
+            stats: `Socketed: ${jewel.name}`,
+            desc: jewel.effect
+          };
         }
-      } else {
-        stats = 'Empty Jewel Socket';
-        desc = 'Requires placing a custom Jewel inside to apply passive area-of-effect stats to neighbors.';
       }
+      return {
+        stats: 'Empty Socket Node',
+        desc: 'Insert a custom jewel inside this socket from the sidebar menu to manipulate neighboring nodes.'
+      };
     }
 
-    // Now check if neighboring Jewel sockets impact this node!
-    // We search the entire node registry for a 'jewel' socket, check if its radius overlaps this node, and if a jewel is placed
-    INITIAL_NODES.forEach(otherNode => {
-      if (otherNode.type === 'jewel' && socketedJewels[otherNode.id]) {
-        const dist = Math.hypot(node.x - otherNode.x, node.y - otherNode.y);
-        const jewel = CONSTANT_JEWELS.find(j => j.id === socketedJewels[otherNode.id]);
-        if (jewel && dist <= jewel.influenceRadius && node.id !== otherNode.id) {
-          stats += ` | [Jewel Buffed: +25% Power]`;
-        }
-      }
-    });
-
-    return { stats, desc };
+    return {
+      stats: node.baseStats,
+      desc: node.desc
+    };
   };
 
-  // Calculate allocated nodes statistics summary
-  const allocatedStats = useMemo(() => {
-    const list: string[] = [];
-    spentPoints.forEach(id => {
-      const node = INITIAL_NODES.find(n => n.id === id);
-      if (node) {
-        const evaluated = evaluateNodeStats(node);
-        if (!evaluated.stats.startsWith('Locked') && !evaluated.stats.startsWith('Empty')) {
-          list.push(`${node.name}: ${evaluated.stats}`);
+  const activeDetailNode = useMemo(() => {
+    return nodes.find(n => n.id === selectedNodeId) || null;
+  }, [nodes, selectedNodeId]);
+
+  const activeDetailEvaluated = useMemo(() => {
+    if (!activeDetailNode) return null;
+    return evaluateNodeStats(activeDetailNode);
+  }, [activeDetailNode, spiritOutcome, orphansOutcome, socketedJewels, inventoryJewels]);
+
+  const isPlayerAtActiveNode = useMemo(() => {
+    if (!activeDetailNode) return false;
+    const dx = playerPos.x - activeDetailNode.x;
+    const dy = playerPos.y - activeDetailNode.y;
+    return Math.sqrt(dx * dx + dy * dy) <= 100;
+  }, [activeDetailNode, playerPos]);
+
+  const handleAllocateNode = (nodeId: string) => {
+    setSpentPoints(prev => {
+      if (prev.includes(nodeId)) {
+        if (nodeId === 'oxenfurt') return prev;
+        return prev.filter(id => id !== nodeId);
+      } else {
+        if (prev.length >= maxPoints) {
+          alert('Allocations limited by current level pool max SP cap!');
+          return prev;
         }
+        return [...prev, nodeId];
       }
     });
-    return list;
-  }, [spentPoints, spiritOutcome, orphansOutcome, socketedJewels]);
-
-  // Click on a node to allocate or select it
-  const handleNodeClick = (node: SkillNode) => {
-    setSelectedNodeId(node.id);
-    
-    // If locked behind fog representation, player cannot allocate yet
-    if (!isPointExplored(node.x, node.y)) {
-      return;
-    }
-
-    // Toggle allocation of standard nodes
-    if (spentPoints.includes(node.id)) {
-      // Deallocate (unless Oxenfurt starter node)
-      if (node.id === 'oxenfurt') return;
-      setSpentPoints(prev => prev.filter(id => id !== node.id));
-    } else {
-      // Allocate if we have points left
-      if (spentPoints.length < maxPoints) {
-        setSpentPoints(prev => [...prev, node.id]);
-      }
-    }
   };
 
   const handleSelectOption = (nodeId: string, optionIndex: number) => {
-    // Only mutable if player is simulated "At Location" range!
-    const node = INITIAL_NODES.find(n => n.id === nodeId);
-    if (!node) return;
-    
-    const distToNode = Math.hypot(playerPos.x - node.x, playerPos.y - node.y);
-    const isLocal = distToNode <= 100; // Simulated camping distance limit 100px
-
-    if (!isLocal) {
-      return; // UI will disable button or show warning
-    }
-
-    node.selectedOptionIndex = optionIndex;
-    // trigger state recalculation
-    setSpentPoints(prev => [...prev]);
+    setNodes(prev => prev.map(n => {
+      if (n.id === nodeId) {
+        return {
+          ...n,
+          selectedOptionIndex: optionIndex
+        };
+      }
+      return n;
+    }));
   };
 
-  // Update jewel socket mappings
-  const handleSocketJewel = (socketId: string, jewelId: string | null) => {
+  const handleSocketJewel = (nodeId: string, jewelId: string | null) => {
     setSocketedJewels(prev => {
       const copy = { ...prev };
       if (jewelId === null) {
-        delete copy[socketId];
+        delete copy[nodeId];
       } else {
-        copy[socketId] = jewelId;
+        copy[nodeId] = jewelId;
       }
       return copy;
     });
   };
 
-  // Active highlighted info node
-  const activeDetailNode = INITIAL_NODES.find(n => n.id === selectedNodeId);
-  const activeDetailEvaluated = activeDetailNode ? evaluateNodeStats(activeDetailNode) : null;
-  const isPlayerAtActiveNode = activeDetailNode 
-    ? Math.hypot(playerPos.x - activeDetailNode.x, playerPos.y - activeDetailNode.y) <= 100 
-    : false;
+  const handleNodeClick = (node: SkillNode) => {
+    setSelectedNodeId(node.id);
+    if (isPointExplored(node.x, node.y)) {
+      handleMovePlayer(node.x, node.y);
+    }
+  };
+
+  const allocatedStats = useMemo(() => {
+    const statsArr: string[] = [];
+    nodes.forEach(node => {
+      if (spentPoints.includes(node.id)) {
+        const evalObj = evaluateNodeStats(node);
+        if (evalObj && evalObj.stats && evalObj.stats !== 'Empty Socket' && evalObj.stats !== 'Empty Socket Node' && evalObj.stats !== 'Requires Quest Completion') {
+          statsArr.push(`${node.name}: ${evalObj.stats}`);
+        }
+      }
+    });
+    return statsArr;
+  }, [nodes, spentPoints, spiritOutcome, orphansOutcome, socketedJewels, inventoryJewels]);
+
 
   return (
     <div className="space-y-6">
@@ -449,13 +590,37 @@ export const WorldSkillTreeMapTab: React.FC = () => {
         <div className="border-t md:border-t-0 md:border-l border-emerald-500/20 pt-3 md:pt-0 md:pl-4 flex flex-col justify-center">
           <div className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Dynamic Sandbox Settings</div>
           <div className="text-[11px] text-neutral-300 mt-1">
-            Move the player marker, clear map cells, change story quests, or socket cobalt jewels to witness live passive updates. Runs at O(1) complexity matching our backend specification.
+            Search nodes with live glowing overlays, assemble procedural socketable jewels, construct custom coordinate nodes on-the-fly, or stress-test optimization thresholds matching our backend specification.
           </div>
         </div>
       </HighlightBox>
 
       {/* SECTION 1: THE INTERACTIVE SIMULATOR CARD */}
       <div id="world-skill-tree-interactive-sim" className="bg-kingfisher-panel/90 border border-kingfisher-border rounded-xl p-4 md:p-6 shadow-md relative overflow-hidden">
+        
+        {/* Search highlight controller */}
+        <div className="relative flex items-center mb-4">
+          <span className="absolute left-3 text-neutral-400 pointer-events-none">
+            <Search className="w-4 h-4" />
+          </span>
+          <input 
+            type="text"
+            placeholder="Search nodes by keyword, name, base stats, or options (e.g. 'spell', 'cold', 'mana', 'physical', 'novigrad')..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#0d1527] border border-kingfisher-border/60 text-white text-xs rounded-lg pl-9 pr-24 py-2 outline-none focus:border-yellow-400/60 font-sans tracking-wide transition-colors animate-none"
+          />
+          {searchTerm && (
+            <button 
+              onClick={() => setSearchTerm('')} 
+              className="absolute right-20 text-neutral-400 hover:text-white text-[10px] bg-neutral-850 px-2 py-0.5 rounded uppercase font-bold transition-all"
+            >
+              Clear
+            </button>
+          )}
+          <span className="absolute right-3 text-[10px] text-neutral-500 font-mono select-none">NEON HIGHLIGHT ENGINES</span>
+        </div>
+
         <div className="flex flex-col lg:flex-row gap-6">
           
           {/* SIMULATOR MAP LEFT PANEL */}
@@ -468,7 +633,7 @@ export const WorldSkillTreeMapTab: React.FC = () => {
               <div className="flex items-center gap-2">
                 <button 
                   onClick={handleRevealAllMap}
-                  className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold text-white bg-blue-600 hover:bg-blue-700 rounded transition-all"
+                  className="px-2.5 py-1 text-[10px] uppercase tracking-wider font-bold text-white bg-blue-600 hover:bg-blue-750 rounded transition-all"
                 >
                   Reveal Map
                 </button>
@@ -494,47 +659,38 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                 </svg>
               </div>
 
-              {/* DRAW CONNECTING SPLINE PATHS FIRST */}
+              {/* DRAW CONNECTIONS FLUID SPLINE PATHS */}
               <svg className="absolute inset-0 pointer-events-none w-full h-full">
-                {INITIAL_NODES.map(node => {
-                  return node.connections.map(targetId => {
-                    const target = INITIAL_NODES.find(t => t.id === targetId);
-                    if (!target) return null;
-                    
-                    const isAllocated = spentPoints.includes(node.id) && spentPoints.includes(target.id);
-                    const nodeExplored = isPointExplored(node.x, node.y);
-                    const targetExplored = isPointExplored(target.x, target.y);
-                    const isVisible = nodeExplored || targetExplored;
-                    
-                    if (!isVisible) return null; // obscured
-
-                    return (
-                      <g key={`${node.id}-${target.id}`}>
-                        {/* Glow underlay */}
-                        <line 
-                          x1={node.x} y1={node.y} 
-                          x2={target.x} y2={target.y}
-                          stroke={isAllocated ? 'rgba(255, 215, 0, 0.4)' : 'rgba(30, 41, 59, 0.5)'}
-                          strokeWidth={isAllocated ? "6" : "2"}
-                        />
-                        <line 
-                          x1={node.x} y1={node.y} 
-                          x2={target.x} y2={target.y}
-                          stroke={isAllocated ? '#ffd700' : '#475569'}
-                          strokeWidth="2.5"
-                          strokeDasharray={(!isAllocated && (node.type === 'story' || target.type === 'story')) ? "4" : "0"}
-                        />
-                      </g>
-                    );
-                  });
+                {connectionsList.map((conn, idx) => {
+                  const { from, to, isAllocated, isVisible } = conn;
+                  if (!isVisible) return null;
+                  return (
+                    <g key={`spline-${from.id}-${to.id}-${idx}`}>
+                      {/* Glow underlay */}
+                      <line 
+                        x1={from.x} y1={from.y} 
+                        x2={to.x} y2={to.y}
+                        stroke={isAllocated ? 'rgba(233, 187, 147, 0.4)' : 'rgba(30, 41, 59, 0.4)'}
+                        strokeWidth={isAllocated ? "6" : "2"}
+                      />
+                      <line 
+                        x1={from.x} y1={from.y} 
+                        x2={to.x} y2={to.y}
+                        stroke={isAllocated ? '#ffd700' : '#475569'}
+                        strokeWidth="2.5"
+                        strokeDasharray={(!isAllocated && (from.type === 'story' || to.type === 'story')) ? "4" : "0"}
+                      />
+                    </g>
+                  );
                 })}
               </svg>
 
-              {/* RENDER ACTIVE JEWEL SOCKET INFLUENCE RADII OVERLAYS */}
-              {INITIAL_NODES.filter(n => n.type === 'jewel').map(node => {
-                const jewelId = socketedJewels[node.id];
-                if (!jewelId) return null;
-                const jewel = CONSTANT_JEWELS.find(j => j.id === jewelId);
+              {/* DRAW SOCKET JEWEL INFLUENCE RADIUS OVERLAYS */}
+              {nodes.map(node => {
+                if (node.type !== 'jewel') return null;
+                const socketedJewelId = socketedJewels[node.id];
+                if (!socketedJewelId) return null;
+                const jewel = inventoryJewels.find(j => j.id === socketedJewelId);
                 if (!jewel) return null;
 
                 const revealed = isPointExplored(node.x, node.y);
@@ -550,14 +706,15 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                       width: `${jewel.influenceRadius * 2}px`,
                       height: `${jewel.influenceRadius * 2}px`,
                       borderColor: `${jewel.color}50`,
-                      backgroundColor: `${jewel.color}08`
+                      backgroundColor: `${jewel.color}08`,
+                      zIndex: 10
                     }}
                   />
                 );
               })}
 
               {/* INTERACTIVE FOG OF WAR CELLS RENDER */}
-              <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateRows: `repeat(${gridRows}, 1fr)`, gridTemplateColumns: `repeat(${gridCols}, 1fr)` }}>
+              <div className="absolute inset-0 grid pointer-events-none" style={{ gridTemplateRows: `repeat(${gridRows}, 1fr)`, gridTemplateColumns: `repeat(${gridCols}, 1fr)`, zIndex: 15 }}>
                 {Array.from({ length: gridRows }).map((_, r) => {
                   return Array.from({ length: gridCols }).map((_, c) => {
                     const key = `${r}-${c}`;
@@ -565,7 +722,7 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                     return (
                       <div 
                         key={key} 
-                        onClick={() => handleCellClick(r, c)}
+                        onClick={(e) => handleCellClick(r, c, e)}
                         className={`pointer-events-auto border border-white/5 transition-all text-[8px] flex items-center justify-center font-mono font-bold select-none cursor-crosshair ${
                           explored 
                             ? 'bg-transparent text-white/5 hover:bg-neutral-800/10' 
@@ -580,10 +737,19 @@ export const WorldSkillTreeMapTab: React.FC = () => {
               </div>
 
               {/* DRAW NODE DOTS */}
-              {INITIAL_NODES.map(node => {
+              {nodes.map(node => {
                 const explored = isPointExplored(node.x, node.y);
                 const isSpent = spentPoints.includes(node.id);
                 const isSelected = selectedNodeId === node.id;
+
+                // Check search filter matches
+                const isMatched = searchTerm && (
+                  node.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  node.baseStats.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  node.desc.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  evaluateNodeStats(node).stats.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  (node.options && node.options.some(o => o.toLowerCase().includes(searchTerm.toLowerCase())))
+                );
 
                 let nodeStyleClass = "border-neutral-700 bg-neutral-900 text-neutral-400";
                 
@@ -600,14 +766,18 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                 }
 
                 if (isSelected && explored) {
-                  nodeStyleClass += " border-double border-4 border-[#ffd700] scale-125 z-20";
+                  nodeStyleClass += " border-double border-4 border-[#ffd700] scale-125 z-25";
+                }
+
+                if (isMatched && explored) {
+                  nodeStyleClass += " ring-4 ring-orange-500 scale-125 z-30 shadow-[0_0_20px_rgba(249,115,22,1)] animate-pulse";
                 }
 
                 return (
                   <button
                     key={node.id}
                     onClick={() => handleNodeClick(node)}
-                    className={`absolute flex items-center justify-center w-8 h-8 rounded-full border transition-all text-[10px] font-bold shadow-md select-none group cursor-pointer ${nodeStyleClass}`}
+                    className={`absolute flex items-center justify-center w-8 h-8 rounded-full border transition-all text-[10px] font-bold shadow-md select-none group cursor-pointer z-20 ${nodeStyleClass}`}
                     style={{ left: `${node.x - 16}px`, top: `${node.y - 16}px` }}
                   >
                     {!explored ? (
@@ -616,8 +786,8 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                       <React.Fragment>
                         {node.type === 'small' && <Compass className="w-4 h-4 text-neutral-300" />}
                         {node.type === 'notable' && <Trophy className="w-4 h-4 text-emerald-400" />}
-                        {node.type === 'selectable' && <Settings2 className="w-4 h-4 text-blue-400 animate-pulse" />}
-                        {node.type === 'jewel' && <Shield className="w-4 h-4 text-amber-400" />}
+                        {node.type === 'selectable' && <Settings2 className="w-4 h-4 text-blue-400" />}
+                        {node.type === 'jewel' && <Shield className="w-4 h-4 text-amber-400 animate-pulse" />}
                         {node.type === 'story' && <BookOpen className="w-4 h-4 text-pink-400" />}
                       </React.Fragment>
                     )}
@@ -635,6 +805,19 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                 );
               })}
 
+              {/* RENDER DYNAMIC BUILDER PLACEMENT GUIDE */}
+              {sidebarTab === 'builder' && clickedCoord && (
+                <div 
+                  className="absolute pointer-events-none translate-x-[-50%] translate-y-[-50%] z-45 flex flex-col items-center gap-1"
+                  style={{ left: `${clickedCoord.x}px`, top: `${clickedCoord.y}px` }}
+                >
+                  <div className="w-8 h-8 bg-orange-500/15 border-2 border-dashed border-orange-500 rounded-full flex items-center justify-center text-[11px] font-bold text-orange-400 animate-pulse">
+                    +
+                  </div>
+                  <div className="text-[8px] font-mono font-bold bg-orange-500 text-black px-1 rounded uppercase tracking-wide">Place Node</div>
+                </div>
+              )}
+
               {/* RENDER THE PLAYER BEACON GIZMO */}
               <div 
                 className="absolute w-6 h-6 -ml-3 -mt-3 select-none pointer-events-none z-30 transition-all duration-300 flex items-center justify-center"
@@ -642,7 +825,7 @@ export const WorldSkillTreeMapTab: React.FC = () => {
               >
                 <div className="absolute w-12 h-12 bg-blue-500/10 rounded-full border border-blue-500/30 animate-ping" />
                 <div className="absolute w-8 h-8 bg-blue-400/20 rounded-full border border-blue-400/50" />
-                <div className="w-3.5 h-3.5 bg-blue-400 rounded-full border-2 border-white flex items-center justify-center shadow-md shadow-blue-500">
+                <div className="w-3.5 h-3.5 bg-blue-400 rounded-full border-2 border-white flex items-center justify-center shadow-md shadow-blue-500 flex-none col-span-1">
                   <span className="w-1.5 h-1.5 bg-blue-800 rounded-full" />
                 </div>
               </div>
@@ -656,256 +839,458 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                 <span>Simulated Traversal Coordinate: <strong>({playerPos.x}X, {playerPos.y}Y)</strong></span>
               </div>
               <div className="text-neutral-400 text-[11px] italic">
-                Click map regions below or markers to physicalize player, clearing fog ranges dynamically!
-              </div>
-              <div className="flex gap-2">
-                <button 
-                  onClick={() => handleMovePlayer(180, 190)} 
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-mono border border-neutral-700 transition"
-                >
-                  Oxenfurt
-                </button>
-                <button 
-                  onClick={() => handleMovePlayer(350, 80)} 
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-mono border border-neutral-700 transition"
-                >
-                  Novigrad
-                </button>
-                <button 
-                  onClick={() => handleMovePlayer(620, 180)} 
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-mono border border-neutral-700 transition"
-                >
-                  Bog Spirit
-                </button>
-                <button 
-                  onClick={() => handleMovePlayer(680, 390)} 
-                  className="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-white rounded text-[10px] font-mono border border-neutral-700 transition"
-                >
-                  Kaer Morhen
-                </button>
+                {sidebarTab === 'builder' 
+                  ? "Click anywhere on uncharted dark areas above to anchor custom coordinate nodes!" 
+                  : "Click map grid blocks or node markers to move player, clearing FOG ranges on-the-fly."}
               </div>
             </div>
-
           </div>
 
-          {/* SIMULATOR INTERACTION / OUTCOMES - SIDE PANEL */}
-          <div className="w-full lg:w-80 shrink-0 flex flex-col justify-between">
-            <div className="space-y-4">
-              
-              {/* Point allocation tracking dashboard */}
-              <div className="p-4 bg-black/30 border border-neutral-800/80 rounded-xl">
-                <div className="flex items-center justify-between text-xs mb-1.5 font-bold uppercase tracking-wider">
-                  <span className="text-neutral-400">allocated nodes</span>
-                  <span className="text-yellow-400">{spentPoints.length} / {maxPoints} SP spent</span>
-                </div>
-                <div className="w-full h-1.5 bg-neutral-800 rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-yellow-400 transition-all duration-300"
-                    style={{ width: `${(spentPoints.length / maxPoints) * 100}%` }}
-                  />
-                </div>
-              </div>
+          {/* SIMULATOR RIGHT SIDEBAR PANEL */}
+          <div className="w-full lg:w-80 flex flex-col border border-kingfisher-border/40 rounded-xl bg-slate-900/60 p-4 shrink-0 text-left">
+            
+            {/* Header Tabs Navigation */}
+            <div className="flex bg-black/60 p-1 border border-neutral-805 rounded-lg max-w-full overflow-x-auto select-none gap-1 shrink-0 mb-4 h-9 items-center col-span-1">
+              {[
+                { id: 'inspect', label: 'Inspect', icon: Eye },
+                { id: 'craft', label: 'Craft Jewel', icon: Sparkles },
+                { id: 'builder', label: 'Builder', icon: Plus },
+                { id: 'scaling', label: 'Stressor', icon: Cpu }
+              ].map(tab => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSidebarTab(tab.id as any)}
+                  className={`flex items-center gap-1.5 px-2 py-1 h-7 rounded text-[9.5px] font-bold uppercase tracking-wider shrink-0 transition ${
+                    sidebarTab === tab.id
+                      ? 'bg-blue-600 text-white shadow-sm font-bold'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <tab.icon className="w-3.5 h-3.5" />
+                  {tab.label}
+                </button>
+              ))}
+            </div>
 
-              {/* NODE DETAILS DRAWER */}
-              {activeDetailNode ? (
-                <div className="p-4 bg-slate-900 border border-neutral-800 rounded-xl space-y-3">
-                  <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{activeDetailNode.name}</h4>
-                      <div className="text-[9px] uppercase tracking-wider text-pink-400 font-mono font-bold mt-0.5">{activeDetailNode.type} Node</div>
-                    </div>
-                    <div>
-                      {isPointExplored(activeDetailNode.x, activeDetailNode.y) ? (
-                        <span className={`px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded ${
-                          spentPoints.includes(activeDetailNode.id)
-                            ? 'bg-yellow-400/10 text-yellow-500 border border-yellow-500/20'
-                            : 'bg-neutral-800 text-neutral-400'
-                        }`}>
-                          {spentPoints.includes(activeDetailNode.id) ? 'Allocated' : 'Unallocated'}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-0.5 text-[9px] font-mono font-bold uppercase tracking-wider rounded bg-red-950 text-red-400 border border-red-900/30">
-                          Obscured
-                        </span>
-                      )}
-                    </div>
+            {/* TAB CONTENT: INSPECT MODE */}
+            {sidebarTab === 'inspect' && (
+              <div className="flex-1 flex flex-col space-y-4">
+                <div className="flex items-center justify-between border-b border-neutral-850 pb-2">
+                  <div className="text-xs uppercase font-bold text-neutral-300">Active Node Scanner</div>
+                  <div className="flex items-center gap-1.5 bg-yellow-400/10 text-yellow-500 px-2 py-0.5 rounded text-[10px] font-mono font-bold">
+                    <Trophy className="w-3 h-3" /> {spentPoints.length}/{maxPoints} Spent
                   </div>
+                </div>
 
-                  {isPointExplored(activeDetailNode.x, activeDetailNode.y) ? (
-                    <div className="space-y-3 text-xs">
-                      <div>
-                        <div className="text-[10px] uppercase font-bold text-neutral-400 mb-0.5">Active Passive Modifier</div>
-                        <div className="p-2 bg-black/40 rounded border border-white/5 font-mono text-[11px] text-[#ffd700] leading-snug">
-                          {activeDetailEvaluated?.stats}
-                        </div>
+                {activeDetailNode ? (
+                  <div className="space-y-3.5 flex-1 text-left">
+                    <div className="p-3 bg-black/40 border border-neutral-850 rounded-lg">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h4 className="font-bold text-white text-xs truncate">{activeDetailNode.name}</h4>
+                        <span className="text-[8px] uppercase font-bold tracking-widest px-1.5 py-0.2 bg-neutral-800 border border-neutral-800 rounded text-neutral-300">
+                          {activeDetailNode.type}
+                        </span>
                       </div>
+                      <div className="text-[10px] text-neutral-400 leading-normal italic">
+                        Coordinate Matrix: [{activeDetailNode.x}X, {activeDetailNode.y}Y]
+                      </div>
+                    </div>
 
+                    <div className="p-3 bg-blue-500/5 border border-blue-500/20 rounded-lg space-y-1.5 text-xs">
+                      <div className="text-[10px] uppercase font-bold tracking-wide text-blue-400">Resolved Stats Yield</div>
+                      <p className="font-semibold text-yellow-300 leading-relaxed font-mono">
+                        {activeDetailEvaluated?.stats}
+                      </p>
                       <p className="text-neutral-400 text-[11px] leading-relaxed">
                         {activeDetailEvaluated?.desc}
                       </p>
+                    </div>
 
-                      {/* CONDITIONAL CONTROLS - NODE OPTIONS (1 of 3 Selection) */}
-                      {activeDetailNode.type === 'selectable' && activeDetailNode.options && (
-                        <div className="space-y-1.5 pt-1">
-                          <div className="text-[10px] uppercase font-bold text-neutral-400 flex items-center justify-between mb-1">
-                            <span>Camp Aspect Options</span>
-                            {isPlayerAtActiveNode ? (
-                              <span className="text-emerald-400 text-[8px] uppercase tracking-wide">● Travel camp active</span>
-                            ) : (
-                              <span className="text-red-400 text-[8px] uppercase tracking-wide">Requires proximity</span>
-                            )}
-                          </div>
-                          <div className="space-y-1">
-                            {activeDetailNode.options.map((option, idx) => {
-                              const active = activeDetailNode.selectedOptionIndex === idx;
-                              return (
-                                <button
-                                  key={idx}
-                                  onClick={() => handleSelectOption(activeDetailNode.id, idx)}
-                                  disabled={!isPlayerAtActiveNode}
-                                  className={`w-full text-left p-1.5 rounded text-[10px] leading-snug transition border ${
-                                    active 
-                                      ? 'bg-blue-600/10 text-blue-300 border-blue-500/30' 
-                                      : 'bg-black/20 text-neutral-500 border-neutral-800 hover:border-neutral-700 disabled:opacity-50'
-                                  }`}
-                                >
-                                  {option}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {!isPlayerAtActiveNode && (
-                            <div className="text-[9px] text-amber-400/80 leading-normal bg-amber-500/5 p-1.5 border border-amber-500/20 rounded">
-                              To change configurations, move player pointer near this camp node!
-                            </div>
-                          )}
+                    {/* ALLOCATION SWITCH BUTTON CONTROLS */}
+                    <div className="space-y-2">
+                      {isPlayerAtActiveNode ? (
+                        <button
+                          onClick={() => handleAllocateNode(activeDetailNode.id)}
+                          className={`w-full py-2 px-3 rounded text-[10px] uppercase tracking-wider font-bold transition flex items-center justify-center gap-2 ${
+                            spentPoints.includes(activeDetailNode.id)
+                              ? 'bg-red-600 hover:bg-red-700 text-white'
+                              : 'bg-amber-600 hover:bg-orange-700 text-white'
+                          }`}
+                        >
+                          <Zap className="w-3.5 h-3.5" />
+                          {spentPoints.includes(activeDetailNode.id) ? 'Refund Point' : 'Allocate Passive'}
+                        </button>
+                      ) : (
+                        <div className="p-3 bg-red-500/5 border border-red-500/20 rounded-lg text-neutral-400 text-[10px] leading-relaxed flex items-start gap-1.5 text-left">
+                          <AlertCircle className="w-4 h-4 text-red-100 shrink-0 mt-0.5 pointer-events-none" />
+                          <span>Player too far to interact. Move player beacon within range (100 px) by clicking adjacent cells first.</span>
                         </div>
                       )}
+                    </div>
 
-                      {/* CONTROLS FOR JEWEL SOCKETS */}
-                      {activeDetailNode.type === 'jewel' && (
-                        <div className="space-y-2 pt-1 border-t border-neutral-800">
-                          <div className="text-[10px] uppercase font-bold text-neutral-400">Socket Custom Jewel Modifier</div>
-                          <div className="grid grid-cols-3 gap-1">
-                            {CONSTANT_JEWELS.map(j => {
-                              const socketed = socketedJewels[activeDetailNode.id] === j.id;
-                              return (
-                                <button
-                                  key={j.id}
-                                  onClick={() => handleSocketJewel(activeDetailNode.id, socketed ? null : j.id)}
-                                  className={`p-1 rounded text-[9px] font-bold uppercase select-none tracking-wider text-center border transition-all ${
-                                    socketed 
-                                      ? 'bg-yellow-400/20 text-yellow-400 border-yellow-400/50' 
-                                      : 'bg-black/30 text-neutral-400 border-neutral-800 hover:border-neutral-700'
-                                  }`}
-                                >
-                                  {j.id}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {socketedJewels[activeDetailNode.id] && (
+                    {/* CONDITIONAL CONTROLS - SELECTABLE 1-OF-3 CHANNELS */}
+                    {activeDetailNode.type === 'selectable' && (
+                      <div className="p-3 bg-black/40 border border-neutral-850 rounded-lg space-y-2 text-xs">
+                        <strong className="text-blue-400 block font-bold text-[10px] uppercase tracking-wider text-left font-sans">Configure Camp Master Attribute</strong>
+                        <div className="space-y-1.5 font-sans">
+                          {activeDetailNode.options?.map((opt, oIdx) => (
                             <button
-                              onClick={() => handleSocketJewel(activeDetailNode.id, null)}
-                              className="w-full text-center py-1 bg-red-950/20 hover:bg-red-950/40 text-red-400 border border-red-900/40 rounded text-[9px] uppercase tracking-wider font-bold transition"
+                              key={`opt-${oIdx}`}
+                              onClick={() => handleSelectOption(activeDetailNode.id, oIdx)}
+                              className={`w-full p-2 rounded text-left leading-normal text-[11px] border transition ${
+                                activeDetailNode.selectedOptionIndex === oIdx
+                                  ? 'bg-blue-600/30 border-blue-500 text-white font-semibold'
+                                  : 'bg-black/20 border-neutral-800 text-neutral-400 hover:bg-black/40 hover:text-white'
+                              }`}
                             >
-                              Unsocket Jewel
+                              Option {oIdx + 1}: {opt.substring(7, 45)}...
                             </button>
-                          )}
+                          ))}
                         </div>
-                      )}
+                      </div>
+                    )}
 
-                    </div>
-                  ) : (
-                    <div className="p-4 bg-black/40 border border-neutral-900/60 text-center rounded">
-                      <EyeOff className="w-5 h-5 mx-auto text-neutral-600 mb-1" />
-                      <p className="text-[10px] text-neutral-500 leading-normal">
-                        This geographical coordinate is hidden beneath Fog of War. Clear corresponding map cells to reveal this node!
-                      </p>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-4 bg-slate-900 border border-neutral-800 rounded-xl py-8 text-center text-xs text-neutral-500">
-                  Select any revealed circular node on the map to display its customization options and values.
-                </div>
-              )}
+                    {/* CONDITIONAL CONTROLS - JEWEL SOCKET SLOTS */}
+                    {activeDetailNode.type === 'jewel' && (
+                      <div className="p-3 bg-black/55 border border-neutral-800/80 rounded-lg space-y-2.5 text-xs text-left">
+                        <strong className="text-amber-400 block font-bold text-[10px] uppercase tracking-wider text-left">Socket Custom-Crafted Jewel</strong>
+                        
+                        <div className="space-y-1.5 font-sans">
+                          <label className="text-neutral-400 text-[10px] block font-sans">Select Jewel inside item bag:</label>
+                          <select
+                            value={socketedJewels[activeDetailNode.id] || ''}
+                            onChange={(e) => handleSocketJewel(activeDetailNode.id, e.target.value || null)}
+                            className="w-full bg-slate-950 border border-neutral-800 p-1.5 text-xs text-white rounded outline-none cursor-pointer"
+                          >
+                            <option value="">[No Jewel Socketed]</option>
+                            {inventoryJewels.map(j => (
+                              <option key={j.id} value={j.id}>{j.name} (r={j.influenceRadius}px)</option>
+                            ))}
+                          </select>
+                        </div>
+                        {socketedJewels[activeDetailNode.id] && (
+                          <div className="text-[10px] text-neutral-400 pt-1 border-t border-neutral-900 leading-normal italic font-sans text-neutral-300">
+                            {inventoryJewels.find(j => j.id === socketedJewels[activeDetailNode.id])?.effect}
+                          </div>
+                        )}
+                      </div>
+                    )}
 
-              {/* STORY QUEST STATE TRIGGERS - CRITICAL COMPONENT */}
-              <div className="p-4 bg-slate-900 border border-neutral-800 rounded-xl space-y-3">
-                <div className="flex items-center gap-1 text-[11px] uppercase font-bold text-[#ff3b30] tracking-wider border-b border-neutral-800 pb-1.5">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>Dynamic Quest Decision Hub</span>
+                    {/* CONDITIONAL CONTROLS - BRANCHING STORY DECISIONS */}
+                    {activeDetailNode.type === 'story' && activeDetailNode.questDependency && (
+                      <div className="p-3 bg-black/40 border border-neutral-850 rounded-lg space-y-3 text-xs text-left font-sans">
+                        <strong className="text-pink-400 block font-semibold text-[10px] uppercase tracking-widest text-left font-sans font-medium">Story Quest Synchronization</strong>
+                        <p className="text-neutral-400 text-[10px] font-sans">
+                          This location corresponds to quest "<strong>{activeDetailNode.questDependency.questName}</strong>". Choose the path to simulate state transitions:
+                        </p>
+                        
+                        {activeDetailNode.questDependency.conditionVar === 'spiritOutcome' ? (
+                          <div className="grid grid-cols-2 gap-1 px-0.5">
+                            <button 
+                              onClick={() => setSpiritOutcome('freed')}
+                              className={`py-1.5 rounded font-bold text-[9px] uppercase tracking-wider transition ${spiritOutcome === 'freed' ? 'bg-pink-600 text-white font-bold' : 'bg-neutral-800 text-neutral-400'}`}
+                            >
+                              Freed Spirit
+                            </button>
+                            <button 
+                              onClick={() => setSpiritOutcome('slain')}
+                              className={`py-1.5 rounded font-bold text-[9px] uppercase tracking-wider transition ${spiritOutcome === 'slain' ? 'bg-pink-600 text-white font-bold' : 'bg-neutral-800 text-neutral-400'}`}
+                            >
+                              Destroyed Spirit
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-2 gap-1 px-0.5">
+                            <button 
+                              onClick={() => setOrphansOutcome('saved')}
+                              className={`py-1.5 rounded font-bold text-[9px] uppercase tracking-wider transition ${orphansOutcome === 'saved' ? 'bg-pink-600 text-white font-bold' : 'bg-neutral-800 text-neutral-400'}`}
+                            >
+                              Saved Orphans
+                            </button>
+                            <button 
+                              onClick={() => setOrphansOutcome('consumed')}
+                              className={`py-1.5 rounded font-bold text-[9px] uppercase tracking-wider transition ${orphansOutcome === 'consumed' ? 'bg-[#ff3b30]/25 text-[#ff3b30] font-bold font-medium' : 'bg-neutral-800 text-neutral-400'}`}
+                            >
+                              Crones Devoured
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                  </div>
+                ) : (
+                  <div className="py-8 text-center text-neutral-500 text-xs font-sans">
+                    Please select a Node coordinates dot on the left canvas grid to begin scanning.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB CONTENT: JEWEL CRAFTING MODE */}
+            {sidebarTab === 'craft' && (
+              <div id="world-skill-tree-jewel-crafter" className="flex-1 flex flex-col space-y-3.5 text-xs text-left font-sans">
+                <div className="text-xs uppercase font-bold text-neutral-300 border-b border-neutral-850 pb-2 font-sans">
+                  Procedural Jewel Assembly
                 </div>
                 
-                {/* QUEST COMBOG 1 */}
                 <div className="space-y-1">
-                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wide block">
-                    Return to Crookback Bog
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                      onClick={() => setSpiritOutcome('freed')}
-                      className={`py-1.5 rounded text-[10px] font-medium transition border ${
-                        spiritOutcome === 'freed'
-                          ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40 font-bold'
-                          : 'bg-black/30 text-neutral-500 border-neutral-800 hover:border-neutral-700'
-                      }`}
+                  <span className="text-neutral-400 text-[10px] font-sans">Procedural Jewel Name:</span>
+                  <div className="flex gap-1.5">
+                    <input 
+                      type="text"
+                      value={craftName}
+                      onChange={(e) => setCraftName(e.target.value)}
+                      className="flex-1 bg-slate-950 border border-neutral-800 px-2 py-1 h-7 text-xs text-white rounded outline-none"
+                    />
+                    <button 
+                      onClick={handleGenerateRandomName}
+                      className="bg-amber-600/25 hover:bg-amber-600/40 text-amber-300 border border-amber-600/40 px-2 rounded text-[10px] font-bold transition-colors uppercase h-7"
                     >
-                      Freed the Spirit
-                    </button>
-                    <button
-                      onClick={() => setSpiritOutcome('slain')}
-                      className={`py-1.5 rounded text-[10px] font-medium transition border ${
-                        spiritOutcome === 'slain'
-                          ? 'bg-[#ff3b30]/20 text-[#ff3b30] border-[#ff3b30]/40 font-bold'
-                          : 'bg-black/30 text-neutral-500 border-neutral-800 hover:border-neutral-700'
-                      }`}
-                    >
-                      Slayed the Spirit
+                      Roll
                     </button>
                   </div>
                 </div>
 
-                {/* QUEST COMBOG 2 */}
-                <div className="space-y-1 pt-1.5 border-t border-neutral-800/60">
-                  <label className="text-[10px] font-bold text-neutral-400 uppercase tracking-wide block">
-                    The Orphans of Crookback
-                  </label>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    <button
-                      onClick={() => setOrphansOutcome('saved')}
-                      className={`py-1.5 rounded text-[10px] font-medium transition border ${
-                        orphansOutcome === 'saved'
-                          ? 'bg-emerald-600/20 text-emerald-400 border-emerald-500/40 font-bold'
-                          : 'bg-black/30 text-neutral-500 border-neutral-800 hover:border-neutral-700'
-                      }`}
-                    >
-                      Saved to Novigrad
-                    </button>
-                    <button
-                      onClick={() => setOrphansOutcome('consumed')}
-                      className={`py-1.5 rounded text-[10px] font-medium transition border ${
-                        orphansOutcome === 'consumed'
-                          ? 'bg-[#ff3b30]/20 text-[#ff3b30] border-[#ff3b30]/40 font-bold'
-                          : 'bg-black/30 text-neutral-500 border-neutral-800 hover:border-neutral-700'
-                      }`}
-                    >
-                      Consumed by Crones
-                    </button>
+                <div className="space-y-1 font-sans">
+                  <div className="flex justify-between items-center text-[10px] font-sans">
+                    <span className="text-neutral-400">Resonance Radius (in meters/px):</span>
+                    <span className="text-yellow-400 font-mono font-bold">{craftRadius}m</span>
+                  </div>
+                  <input 
+                    type="range"
+                    min="50"
+                    max="220"
+                    value={craftRadius}
+                    onChange={(e) => setCraftRadius(Number(e.target.value))}
+                    className="w-full accent-blue-500 cursor-pointer h-1.5 bg-neutral-800 rounded-lg outline-none"
+                  />
+                  <div className="flex items-center justify-between text-[8px] text-zinc-500 font-mono">
+                    <span>MIN: 50 px</span>
+                    <span>MAX: 220 px</span>
                   </div>
                 </div>
 
+                <div className="space-y-1.5 font-sans">
+                  <span className="text-neutral-400 text-[10px]">Affixed Core Resonance Modifiers:</span>
+                  <div className="space-y-1">
+                    {[
+                      { id: 'A', label: 'Convert neighbors to Poison strike rates' },
+                      { id: 'B', label: '+15% Crit Multiplier & spell casting rate' },
+                      { id: 'C', label: 'Boost life & energy dynamic recovery speed' },
+                      { id: 'D', label: 'Deal +30% chill area duration and cold stats' }
+                    ].map(opt => (
+                      <button
+                        key={opt.id}
+                        onClick={() => setCraftChoice(opt.id)}
+                        className={`w-full p-2 border rounded text-left text-[10.5px] transition ${
+                          craftChoice === opt.id
+                            ? 'bg-amber-600/20 border-amber-500 text-white font-semibold font-sans'
+                            : 'bg-black/25 border-neutral-800 text-neutral-400 hover:bg-black/45'
+                        }`}
+                      >
+                        <strong>Affix {opt.id}:</strong> {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleAssembleJewel}
+                  className="w-full py-2 bg-gradient-to-r from-yellow-600 to-amber-700 hover:from-yellow-700 hover:to-amber-850 text-white font-bold rounded uppercase tracking-wider text-[10px] shadow-md transition-all mt-2 h-8"
+                >
+                  Assemble & Add to Bag
+                </button>
               </div>
+            )}
 
-            </div>
+            {/* TAB CONTENT: NODE DYNAMIC BUILDER MODE */}
+            {sidebarTab === 'builder' && (
+              <div id="world-skill-tree-nodes-builder" className="flex-1 flex flex-col space-y-3.5 text-xs text-left">
+                <div className="text-xs uppercase font-bold text-neutral-300 border-b border-neutral-850 pb-2 flex items-center gap-1.5">
+                  <Plus className="w-4 h-4 text-orange-400" />
+                  Node Placement Builder
+                </div>
 
-            {/* THE SPENT OPTIONS LIST DISPLAY */}
-            <div className="mt-4 p-3 bg-black/30 border border-neutral-800/80 rounded-xl space-y-1.5">
+                <div className="p-2.5 bg-orange-500/5 border border-orange-500/20 rounded-lg text-neutral-400 text-[10.5px] leading-relaxed font-sans font-medium">
+                  <strong>How to use:</strong> Click anywhere on Fog regions on the left canvas to capture coordinate matrices, then pick properties below to bake.
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-[10px] font-mono bg-black/45 p-2 rounded border border-neutral-850">
+                  <div>Anchor physical position:</div>
+                  <div className="text-orange-400 font-bold text-right truncate">
+                    {clickedCoord ? `(${clickedCoord.x}x, ${clickedCoord.y}y)` : '[Pending Grid Click]'}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-neutral-400 text-[10px]">Node Name Label:</label>
+                  <input 
+                    type="text"
+                    placeholder="e.g. Kaer Morhen Sword Altar"
+                    value={builderName}
+                    onChange={(e) => setBuilderName(e.target.value)}
+                    className="w-full bg-slate-950 border border-neutral-800 px-2 py-1 text-xs text-white rounded outline-none h-7 font-sans"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 font-medium">
+                  <div className="space-y-1">
+                    <label className="text-neutral-400 text-[10px] font-sans">Node Category:</label>
+                    <select
+                      value={builderType}
+                      onChange={(e) => setBuilderType(e.target.value as NodeType)}
+                      className="w-full bg-slate-950 border border-neutral-800 p-1 rounded text-xs text-white outline-none h-7 cursor-pointer"
+                    >
+                      <option value="small">Small Connector</option>
+                      <option value="notable">Notable Capital</option>
+                      <option value="jewel">Jewel Socket</option>
+                      <option value="selectable">Camp Selectable</option>
+                      <option value="story">Story Quest Branch</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-neutral-400 text-[10px] font-sans">Connect spline to:</label>
+                    <select
+                      value={builderTargetId}
+                      onChange={(e) => setBuilderTargetId(e.target.value)}
+                      className="w-full bg-slate-950 border border-neutral-800 p-1 rounded text-xs text-white outline-none h-7 cursor-pointer"
+                    >
+                      {nodes.map(n => (
+                        <option key={n.id} value={n.id}>{n.name.substring(0, 16)}...</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-1 font-sans">
+                  <label className="text-neutral-400 text-[10px] font-sans">Base Performance stats boost:</label>
+                  <input 
+                    type="text"
+                    value={builderStats}
+                    onChange={(e) => setBuilderStats(e.target.value)}
+                    className="w-full bg-slate-950 border border-neutral-800 px-2 py-1 text-xs text-white rounded outline-none h-7"
+                  />
+                </div>
+
+                <div className="space-y-1 font-sans">
+                  <label className="text-neutral-400 text-[10px] font-sans">Design lore description:</label>
+                  <textarea 
+                    value={builderDesc}
+                    onChange={(e) => setBuilderDesc(e.target.value)}
+                    rows={2}
+                    className="w-full bg-slate-950 border border-neutral-800 px-2 py-1 text-xs text-white rounded outline-none resize-none font-sans"
+                  ></textarea>
+                </div>
+
+                <button
+                  onClick={handleEmbedNode}
+                  disabled={!clickedCoord}
+                  className={`w-full py-2 font-bold rounded uppercase tracking-wider text-[10px] shadow-md transition-all h-8 ${
+                    clickedCoord 
+                      ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer h-8' 
+                      : 'bg-neutral-800 text-neutral-500 cursor-not-allowed border border-neutral-800'
+                  }`}
+                >
+                  Bake Node into System
+                </button>
+              </div>
+            )}
+
+            {/* TAB CONTENT: STRESSOR METRICS SIMULATOR MODE */}
+            {sidebarTab === 'scaling' && (
+              <div id="world-skill-tree-scaling-stresser" className="flex-1 flex flex-col space-y-3.5 text-xs text-left">
+                <div className="text-xs uppercase font-bold text-neutral-300 border-b border-neutral-850 pb-2 flex items-center gap-1.5 font-sans">
+                  <Cpu className="w-4 h-4 text-emerald-400 pointer-events-none" />
+                  Scale Stress Benchmarker
+                </div>
+
+                <p className="text-zinc-500 text-[10px] leading-relaxed font-sans">
+                  Bypass heap splits. Compare actor OOP allocations versus type-aligned DOD structs (alignas(16)) as complexity scales to thousands of entries.
+                </p>
+
+                <div className="space-y-2 font-sans font-semibold">
+                  <span className="text-[10px] text-zinc-400 block font-sans">Simulate Node Array Size Matrix:</span>
+                  <div className="grid grid-cols-4 gap-1">
+                    {[100, 1000, 10000, 50000].map(s => (
+                      <button
+                        key={s}
+                        onClick={() => setStresserScale(s)}
+                        className={`py-1.5 rounded font-mono font-bold text-[9px] transition ${
+                          stresserScale === s
+                            ? 'bg-emerald-600 text-white font-bold'
+                            : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700'
+                        }`}
+                      >
+                        {s.toLocaleString()} Nodes
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* HARDWARE OVERHEAD METRIC CARDS */}
+                <div className="space-y-2.5 bg-black/50 p-3 rounded-lg border border-neutral-800/80 font-sans font-semibold">
+                  <div className="border-b border-neutral-900 pb-1.5 flex justify-between items-center text-[10px] text-rose-300 uppercase tracking-wider font-bold">
+                    <span>Class OOP (UObjects Array)</span>
+                    <span className="text-[8px] uppercase px-1.5 py-0.2 bg-red-950/40 text-rose-300 rounded font-mono">Heavy Actors</span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px] font-mono leading-none">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">RAM Allocated (heap):</span>
+                      <span className="text-rose-400 font-bold">{(stresserScale * 1.5).toLocaleString()} KB</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Query Speed (O(N) Loops):</span>
+                      <span className="text-rose-400 font-bold">{(stresserScale * 0.0003).toFixed(2)} ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">GC Sweeping Frame Dropping:</span>
+                      <span className="text-rose-400 font-bold">{(stresserScale * 0.00024).toFixed(1)} ms spike</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Replication Packet Traffic:</span>
+                      <span className="text-rose-400 font-bold">{(stresserScale * 120).toLocaleString()} bytes</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2.5 bg-black/50 p-3 rounded-lg border border-neutral-800/80 font-semibold font-sans">
+                  <div className="border-b border-neutral-900 pb-1.5 flex justify-between items-center text-[10px] text-emerald-400 uppercase tracking-wide font-bold">
+                    <span>Continuous DOD Struct Array</span>
+                    <span className="text-[8px] uppercase px-1.5 py-0.2 bg-emerald-950/40 text-emerald-300 rounded font-mono">C++ POD (O(1))</span>
+                  </div>
+                  <div className="space-y-1.5 text-[11px] font-mono leading-none">
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">RAM Allocated (contig):</span>
+                      <span className="text-emerald-400 font-bold">{(stresserScale * 0.032).toFixed(1)} KB</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Query Speed (Quad-Tree):</span>
+                      <span className="text-emerald-400 font-bold">0.01 ms</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500 font-medium">GC Sweep Frame Dropping:</span>
+                      <span className="text-emerald-400 font-bold">0.0 ms (Bypassed)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-zinc-500">Replication Packet Traffic:</span>
+                      <span className="text-emerald-400 font-bold">12 bytes (Delta Pack)</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-[9.5px] text-zinc-500 leading-relaxed italic border-t border-neutral-800 pt-1 text-center font-sans">
+                  *Continuous 32-byte SIMD layout structures totally bypass GC sweep intervals, safeguarding high-frequency game logic frames for PC and consoles.
+                </div>
+              </div>
+            )}
+
+            {/* THE SPENT OPTIONS LIST DISPLAY INSIDE BASE SIDEBAR FOOTER */}
+            <div className="mt-4 p-3 bg-black/40 border border-neutral-800/80 rounded-xl space-y-1.5 text-left font-sans">
               <div className="text-[10px] font-bold text-[#ffd700] uppercase tracking-widest block border-b border-neutral-800 pb-1">
                 Active Stats Multipliers
               </div>
-              <div className="max-h-24 overflow-y-auto pr-1 text-[9px] font-mono text-neutral-300 space-y-1 leading-relaxed custom-scrollbar">
+              <div className="max-h-24 overflow-y-auto pr-1 text-[9px] font-mono text-zinc-300 space-y-1 leading-relaxed custom-scrollbar">
                 {allocatedStats.length > 0 ? (
                   allocatedStats.map((stat, i) => (
                     <div key={i} className="flex items-start gap-1">
@@ -914,7 +1299,7 @@ export const WorldSkillTreeMapTab: React.FC = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-neutral-500 italic text-center py-2">
+                  <div className="text-neutral-500 italic text-center py-2 text-[10px] font-sans">
                     No active stats. Allocate nodes and explore map coordinates to activate boosters.
                   </div>
                 )}
@@ -924,6 +1309,24 @@ export const WorldSkillTreeMapTab: React.FC = () => {
           </div>
 
         </div>
+
+        {/* FOOTER ACCUMULATIVE ALLOCATED STATS */}
+        {allocatedStats.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-neutral-800 text-left">
+            <div className="text-[10px] uppercase font-semibold text-neutral-400 mb-1.5 flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5 text-yellow-500 animate-pulse pointer-events-none" />
+              Active Accumulative Passives Matrix (O(1))
+            </div>
+            <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto custom-scrollbar">
+              {allocatedStats.map((st, sI) => (
+                <span key={`ast-${sI}`} className="bg-yellow-400/10 border border-yellow-400/20 text-yellow-200 text-[10px] font-mono font-medium px-2 py-0.5 rounded">
+                  ● {st}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
 
       {/* SECTION 2: TECHNICAL PERFORMANCE IMPACT MATRIX */}
