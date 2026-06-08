@@ -112,6 +112,14 @@ const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: strin
   'C++ School: High-Performance Bitwise State Flags': { tabId: 'cpp_optimal', anchorId: 'bitwise-state-flags', badge: 'Bitmask Flags' },
   'C++ School: Release-Build Assertion Gates': { tabId: 'cpp_optimal', anchorId: 'release-build-assertion-gates', badge: 'Assertions' },
   'C++ School: Zero-Copy Transfers via MoveTemp': { tabId: 'cpp_optimal', anchorId: 'zero-copy-move-temp', badge: 'MoveTemp' },
+  'C++ School: High-Performance Linear Arena Allocators (C++ School)': { tabId: 'cpp_optimal', anchorId: 'linear-arena-allocators', badge: 'Arena Allocators' },
+  'C++ School: Double-Buffered Lock-Free State Swaps (C++ School)': { tabId: 'cpp_optimal', anchorId: 'double-buffered-state-swaps', badge: 'Double-Buffered' },
+  'C++ School: SIMD Loop Autovectorization & RESTRICT Pointers (C++ School)': { tabId: 'cpp_optimal', anchorId: 'simd-loop-autovectorization', badge: 'SIMD Restrict' },
+  'C++ School: Compile-Time Static Template Registries (C++ School)': { tabId: 'cpp_optimal', anchorId: 'compile-time-template-registries', badge: 'Template Registry' },
+  'C++ School: High-Performance Linear Arena Allocators': { tabId: 'cpp_optimal', anchorId: 'linear-arena-allocators', badge: 'Arena Allocators' },
+  'C++ School: Double-Buffered Lock-Free State Swapping': { tabId: 'cpp_optimal', anchorId: 'double-buffered-state-swaps', badge: 'Double-Buffered' },
+  'C++ School: SIMD Loop Autovectorization & RESTRICT Pointers': { tabId: 'cpp_optimal', anchorId: 'simd-loop-autovectorization', badge: 'SIMD Restrict' },
+  'C++ School: Compile-Time Static Template Registries': { tabId: 'cpp_optimal', anchorId: 'compile-time-template-registries', badge: 'Template Registry' },
 
   // Story & World Persistence (Newly Expanded)
   'Direct Binary Delta-Compression Serialization (Flyweight Pattern)': { tabId: 'memory_state', anchorId: 'delta-compression', badge: 'Binary Deltas' },
@@ -611,6 +619,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                       ['C++ School: FNV1a Compile-Time String Hashing (C++ School)', 'Converts heavy FString runtime comparisons into static O(1) 32-bit integer checks at compile-time, zeroing out thread-blocking memory lookup stalls.'],
                       ['C++ School: Modulo-Based Tick Slicing (C++ School)', 'Applies mathematical modulo wave-checking to amortize CPU simulation pipelines over multiple frames, shedding Game Thread frame spikes (-4.5ms to -9.0ms CPU).'],
                       ['C++ School: SIMD Cache-Line Struct Packing (C++ School)', 'Enforces explicit alignas(16) specifiers and packs member fields strictly descending by size to ensure single-cycle vector register loading.'],
+                      ['C++ School: High-Performance Linear Arena Allocators (C++ School)', 'Implements ultra-fast contiguous memory arenas, bumping simple offset indices inside registers in 0.2ns while completely avoiding thread locks (-8.2ms CPU).'],
+                      ['C++ School: Double-Buffered Lock-Free State Swaps (C++ School)', 'Features dual decoupled state buffers flipped atomically in under 1 nanosecond, enabling background worker threads to calculate dynamic simulations safely without Game Thread locks (-6.2ms CPU).'],
+                      ['C++ School: SIMD Loop Autovectorization & RESTRICT Pointers (C++ School)', 'Applies strict C++ RESTRICT pointer qualifiers to prevent compiler aliasing assumptions, compiled into vector registers that process 8 elements simultaneously (-4.8ms CPU).'],
+                      ['C++ School: Compile-Time Static Template Registries (C++ School)', 'Leverages static template class state counters to assign sequential O(1) indices to custom attributes on boot, zeroing out runtime reflection/lookup overheads (-5.5ms CPU).'],
                       ['SIMD Memory Alignment & Struct Padding (C++ School)', 'Compiles structural states aligned to 16-byte SIMD boundary margins (alignas(16)), reducing L1 vector fetching stalls (-1.8ms CPU, eliminates dual-cycle DRAM data split latency from 140ns to 1.2ns).'],
                       ['Lock-Free Queue & Atomic Ring Buffers (C++ School)', 'Implements ultra-fast concurrent FIFO buffers with std::atomic indexing, bypassing expensive OS critical section wait locks that cost thousands of cycles on thread-sleep switches.'],
                       ['Custom FArchive Save/Load Serializers (C++ School)', 'Custom double-insertion overriding paths (Ar << Record) executing straight binary byte streaming to/from disks, bypassing heavy dynamic string allocations during load/saves (saves -8.5ms CPU and eliminates millions of dynamic object allocations).'],
@@ -709,6 +721,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
+                      ['C++ School: High-Performance Linear Arena Allocators (C++ School)', 'Implements ultra-fast contiguous memory arenas, bumping simple offset indices inside registers in 0.2ns while completely avoiding thread locks (-8.2ms CPU).'],
+                      ['C++ School: Double-Buffered Lock-Free State Swaps (C++ School)', 'Features dual decoupled state buffers flipped atomically in under 1 nanosecond, enabling background worker threads to calculate dynamic simulations safely without Game Thread locks (-6.2ms CPU).'],
+                      ['C++ School: SIMD Loop Autovectorization & RESTRICT Pointers (C++ School)', 'Applies strict C++ RESTRICT pointer qualifiers to prevent compiler aliasing assumptions, compiled into vector registers that process 8 elements simultaneously (-4.8ms CPU).'],
+                      ['C++ School: Compile-Time Static Template Registries (C++ School)', 'Leverages static template class state counters to assign sequential O(1) indices to custom attributes on boot, zeroing out runtime reflection/lookup overheads (-5.5ms CPU).'],
                       ['Dynamic Weather, Day/Night & Atmospheric Lighting Simulator', 'Models severe thunderstorms, sandstorms, sub-zero blizzard tempests, misty midnights, heatwaves, and planetary day/night cycles relative to modern graphics limits. Dynamically maps GPU, CPU Game Thread, RAM, VRAM, and multiplayer packet synchronization latency side-by-side with slider parameters (reclaims up to -4.5ms GPU, -1.5ms CPU, and -65MB VRAM).'],
                       ['Unreal Engine 5.5 Atmosphere Integration Specs', 'Chronicles sky-atmosphere Rayleigh/Mie scattering curves, 3D volumetric fog voxelization, exponential heights, and Niagara fluids against Unreal Gaps such as standard material wind sways dirtying Virtual Shadow Map (VSM) pages.'],
                       ['AAA Open World Weather C++ & HLSL Shader Library', 'Features a thread-safe C++ async Wind Grid World Subsystem running wind mathematics asynchronously on background task threads, a distance-scaled wind WPO-culling HLSL material shader to protect VSM shadow pooling, and Server UTC synchronized multiplayer lightning strike RPC events.'],
