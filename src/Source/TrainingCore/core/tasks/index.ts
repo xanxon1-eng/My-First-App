@@ -23,6 +23,7 @@ import { task_10_1 } from './task_10_1';
 import { task_11 } from './task_11';
 import { task_12 } from './task_12';
 import { task_12_1 } from './task_12_1';
+import { task_12_2 } from './task_12_2';
 import { task_13 } from './task_13';
 import { task_14 } from './task_14';
 import { task_14_1 } from './task_14_1';
@@ -35,6 +36,7 @@ import { task_17 } from './task_17';
 import { task_18 } from './task_18';
 import { task_19 } from './task_19';
 import { task_19_1 } from './task_19_1';
+import { task_19_2 } from './task_19_2';
 import { task_20 } from './task_20';
 import { task_21 } from './task_21';
 import { task_22 } from './task_22';
@@ -44,6 +46,7 @@ import { task_25 } from './task_25';
 import { task_26 } from './task_26';
 import { task_27 } from './task_27';
 import { task_27_1 } from './task_27_1';
+import { task_27_2 } from './task_27_2';
 import { task_28 } from './task_28';
 import { task_29 } from './task_29';
 import { task_30 } from './task_30';
@@ -68,6 +71,7 @@ import { task_42_1 } from './task_42_1';
 import { task_43 } from './task_43';
 import { task_44 } from './task_44';
 import { task_45 } from './task_45';
+import { task_45_1 } from './task_45_1';
 import { task_46 } from './task_46';
 import { task_NEW_LIGHTING } from './task_NEW_LIGHTING';
 import { task_opt_1 } from './task_opt_1';
@@ -114,6 +118,7 @@ export const embeddedTasks: UTaskDefinition[] = [
   task_11,
   task_12,
   task_12_1,
+  task_12_2,
   task_13,
   task_14,
   task_14_1,
@@ -126,6 +131,7 @@ export const embeddedTasks: UTaskDefinition[] = [
   task_18,
   task_19,
   task_19_1,
+  task_19_2,
   task_20,
   task_21,
   task_22,
@@ -135,6 +141,7 @@ export const embeddedTasks: UTaskDefinition[] = [
   task_26,
   task_27,
   task_27_1,
+  task_27_2,
   task_28,
   task_29,
   task_30,
@@ -159,6 +166,7 @@ export const embeddedTasks: UTaskDefinition[] = [
   task_43,
   task_44,
   task_45,
+  task_45_1,
   task_46,
   task_NEW_LIGHTING,
   task_opt_1,
