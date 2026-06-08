@@ -15,3 +15,4 @@ export * from './OpenWorldSystemsTab';
 export * from './InventoryLootTab';
 export * from './CombatCalculationTab';
 export * from './WorldSkillTreeMapTab';
+export * from './WeatherAtmosphereTab';

@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab, WorldSkillTreeMapTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab, WorldSkillTreeMapTab, WeatherAtmosphereTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -119,6 +119,7 @@ const TAB_GROUPS = [
       { id: 'lighting',         label: 'Light & Shadows',          icon: Sun },
       { id: 'postprocess',      label: 'Post-Process & Upscaling', icon: Monitor },
       { id: 'gi_caching',       label: 'GI Dynamic Caching',       icon: Waves },
+      { id: 'weather',          label: 'Weather & Atmosphere',     icon: Wind },
     ]
   },
   {
@@ -246,6 +247,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'quest_dialogue') return <QuestDialogueTab />;
     if (activeTab === 'open_world') return <OpenWorldSystemsTab />;
     if (activeTab === 'inventory_loot') return <InventoryLootTab />;
+    if (activeTab === 'weather') return <WeatherAtmosphereTab />;
     
     const componentName = TAB_TO_COMPONENT_NAME[activeTab];
     if (componentName) {
