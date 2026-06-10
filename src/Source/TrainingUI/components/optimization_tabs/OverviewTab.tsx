@@ -581,9 +581,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['3D Equipment & Modular Skeletal Assemblies', 'Binds modular boots, gloves, and torso layers to a unified Leader Pose Component on the Game Thread, completely skipping redundant independent sub-skeletal calculations and reclaiming -12.1ms CPU across Crowds.'],
-                      ['3D Dynamic Cloth Mechanics & Collision Masking', 'Toggles index-section mesh invisibility dynamically inside C++ sub-set registers, and paints vertex opacity masks onto underlying body skin surfaces. This completely culls clipping undergarments at 0.0ms GPU cost.'],
-                      ['Rigid Body Gravity & Physics-Proxy Warp Animation', 'Replaces high-cost dynamic Chaos cloth solvers on massive cape meshes with lightweight, thread-parallel spring joints (Anim Dynamics) coupled with low-resolution 40-vertex simulation proxies (-16.8ms CPU, -4.3ms GPU).'],
+                      ['3D Equipment & Modular Skeletal Assemblies', 'Binds modular boots, gloves, and torso layers to a unified Leader Pose Component. Features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
+                      ['3D Dynamic Cloth Mechanics & Collision Masking', 'Toggles index-section mesh invisibility dynamically in C++ and paints vertex opacity masks onto body skin surfaces. Features a real-time leg flexion angle bending and clipping culling physics simulator.'],
+                      ['Rigid Body Gravity & Physics-Proxy Warp Animation', 'Replaces heavy Chaos solvers with lightweight thread-parallel spring joints (Anim Dynamics). Features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],
                       ['Screen Space Displacement Clip Guard', 'A dynamic stencil filter coupled with viewport raycast heightfield decouplers that prevents weapon meshes from clipping into dynamically displaced Screen Space Displacement surfaces.'],
                       ['C++ School: Branching Dialogue Bytecode Compiler (C++ School)', 'Compiles deeply branching dialog graphs into flat instruction bytes on boot, executing O(1) bitwise comparisons using the player\'s 64-bit uint64 state passport in under 0.1 nanoseconds (saves -4.5ms CPU and eliminates -850MB heap allocation overhead).'],
                       ['C++ School: 2D Shallow Water Equations (SWE) Fluid Solver Math (C++ School)', 'Deconstructs the 2D Saint-Venant hydraulic continuity equations directly on a staggered grid. Solves fluid height displacement and water current velocity arrays on background worker task threads to prevent Game Thread blocking (-1.5ms Game CPU).'],
@@ -741,9 +741,9 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
                 <div className="max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-3 pt-1">
                     {[
-                      ['3D Equipment & Modular Skeletal Assemblies', 'Binds modular boots, gloves, and torso layers to a unified Leader Pose Component on the Game Thread, completely skipping redundant independent sub-skeletal calculations and reclaiming -12.1ms CPU across Crowds.'],
-                      ['3D Dynamic Cloth Mechanics & Collision Masking', 'Toggles index-section mesh invisibility dynamically inside C++ sub-set registers, and paints vertex opacity masks onto underlying body skin surfaces. This completely culls clipping undergarments at 0.0ms GPU cost.'],
-                      ['Rigid Body Gravity & Physics-Proxy Warp Animation', 'Replaces high-cost dynamic Chaos cloth solvers on massive cape meshes with lightweight, thread-parallel spring joints (Anim Dynamics) coupled with low-resolution 40-vertex simulation proxies (-16.8ms CPU, -4.3ms GPU).'],
+                      ['3D Equipment & Modular Skeletal Assemblies', 'Binds modular boots, gloves, and torso layers to a unified Leader Pose Component. Now features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
+                      ['3D Dynamic Cloth Mechanics & Collision Masking', 'Toggles index-section mesh invisibility dynamically in C++ and paints vertex opacity masks onto body skin surfaces. Now features a real-time leg flexion angle bending and clipping culling physics simulator.'],
+                      ['Rigid Body Gravity & Physics-Proxy Warp Animation', 'Replaces heavy Chaos solvers with lightweight thread-parallel spring joints (Anim Dynamics). Now features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],
                       ['Screen Space Displacement Clip Guard', 'A dynamic stencil filter coupled with viewport raycast heightfield decouplers that prevents weapon meshes from clipping into dynamically displaced Screen Space Displacement surfaces.'],
                       ['C++ School: Branching Dialogue Bytecode Compiler (C++ School)', 'Compiles deeply branching dialog graphs into flat instruction bytes on boot, executing O(1) bitwise comparisons using the player\'s 64-bit uint64 state passport in under 0.1 nanoseconds (saves -4.5ms CPU and eliminates -850MB heap allocation overhead).'],
                       ['C++ School: 2D Shallow Water Equations (SWE) Fluid Solver Math (C++ School)', 'Deconstructs the 2D Saint-Venant hydraulic continuity equations directly on a staggered grid. Solves fluid height displacement and water current velocity arrays on background worker task threads to prevent Game Thread blocking (-1.5ms Game CPU).'],
@@ -889,6 +889,20 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
               <SectionCard title="Still Missing (Major & Minor Sub-Systems)" icon={CircleDashed} color={COLORS.status.warning}>
                 <div className="max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   <ul className="space-y-4 pt-1">
+                    <li className="flex items-start gap-3">
+                      <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
+                        <Activity className="w-4 h-4 text-amber-400" />
+                      </div>
+                      <div>
+                        <strong className="text-white text-sm">Cluster Joint Solver Decimation & Culling Array</strong>
+                        <p className="text-kingfisher-muted text-xs mt-1">Dynamically grouping skeletal skeletons into spatial distance clusters, decaying update frequencies to 10Hz or fully freezing joint translation matrices at mid-to-far ranges. Avoids CPU vertex assembly bottlenecks across dense co-op dungeon scenes.</p>
+                        <div className="mt-1 flex flex-wrap gap-2 text-[9px] font-mono">
+                          <span className="text-emerald-400 select-none">CPU: -4.2ms</span>
+                          <span className="text-emerald-400 select-none">RAM: -15MB</span>
+                          <span className="text-zinc-400 select-none">Lacks in UE5: Automatic clustering of non-character skeleton solvers (demands custom background thread bone matrix pooling subsystems).</span>
+                        </div>
+                      </div>
+                    </li>
                     <li className="flex items-start gap-3">
                       <div className="mt-1 bg-amber-500/10 border border-amber-500/30 p-1 rounded">
                         <Waves className="w-4 h-4 text-amber-400" />
