@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 import { getEmbeddedTasks } from '../../TrainingCore/core/TrainingCore';
 import { OPTIMIZATION_KNOWLEDGE_BASE } from '../../TrainingCore/core/OptimizationData';
-import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab, WorldSkillTreeMapTab, WeatherAtmosphereTab } from "./optimization_tabs";
+import { OverviewTab, ProjectApplicationTab, LightingTab, AAAQualityProfilingTab, ModifierSandboxTab, AspectOverlapsTab, AIPathGridSlicersTab, ModderOptimizationTab, CoopNetTab, GASTab, QuestDialogueTab, OpenWorldSystemsTab, InventoryLootTab, CombatCalculationTab, WorldSkillTreeMapTab, WeatherAtmosphereTab, EquipmentPhysicsTab } from "./optimization_tabs";
 import { DynamicTab } from "./optimization_tabs/DynamicRenderer";
 
 const TAB_TO_COMPONENT_NAME: Record<string, string> = {
@@ -140,6 +140,7 @@ const TAB_GROUPS = [
       { id: 'quest_dialogue',   label: 'Quest & Dialogue Arch',    icon: Database },
       { id: 'open_world',       label: 'Open World Systems',       icon: Map },
       { id: 'inventory_loot',   label: 'Inventory & Loot',         icon: Package },
+      { id: 'equipment_physics', label: 'Equipment & Cloth Physics', icon: Sword },
     ]
   },
   {
@@ -248,6 +249,7 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
     if (activeTab === 'open_world') return <OpenWorldSystemsTab />;
     if (activeTab === 'inventory_loot') return <InventoryLootTab />;
     if (activeTab === 'weather') return <WeatherAtmosphereTab />;
+    if (activeTab === 'equipment_physics') return <EquipmentPhysicsTab />;
     
     const componentName = TAB_TO_COMPONENT_NAME[activeTab];
     if (componentName) {

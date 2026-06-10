@@ -550,40 +550,42 @@ export const GeometryTab = () => {
       </Collapsible>
 
       {/* TOPIC 5 */}
-      <Collapsible title="5. Screen Space Displacement Mapping (SSDM) & Custom G-Buffer Pixel Offsets" icon={Sparkles} color="#38bdf8" badge="#ScreenSpaceDepth">
-        <div className="space-y-4">
-          <p className="text-sm text-kingfisher-muted leading-relaxed">
-            While Nanite streams virtual clusters to render detail, it introduces heavy disk read bandwidth overhead and crams streaming pools. Crimson Desert (March 19, 2026 release) bypassed this by utilizing <strong>Screen Space Displacement Mapping (SSDM)</strong>. This technique ray-marches 16-bit high-frequency heightfields within screen space to offset pixel depths inside the G-Buffer directly. High-precision retaining walls and stone crevices look like high-poly masonry, while in the modeling suite the mesh is simply a flat, cheap plank.
-          </p>
+      <div id="ssdm-displacement-mapping" className="scroll-mt-24">
+        <Collapsible title="5. Screen Space Displacement Mapping (SSDM) & Custom G-Buffer Pixel Offsets" icon={Sparkles} color="#38bdf8" badge="#ScreenSpaceDepth">
+          <div className="space-y-4">
+            <p className="text-sm text-kingfisher-muted leading-relaxed">
+              While Nanite streams virtual clusters to render detail, it introduces heavy disk read bandwidth overhead and crams streaming pools. Crimson Desert (March 19, 2026 release) bypassed this by utilizing <strong>Screen Space Displacement Mapping (SSDM)</strong>. This technique ray-marches 16-bit high-frequency heightfields within screen space to offset pixel depths inside the G-Buffer directly. High-precision retaining walls and stone crevices look like high-poly masonry, while in the modeling suite the mesh is simply a flat, cheap plank.
+            </p>
 
-          <p className="text-xs text-amber-400 bg-amber-950/20 border border-amber-900/40 p-3 rounded-lg leading-relaxed">
-            <AlertTriangle className="w-4 h-4 text-amber-500 inline mr-1.5 align-middle shrink-0" />
-            <strong>The SSDM Gamedev Smoking Gun:</strong> Because the depth displacement occurs entirely as a pixel shader visual calculation and does <em>not represent real 3D vertex geometry</em>, physical entities like swords, player feet, or projectile arrows will visually clip through protruding stone rocks. This clipping, along with wobble/distortion at extreme grazing angles, is the absolute identifier of Screen Space Logic.
-          </p>
+            <p className="text-xs text-amber-400 bg-amber-950/20 border border-amber-900/40 p-3 rounded-lg leading-relaxed">
+              <AlertTriangle className="w-4 h-4 text-amber-500 inline mr-1.5 align-middle shrink-0" />
+              <strong>The SSDM Gamedev Smoking Gun:</strong> Because the depth displacement occurs entirely as a pixel shader visual calculation and does <em>not represent real 3D vertex geometry</em>, physical entities like swords, player feet, or projectile arrows will visually clip through protruding stone rocks. This clipping, along with wobble/distortion at extreme grazing angles, is the absolute identifier of Screen Space Logic.
+            </p>
 
-          <MultiplayerImpact 
-            gpu="Peak Shader Cost (+0.7ms Base Pass, Z-Buffer raymarching) for massive vertex savings (-3.0ms)" 
-            cpu="0.0ms Game Thread Cost (Calculated fully on GPU compute units)" 
-            ram="Saves -180MB RAM (Removes heavy high-poly mesh coordinates from system memory)" 
-            vram="+25MB active texture footprint for 16-bit Heightmaps (Saves 250MB+ vs Nanite pool streaming)" 
-            latency="0ms (Processed per-client at local viewport level; safe for multiplayer ping syncs)" 
-          />
+            <MultiplayerImpact 
+              gpu="Peak Shader Cost (+0.7ms Base Pass, Z-Buffer raymarching) for massive vertex savings (-3.0ms)" 
+              cpu="0.0ms Game Thread Cost (Calculated fully on GPU compute units)" 
+              ram="Saves -180MB RAM (Removes heavy high-poly mesh coordinates from system memory)" 
+              vram="+25MB active texture footprint for 16-bit Heightmaps (Saves 250MB+ vs Nanite pool streaming)" 
+              latency="0ms (Processed per-client at local viewport level; safe for multiplayer ping syncs)" 
+            />
 
-          <FeatureMatrix 
-            has={[
-              "Pixel-level micro-shadowing and self-occlusions mapping driven by 16-bit heightfield channels",
-              "Unbelievable geometric virtual visual rendering on flat plank base polygons",
-              "Massive VRAM and CPU stream-cache bandwidth savings compared to Nanite vertex pools"
-            ]}
-            missing={[
-              "Native Unreal Engine out-of-the-box global Screen Space Displacement (SSDM) base pass re-projections",
-              "Clip-guards and stencil collision limits to prevent physical dynamic weapons and actors from slipping inside the simulated depth offset",
-              "Wobble and pixel-swimming mitigation algorithms at steep grazing view angles"
-            ]}
-            howToUse="Create a custom HLSL screen space ray-marshaller within the Material Custom Node. At close distances, write the ray-marching depth offsets to Pixel Depth Offset (PDO) to support correct shadow projection. To resolve weapon clipping, construct lightweight collision capsules offset slightly around flat planks to slide actor physics and traces smoothly."
-          />
-        </div>
-      </Collapsible>
+            <FeatureMatrix 
+              has={[
+                "Pixel-level micro-shadowing and self-occlusions mapping driven by 16-bit heightfield channels",
+                "Unbelievable geometric virtual visual rendering on flat plank base polygons",
+                "Massive VRAM and CPU stream-cache bandwidth savings compared to Nanite vertex pools"
+              ]}
+              missing={[
+                "Native Unreal Engine out-of-the-box global Screen Space Displacement (SSDM) base pass re-projections",
+                "Clip-guards and stencil collision limits to prevent physical dynamic weapons and actors from slipping inside the simulated depth offset",
+                "Wobble and pixel-swimming mitigation algorithms at steep grazing view angles"
+              ]}
+              howToUse="Create a custom HLSL screen space ray-marshaller within the Material Custom Node. At close distances, write the ray-marching depth offsets to Pixel Depth Offset (PDO) to support correct shadow projection. To resolve weapon clipping, construct lightweight collision capsules offset slightly around flat planks to slide actor physics and traces smoothly."
+            />
+          </div>
+        </Collapsible>
+      </div>
 
       {/* TOPIC 6 */}
       <Collapsible title="6. Dynamic SSDM Geometry Clip-Guard Decoupler" icon={Shield} color="#6366f1" badge="#PhysicsDecoupling">

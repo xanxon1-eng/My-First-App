@@ -16,3 +16,4 @@ export * from './InventoryLootTab';
 export * from './CombatCalculationTab';
 export * from './WorldSkillTreeMapTab';
 export * from './WeatherAtmosphereTab';
+export * from './EquipmentPhysicsTab';
