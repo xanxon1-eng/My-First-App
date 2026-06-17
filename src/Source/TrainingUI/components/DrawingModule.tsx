@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { 
   ArrowLeft, RotateCw, Sliders, Eye, EyeOff, Layers, Grid, Info, Check, HelpCircle, 
-  RefreshCw, ZoomIn, ZoomOut, Maximize2, Move
+  RefreshCw, ZoomIn, ZoomOut, Maximize2, Move, Compass
 } from 'lucide-react';
 
 // Define the 3D vertex type
@@ -38,6 +38,16 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [vp1, setVp1] = useState({ x: 80, y: 240 });
   const [vp2, setVp2] = useState({ x: 720, y: 240 });
 
+  // Draggable Stool Vanishing Points (starting as standard calculations on the horizon)
+  const [vp3, setVp3] = useState({ x: 300, y: 240 });
+  const [vp4, setVp4] = useState({ x: 500, y: 240 });
+
+  // 360° Room Rotation state
+  const [roomRot, setRoomRot] = useState(0);
+
+  // Front Walls display selection: 'wireframe' | 'hidden' | 'opaque'
+  const [frontWallsMode, setFrontWallsMode] = useState<'wireframe' | 'hidden' | 'opaque'>('wireframe');
+
   const [verticalTilt, setVerticalTilt] = useState(90);     // Angle of vertical lines (60 to 120, 90 is straight up)
   const [originX, setOriginX] = useState(400);             // Screen origin X (center of room corner)
   const [originY, setOriginY] = useState(390);             // Screen origin Y (room floor corner)
@@ -62,7 +72,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
 
   // Mouse tracking for drag/pan operations
   const canvasRef = useRef<SVGSVGElement | null>(null);
-  const [draggedElement, setDraggedElement] = useState<'vp1' | 'vp2' | 'origin' | 'horizon' | null>(null);
+  const [draggedElement, setDraggedElement] = useState<'vp1' | 'vp2' | 'vp3' | 'vp4' | 'origin' | 'horizon' | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
 
@@ -89,21 +99,25 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const k_x = 1.0;
   const k_y = 1.0;
 
-  const vp3 = useMemo(() => {
-    const alpha3 = (k_x * Math.cos(stoolRad)) / (k_x * Math.cos(stoolRad) + k_y * Math.sin(stoolRad) + 1e-5);
-    return {
-      x: alpha3 * vp1.x + (1 - alpha3) * vp2.x,
-      y: alpha3 * vp1.y + (1 - alpha3) * vp2.y,
-    };
-  }, [vp1, vp2, stoolRad]);
+  // Dynamic feedback sync to realign VP3 and VP4 during normal room navigation or rotation
+  useEffect(() => {
+    if (draggedElement !== 'vp3' && draggedElement !== 'vp4') {
+      const totalAngle = stoolRot + roomRot;
+      const totalRad = (totalAngle * Math.PI) / 180;
 
-  const vp4 = useMemo(() => {
-    const alpha4 = (k_x * Math.cos(stoolRad + Math.PI / 2)) / (k_x * Math.cos(stoolRad + Math.PI / 2) + k_y * Math.sin(stoolRad + Math.PI / 2) + 1e-5);
-    return {
-      x: alpha4 * vp1.x + (1 - alpha4) * vp2.x,
-      y: alpha4 * vp1.y + (1 - alpha4) * vp2.y,
-    };
-  }, [vp1, vp2, stoolRad]);
+      const alpha3 = (k_x * Math.cos(totalRad)) / (k_x * Math.cos(totalRad) + k_y * Math.sin(totalRad) + 1e-5);
+      setVp3({
+        x: alpha3 * vp1.x + (1 - alpha3) * vp2.x,
+        y: alpha3 * vp1.y + (1 - alpha3) * vp2.y,
+      });
+
+      const alpha4 = (k_x * Math.cos(totalRad + Math.PI / 2)) / (k_x * Math.cos(totalRad + Math.PI / 2) + k_y * Math.sin(totalRad + Math.PI / 2) + 1e-5);
+      setVp4({
+        x: alpha4 * vp1.x + (1 - alpha4) * vp2.x,
+        y: alpha4 * vp1.y + (1 - alpha4) * vp2.y,
+      });
+    }
+  }, [vp1, vp2, stoolRot, roomRot, draggedElement]);
 
   // Vertical line direction
   const vertRad = useMemo(() => (verticalTilt * Math.PI) / 180, [verticalTilt]);
@@ -184,6 +198,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setOriginY(oy);
     setVerticalTilt(vertAngle);
     setStoolRot(35);
+    setRoomRot(0);
 
     const angleRad = (hTilt * Math.PI) / 180;
     const cosVal = Math.cos(angleRad);
@@ -222,11 +237,101 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     return { x: px, y: py };
   };
 
+  // Projects a 3D coordinate with room 360° rotation about center axis (1.5, 1.5)
+  const projectPointRot = (x3D: number, y3D: number, z3D: number): { x: number; y: number } => {
+    const angleRad = (roomRot * Math.PI) / 180;
+    const cx = 1.5;
+    const cy = 1.5;
+    const dx = x3D - cx;
+    const dy = y3D - cy;
+    const rx = cx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
+    const ry = cy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+
+    return projectPoint(rx, ry, z3D);
+  };
+
+  // Projects dual-rotated stool vertices using custom vanishing points (vp3, vp4) to allow independent sliding
+  const projectStoolPoint = (lx: number, ly: number, lz: number): { x: number; y: number } => {
+    // 1. Local stool rotation around stool center (1.7, 0.7)
+    const cx = 1.7;
+    const cy = 0.7;
+    const rx = lx - cx;
+    const ry = ly - cy;
+    const sRad = (stoolRot * Math.PI) / 180;
+    const localRotX = rx * Math.cos(sRad) - ry * Math.sin(sRad);
+    const localRotY = rx * Math.sin(sRad) + ry * Math.cos(sRad);
+    
+    // Coordinates of this point in the room frame (before room rotation)
+    const roomX = cx + localRotX;
+    const roomY = cy + localRotY;
+
+    // 2. Rotate room frame around room center (1.5, 1.5) by roomRot
+    const angleRad = (roomRot * Math.PI) / 180;
+    const rcx = 1.5;
+    const rcy = 1.5;
+    const dx = roomX - rcx;
+    const dy = roomY - rcy;
+    const rotX = rcx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
+    const rotY = rcy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+
+    // 3. Project! We combine the rotated stool center (under roomRot) with stool VP3 and VP4 recession offsets
+    const cdx = cx - rcx;
+    const cdy = cy - rcy;
+    const rotCX = rcx + (cdx * Math.cos(angleRad) - cdy * Math.sin(angleRad));
+    const rotCY = rcy + (cdx * Math.sin(angleRad) + cdy * Math.cos(angleRad));
+
+    const rotRx = rotX - rotCX;
+    const rotRy = rotY - rotCY;
+
+    const w = 1.0 + k_x * (rotCX + rotRx) / 3.0 + k_y * (rotCY + rotRy) / 3.0;
+
+    const px = (originX + k_x * (rotCX / 3.0) * vp1.x + k_y * (rotCY / 3.0) * vp2.x + (k_x / 3.0) * rotRx * vp3.x + (k_y / 3.0) * rotRy * vp4.x) / w + (lz * scaleZ * vertHat.x) / w;
+    const py = (originY + k_x * (rotCX / 3.0) * vp1.y + k_y * (rotCY / 3.0) * vp2.y + (k_x / 3.0) * rotRx * vp3.y + (k_y / 3.0) * rotRy * vp4.y) / w + (lz * scaleZ * vertHat.y) / w;
+
+    return { x: px, y: py };
+  };
+
   // Depth weight helper (Painter's depth coordinates)
   // Farther back points have smaller w coordinates (closer to corner origin 0,0,0)
   // Closer points have larger w coordinates
   const getW = (x: number, y: number): number => {
     return 1.0 + k_x * (x / 3.0) + k_y * (y / 3.0);
+  };
+
+  // Rotated room depth coefficient helper
+  const getWRot = (x3D: number, y3D: number): number => {
+    const angleRad = (roomRot * Math.PI) / 180;
+    const cx = 1.5;
+    const cy = 1.5;
+    const dx = x3D - cx;
+    const dy = y3D - cy;
+    const rx = cx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
+    const ry = cy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+    return getW(rx, ry);
+  };
+
+  // Rotated stool depth helper
+  const getStoolWRot = (lx: number, ly: number): number => {
+    const cx = 1.7;
+    const cy = 0.7;
+    const rx = lx - cx;
+    const ry = ly - cy;
+    const sRad = (stoolRot * Math.PI) / 180;
+    const localRotX = rx * Math.cos(sRad) - ry * Math.sin(sRad);
+    const localRotY = rx * Math.sin(sRad) + ry * Math.cos(sRad);
+    
+    const roomX = cx + localRotX;
+    const roomY = cy + localRotY;
+
+    const angleRad = (roomRot * Math.PI) / 180;
+    const rcx = 1.5;
+    const rcy = 1.5;
+    const dx = roomX - rcx;
+    const dy = roomY - rcy;
+    const rotX = rcx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
+    const rotY = rcy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+
+    return 1.0 + k_x * rotX / 3.0 + k_y * rotY / 3.0;
   };
 
   // Projected SVG coordinates path string
@@ -235,7 +340,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   // Handle Dragging / Panning on SVG canvas
-  const handleMouseDown = (e: React.MouseEvent<any>, el: 'vp1' | 'vp2' | 'origin' | 'horizon') => {
+  const handleMouseDown = (e: React.MouseEvent<any>, el: 'vp1' | 'vp2' | 'vp3' | 'vp4' | 'origin' | 'horizon') => {
     e.stopPropagation();
     if (e.button === 1) return; // Ignore on middle click
     setDraggedElement(el);
@@ -278,6 +383,14 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     } else if (draggedElement === 'vp2') {
       // Independent VP2 is placed exactly under the cursor
       setVp2({ x: svgX, y: svgY });
+      setActivePreset('standard');
+    } else if (draggedElement === 'vp3') {
+      // Independent VP3 is placed exactly under the cursor
+      setVp3({ x: svgX, y: svgY });
+      setActivePreset('standard');
+    } else if (draggedElement === 'vp4') {
+      // Independent VP4 is placed exactly under the cursor
+      setVp4({ x: svgX, y: svgY });
       setActivePreset('standard');
     } else if (draggedElement === 'horizon') {
       // Shifting horizon line dynamically: translates both VPs along perpendicular vector vHat
@@ -340,134 +453,226 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     setPanY(0);
   };
 
-  // Convert stools / chairs rotated state
-  const rotStoolCoords = (lx: number, ly: number, lz: number): Vertex3D => {
-    // Rotates local chair coords box around its local center on floor (sub-grid)
-    // Local stool is center of grid (1.7, 0.7)
-    const cx = 1.7;
-    const cy = 0.7;
-    const rx = lx - cx;
-    const ry = ly - cy;
-
-    const rotX = rx * Math.cos(stoolRad) - ry * Math.sin(stoolRad);
-    const rotY = rx * Math.sin(stoolRad) + ry * Math.cos(stoolRad);
-
-    return {
-      x: cx + rotX,
-      y: cy + rotY,
-      z: lz
-    };
-  };
-
   // Shared corner projection coordinates for construction lines
   const L = 3.0;
   const H = 2.2;
-  const corners = useMemo(() => {
+  
+  // Dynamic rotated room corners for proper bounding guides
+  const cornersRot = useMemo(() => {
     return {
-      c_0_0_0: projectPoint(0, 0, 0),
-      c_L_0_0: projectPoint(L, 0, 0),
-      c_0_L_0: projectPoint(0, L, 0),
-      c_L_L_0: projectPoint(L, L, 0),
-      c_0_0_H: projectPoint(0, 0, H),
-      c_L_0_H: projectPoint(L, 0, H),
-      c_0_L_H: projectPoint(0, L, H),
-      c_L_L_H: projectPoint(L, L, H),
+      c_0_0_0: projectPointRot(0, 0, 0),
+      c_L_0_0: projectPointRot(L, 0, 0),
+      c_0_L_0: projectPointRot(0, L, 0),
+      c_L_L_0: projectPointRot(L, L, 0),
+      c_0_0_H: projectPointRot(0, 0, H),
+      c_L_0_H: projectPointRot(L, 0, H),
+      c_0_L_H: projectPointRot(0, L, H),
+      c_L_L_H: projectPointRot(L, L, H),
     };
-  }, [vp1, vp2, originX, originY, verticalTilt]);
+  }, [vp1, vp2, originX, originY, verticalTilt, roomRot]);
 
   // Checker grids paths on the floor
   const floorGrids = useMemo(() => {
     const grids = [];
     if (showRoomGrid) {
       for (let i = 0.5; i < L; i += 0.5) {
-        grids.push({ p1: projectPoint(i, 0, 0), p2: projectPoint(i, L, 0) });
-        grids.push({ p1: projectPoint(0, i, 0), p2: projectPoint(L, i, 0) });
+        grids.push({ p1: projectPointRot(i, 0, 0), p2: projectPointRot(i, L, 0) });
+        grids.push({ p1: projectPointRot(0, i, 0), p2: projectPointRot(L, i, 0) });
       }
     }
     return grids;
-  }, [vp1, vp2, originX, originY, showRoomGrid, verticalTilt]);
+  }, [vp1, vp2, originX, originY, showRoomGrid, verticalTilt, roomRot]);
 
   // 4. Unified Mathematical Depth Sorting (Painter's Algorithm)
-  // Generates 100% Watertight structural faces back-to-front
+  // Generates 100% Watertight structural faces back-to-front under 360° rotation
   const sortedFaces = useMemo(() => {
     const faces: RenderableFace[] = [];
 
-    // Left wall plane (Y=0, X from 0 to L)
-    faces.push({
-      type: 'polygon',
-      w_avg: 1.25, // Deepest background
-      pts: [corners.c_L_0_0, corners.c_0_0_0, corners.c_0_0_H, corners.c_L_0_H],
-      fill: '#f6f4eb',
-      stroke: '#3c3b38',
-      strokeWidth: 1.5,
-    });
+    // Foreground detection thresholds
+    const isWall1Fore = getWRot(1.5, 0) > getWRot(1.5, 1.5) + 0.05;
+    const isWall2Fore = getWRot(0, 1.5) > getWRot(1.5, 1.5) + 0.05;
+    const isWall3Fore = getWRot(3.0, 1.5) > getWRot(1.5, 1.5) + 0.05;
+    const isWall4Fore = getWRot(1.5, 3.0) > getWRot(1.5, 1.5) + 0.05;
 
-    // Right wall plane (X=0, Y from 0 to L)
-    faces.push({
-      type: 'polygon',
-      w_avg: 1.25, // Deepest background
-      pts: [corners.c_0_L_0, corners.c_0_0_0, corners.c_0_0_H, corners.c_0_L_H],
-      fill: '#f1ece0',
-      stroke: '#3c3b38',
-      strokeWidth: 1.5,
-    });
+    // Helper to render static structural walls with custom foreground rules
+    const renderWall = (wallIdx: number, w_avg: number, pts: { x: number; y: number }[], fill: string, stroke: string, isFore: boolean) => {
+      if (isFore && frontWallsMode === 'hidden') return;
+      
+      const wallOpacity = isFore && frontWallsMode === 'wireframe' ? 0.15 : 1.0;
+      const wallStrokeDash = isFore && frontWallsMode === 'wireframe' ? '4,4' : undefined;
+      const wallFill = isFore && frontWallsMode === 'wireframe' ? 'none' : fill;
 
-    // Window on Left Wall (Y=0)
-    const winPts = [
-      projectPoint(0.6, 0, 0.6),
-      projectPoint(1.8, 0, 0.6),
-      projectPoint(1.8, 0, 1.6),
-      projectPoint(0.6, 0, 1.6),
-    ];
-    faces.push({
-      type: 'custom',
-      w_avg: 1.26, // Rendered immediately on top of Left Wall
-      render: () => {
-        const centerLines = [
-          { p1: projectPoint(1.2, 0, 0.6), p2: projectPoint(1.2, 0, 1.6) },
-          { p1: projectPoint(0.6, 0, 1.1), p2: projectPoint(1.8, 0, 1.1) },
-        ];
-        return (
-          <g key="window-grp" stroke="#3c3b38" strokeWidth="1" fill="#e9eff6" filter="url(#pencil-texture)">
-            <path d={toPointsPath(winPts)} />
-            {centerLines.map((line, idx) => (
-              <line key={`w-line-${idx}`} x1={line.p1.x} y1={line.p1.y} x2={line.p2.x} y2={line.p2.y} stroke="#73726c" />
-            ))}
-          </g>
-        );
-      }
-    });
+      faces.push({
+        type: 'polygon',
+        w_avg,
+        pts,
+        fill: wallFill,
+        stroke,
+        strokeWidth: isFore && frontWallsMode === 'wireframe' ? 1.0 : 1.5,
+        strokeDasharray: wallStrokeDash,
+        opacity: wallOpacity,
+      });
+    };
 
-    // Door on Right Wall (X=0)
-    faces.push({
-      type: 'custom',
-      w_avg: 1.26, // Rendered immediately on top of Right Wall
-      render: () => {
-        const dPts = [
-          projectPoint(0, 0.7, 0),
-          projectPoint(0, 1.6, 0),
-          projectPoint(0, 1.6, 1.9),
-          projectPoint(0, 0.7, 1.9),
-        ];
-        const pInner = [
-          projectPoint(0, 0.75, 0.05),
-          projectPoint(0, 1.55, 0.05),
-          projectPoint(0, 1.55, 1.85),
-          projectPoint(0, 0.75, 1.85),
-        ];
-        const knob = projectPoint(0, 1.45, 0.95);
-        return (
-          <g key="door-grp" stroke="#4a3e2c" strokeWidth="1.2" fill="#e3ded3" filter="url(#pencil-texture)">
-            <path d={toPointsPath(dPts)} />
-            <path d={toPointsPath(pInner)} fill="none" stroke="#7e7668" strokeWidth="0.8" />
-            <circle cx={knob.x} cy={knob.y} r="3" fill="#8c7853" stroke="#222" />
-          </g>
-        );
-      }
-    });
+    // Helper to render beautiful baseboards with matching wireframe visibility filter
+    const renderBaseboard = (wallIdx: number, w_avg: number, pts: { x: number; y: number }[], fill: string, isFore: boolean) => {
+      if (isFore && frontWallsMode === 'hidden') return;
+      const opacity = isFore && frontWallsMode === 'wireframe' ? 0.15 : 1.0;
+      const strokeDash = isFore && frontWallsMode === 'wireframe' ? '4,4' : undefined;
+      const stroke = isFore && frontWallsMode === 'wireframe' ? '#3c3b38' : '#1f130b';
+      const boardFill = isFore && frontWallsMode === 'wireframe' ? 'none' : fill;
+      faces.push({
+        type: 'polygon',
+        w_avg: w_avg + 0.005, // slightly in front of wall surface
+        pts,
+        fill: boardFill,
+        stroke,
+        strokeWidth: isFore && frontWallsMode === 'wireframe' ? 0.8 : 1.0,
+        strokeDasharray: strokeDash,
+        opacity,
+      });
+    };
 
-    // Helper to generate 3D solids with precise matching face borders for watertight rendering
-    const addBox3D = (
+    // --- WALL SECTIONS DRAWING ---
+    // Wall 1: Y = 0 (Back left)
+    renderWall(1, getWRot(1.5, 0), [cornersRot.c_L_0_0, cornersRot.c_0_0_0, cornersRot.c_0_0_H, cornersRot.c_L_0_H], '#f6f4eb', '#3c3b38', isWall1Fore);
+    
+    // Wall 2: X = 0 (Back right)
+    renderWall(2, getWRot(0, 1.5), [cornersRot.c_0_L_0, cornersRot.c_0_0_0, cornersRot.c_0_0_H, cornersRot.c_0_L_H], '#f1ece0', '#3c3b38', isWall2Fore);
+    
+    // Wall 3: X = L (Front left option)
+    renderWall(3, getWRot(3.0, 1.5), [cornersRot.c_L_0_0, cornersRot.c_L_L_0, cornersRot.c_L_L_H, cornersRot.c_L_0_H], '#eae5d7', '#3c3b38', isWall3Fore);
+
+    // Wall 4: Y = L (Front right option)
+    renderWall(4, getWRot(1.5, 3.0), [cornersRot.c_0_L_0, cornersRot.c_L_L_0, cornersRot.c_L_L_H, cornersRot.c_0_L_H], '#f3eee2', '#3c3b38', isWall4Fore);
+
+    // --- BASEBOARDS SECTIONS ---
+    renderBaseboard(1, getWRot(1.5, 0), [projectPointRot(L, 0, 0), projectPointRot(0, 0, 0), projectPointRot(0, 0, 0.08), projectPointRot(L, 0, 0.08)], '#5c4d3c', isWall1Fore);
+    renderBaseboard(2, getWRot(0, 1.5), [projectPointRot(0, L, 0), projectPointRot(0, 0, 0), projectPointRot(0, 0, 0.08), projectPointRot(0, L, 0.08)], '#5c4d3c', isWall2Fore);
+    renderBaseboard(3, getWRot(3.0, 1.5), [projectPointRot(L, 0, 0), projectPointRot(L, L, 0), projectPointRot(L, L, 0.08), projectPointRot(L, 0, 0.08)], '#544636', isWall3Fore);
+    renderBaseboard(4, getWRot(1.5, 3.0), [projectPointRot(0, L, 0), projectPointRot(L, L, 0), projectPointRot(L, L, 0.08), projectPointRot(0, L, 0.08)], '#544636', isWall4Fore);
+
+    // --- WALL FEATURES & ANNOTATIONS (WINDOW, DOOR, PAINTING, CLOCK) ---
+    
+    // Window on Wall 1 (Y=0)
+    const shouldDrawWall1Features = !isWall1Fore || frontWallsMode !== 'hidden';
+    const wall1FeatureOpacity = (isWall1Fore && frontWallsMode === 'wireframe') ? 0.2 : 1.0;
+    if (shouldDrawWall1Features) {
+      const winPts = [
+        projectPointRot(0.6, 0, 0.6),
+        projectPointRot(1.8, 0, 0.6),
+        projectPointRot(1.8, 0, 1.6),
+        projectPointRot(0.6, 0, 1.6),
+      ];
+      faces.push({
+        type: 'custom',
+        w_avg: getWRot(1.5, 0) + 0.01,
+        render: () => {
+          const centerLines = [
+            { p1: projectPointRot(1.2, 0, 0.6), p2: projectPointRot(1.2, 0, 1.6) },
+            { p1: projectPointRot(0.6, 0, 1.1), p2: projectPointRot(1.8, 0, 1.1) },
+          ];
+          return (
+            <g key="window-grp" stroke="#3c3b38" strokeWidth="1" fill={isWall1Fore && frontWallsMode === 'wireframe' ? 'none' : '#e9eff6'} opacity={wall1FeatureOpacity} filter="url(#pencil-texture)">
+              <path d={toPointsPath(winPts)} />
+              {centerLines.map((line, idx) => (
+                <line key={`w-line-${idx}`} x1={line.p1.x} y1={line.p1.y} x2={line.p2.x} y2={line.p2.y} stroke="#73726c" />
+              ))}
+            </g>
+          );
+        }
+      });
+    }
+
+    // Door on Wall 2 (X=0)
+    const shouldDrawWall2Features = !isWall2Fore || frontWallsMode !== 'hidden';
+    const wall2FeatureOpacity = (isWall2Fore && frontWallsMode === 'wireframe') ? 0.2 : 1.0;
+    if (shouldDrawWall2Features) {
+      const dPts = [
+        projectPointRot(0, 0.7, 0),
+        projectPointRot(0, 1.6, 0),
+        projectPointRot(0, 1.6, 1.9),
+        projectPointRot(0, 0.7, 1.9),
+      ];
+      const pInner = [
+        projectPointRot(0, 0.75, 0.05),
+        projectPointRot(0, 1.55, 0.05),
+        projectPointRot(0, 1.55, 1.85),
+        projectPointRot(0, 0.75, 1.85),
+      ];
+      const knob = projectPointRot(0, 1.45, 0.95);
+      faces.push({
+        type: 'custom',
+        w_avg: getWRot(0, 1.5) + 0.01,
+        render: () => {
+          return (
+            <g key="door-grp" stroke="#4a3e2c" strokeWidth="1.2" fill={isWall2Fore && frontWallsMode === 'wireframe' ? 'none' : '#e3ded3'} opacity={wall2FeatureOpacity} filter="url(#pencil-texture)">
+              <path d={toPointsPath(dPts)} />
+              <path d={toPointsPath(pInner)} fill="none" stroke="#7e7668" strokeWidth="0.8" />
+              <circle cx={knob.x} cy={knob.y} r="3" fill="#8c7853" stroke="#222" />
+            </g>
+          );
+        }
+      });
+    }
+
+    // Circular Witcher-Style Poster painting on Wall 3 (X=L)
+    const shouldDrawWall3Features = !isWall3Fore || frontWallsMode !== 'hidden';
+    const wall3FeatureOpacity = (isWall3Fore && frontWallsMode === 'wireframe') ? 0.2 : 1.0;
+    if (shouldDrawWall3Features) {
+      const pLeftTop = projectPointRot(3.0, 1.2, 1.5);
+      const pRightTop = projectPointRot(3.0, 1.8, 1.5);
+      const pRightBottom = projectPointRot(3.0, 1.8, 0.9);
+      const pLeftBottom = projectPointRot(3.0, 1.2, 0.9);
+      faces.push({
+        type: 'custom',
+        w_avg: getWRot(3.0, 1.5) + 0.01,
+        render: () => {
+          const mCenter = projectPointRot(3.0, 1.5, 1.2);
+          return (
+            <g key="wall3-painting" stroke="#38210f" strokeWidth="1.4" fill="#3c2f2f" opacity={wall3FeatureOpacity} filter="url(#pencil-texture)">
+              <path d={toPointsPath([pLeftTop, pRightTop, pRightBottom, pLeftBottom])} fill="#4e3629" />
+              <path d={toPointsPath([
+                projectPointRot(3.0, 1.25, 1.45),
+                projectPointRot(3.0, 1.75, 1.45),
+                projectPointRot(3.0, 1.75, 0.95),
+                projectPointRot(3.0, 1.25, 0.95)
+              ])} fill="#dfd0b2" stroke="#4e3629" strokeWidth="0.5" />
+              <circle cx={mCenter.x} cy={mCenter.y} r="14" fill="none" stroke="#7e6754" strokeWidth="1" strokeDasharray="3,1" />
+              <path d={`M ${mCenter.x-10} ${mCenter.y+2} Q ${mCenter.x-4} ${mCenter.y-8} ${mCenter.x+2} ${mCenter.y+1} T ${mCenter.x+10} ${mCenter.y-2}`} fill="none" stroke="#6b5344" strokeWidth="1" />
+              <text x={mCenter.x} y={mCenter.y - 18} textAnchor="middle" fill="#8b5025" fontSize="7" fontFamily="serif" fontWeight="bold">WITCHER WORLD MAP</text>
+            </g>
+          );
+        }
+      });
+    }
+
+    // Hanging Medieval Clock on Wall 4 (Y=L)
+    const shouldDrawWall4Features = !isWall4Fore || frontWallsMode !== 'hidden';
+    const wall4FeatureOpacity = (isWall4Fore && frontWallsMode === 'wireframe') ? 0.2 : 1.0;
+    if (shouldDrawWall4Features) {
+      faces.push({
+        type: 'custom',
+        w_avg: getWRot(1.5, 3.0) + 0.01,
+        render: () => {
+          const clockCenter = projectPointRot(1.5, 3.0, 1.4);
+          const hourHand = projectPointRot(1.5, 3.0, 1.49);
+          const minHand = projectPointRot(1.58, 3.0, 1.4);
+          return (
+            <g key="wall4-clock" stroke="#1f2d3d" strokeWidth="1.2" fill="#edf2f4" opacity={wall4FeatureOpacity} filter="url(#pencil-texture)">
+              <circle cx={clockCenter.x} cy={clockCenter.y} r="14" fill="#313b4c" />
+              <circle cx={clockCenter.x} cy={clockCenter.y} r="11" fill="#f4f1ea" stroke="#687b8c" strokeWidth="0.8" />
+              <line x1={clockCenter.x} y1={clockCenter.y} x2={hourHand.x} y2={hourHand.y} stroke="#d90429" strokeWidth="1.8" strokeLinecap="round" />
+              <line x1={clockCenter.x} y1={clockCenter.y} x2={minHand.x} y2={minHand.y} stroke="#2b2d42" strokeWidth="1.2" strokeLinecap="round" />
+              <circle cx={clockCenter.x} cy={clockCenter.y} r="1.8" fill="#d90429" />
+            </g>
+          );
+        }
+      });
+    }
+
+    // --- RE-USABLE 3D SOLID GENERATION HELPERS SUPPORTING ROTATION ---
+    const addBox3DRot = (
       xMin: number, xMax: number,
       yMin: number, yMax: number,
       zMin: number, zMax: number,
@@ -484,7 +689,6 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       const v111 = { x: xMax, y: yMax, z: zMax };
       const v011 = { x: xMin, y: yMax, z: zMax };
 
-      // Solid faces definition
       const faceDefs = [
         { pts: [v001, v101, v111, v011], fill: colors.top },         // Top Face
         { pts: [v000, v100, v110, v010], fill: colors.bottom },      // Bottom Face
@@ -495,8 +699,8 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       ];
 
       faceDefs.forEach(f => {
-        const w_avg = f.pts.reduce((sum, v2) => sum + getW(v2.x, v2.y), 0) / f.pts.length;
-        const projPts = f.pts.map(v2 => projectPoint(v2.x, v2.y, v2.z));
+        const w_avg = f.pts.reduce((sum, v2) => sum + getWRot(v2.x, v2.y), 0) / f.pts.length;
+        const projPts = f.pts.map(v2 => projectPointRot(v2.x, v2.y, v2.z));
         faces.push({
           type: 'polygon',
           w_avg,
@@ -508,23 +712,22 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       });
     };
 
-    // Helper to generate rotated 3D solids for the bar stool
-    const addRotatedBox3D = (
+    const addStoolBox3D = (
       xMin: number, xMax: number,
       yMin: number, yMax: number,
       zMin: number, zMax: number,
       colors: { top: string; front: string; right: string; left: string; back: string; bottom: string },
       stroke: string, strokeWidth: number
     ) => {
-      const v000 = rotStoolCoords(xMin, yMin, zMin);
-      const v100 = rotStoolCoords(xMax, yMin, zMin);
-      const v110 = rotStoolCoords(xMax, yMax, zMin);
-      const v010 = rotStoolCoords(xMin, yMax, zMin);
+      const v000 = { x: xMin, y: yMin, z: zMin };
+      const v100 = { x: xMax, y: yMin, z: zMin };
+      const v110 = { x: xMax, y: yMax, z: zMin };
+      const v010 = { x: xMin, y: yMax, z: zMin };
       
-      const v001 = rotStoolCoords(xMin, yMin, zMax);
-      const v101 = rotStoolCoords(xMax, yMin, zMax);
-      const v111 = rotStoolCoords(xMax, yMax, zMax);
-      const v011 = rotStoolCoords(xMin, yMax, zMax);
+      const v001 = { x: xMin, y: yMin, z: zMax };
+      const v101 = { x: xMax, y: yMin, z: zMax };
+      const v111 = { x: xMax, y: yMax, z: zMax };
+      const v011 = { x: xMin, y: yMax, z: zMax };
 
       const faceDefs = [
         { pts: [v001, v101, v111, v011], fill: colors.top },         // Top Face
@@ -536,8 +739,8 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       ];
 
       faceDefs.forEach(f => {
-        const w_avg = f.pts.reduce((sum, v2) => sum + getW(v2.x, v2.y), 0) / f.pts.length;
-        const projPts = f.pts.map(v2 => projectPoint(v2.x, v2.y, v2.z));
+        const w_avg = f.pts.reduce((sum, v2) => sum + getStoolWRot(v2.x, v2.y), 0) / f.pts.length;
+        const projPts = f.pts.map(v2 => projectStoolPoint(v2.x, v2.y, v2.z));
         faces.push({
           type: 'polygon',
           w_avg,
@@ -549,35 +752,134 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       });
     };
 
-    // 5. Couch / Sofa (Water-tight solid blocks placed on the right wall)
-    // Left Armrest
-    addBox3D(0.1, 0.85, 2.0, 2.15, 0, 0.55, {
-      top: '#dad5cc', front: '#bebbb5', right: '#aba79f', left: '#a19d96', back: '#9c9890', bottom: '#bebbb5'
-    }, '#2a2e38', 1.0);
+    // --- 5. HIGH-FIDELITY RECONSTRUCTED COUCH / SOFA (Placed on Wall X=0 / Right wall axis) ---
+    // Support Pegs:
+    addBox3DRot(0.15, 0.23, 2.05, 2.12, 0, 0.12, {
+      top: '#241a13', front: '#1b130e', right: '#150e0a', left: '#1b130e', back: '#150e0a', bottom: '#150e0a'
+    }, '#1f130b', 0.8);
+    addBox3DRot(0.68, 0.76, 2.05, 2.12, 0, 0.12, {
+      top: '#241a13', front: '#1b130e', right: '#150e0a', left: '#1b130e', back: '#150e0a', bottom: '#150e0a'
+    }, '#1f130b', 0.8);
+    addBox3DRot(0.15, 0.23, 2.68, 2.75, 0, 0.12, {
+      top: '#241a13', front: '#1b130e', right: '#150e0a', left: '#1b130e', back: '#150e0a', bottom: '#150e0a'
+    }, '#1f130b', 0.8);
+    addBox3DRot(0.68, 0.76, 2.68, 2.75, 0, 0.12, {
+      top: '#241a13', front: '#1b130e', right: '#150e0a', left: '#1b130e', back: '#150e0a', bottom: '#150e0a'
+    }, '#1f130b', 0.8);
 
-    // Right Armrest
-    addBox3D(0.1, 0.85, 2.65, 2.80, 0, 0.55, {
-      top: '#dad5cc', front: '#bebbb5', right: '#aba79f', left: '#a19d96', back: '#9c9890', bottom: '#bebbb5'
-    }, '#2a2e38', 1.0);
+    // Pine Wood Solid Supporting Platform Rail:
+    addBox3DRot(0.1, 0.82, 1.95, 2.85, 0.12, 0.20, {
+      top: '#5c4839', front: '#4a382b', right: '#3b2c21', left: '#4a382b', back: '#3b2c21', bottom: '#3b2c21'
+    }, '#1e1105', 1.0);
 
-    // Room Sofa Cushion base
-    addBox3D(0.1, 0.85, 2.15, 2.65, 0, 0.40, {
-      top: '#dad5cc', front: '#bebbb5', right: '#aba79f', left: '#a19d96', back: '#9c9890', bottom: '#bebbb5'
-    }, '#2a2e38', 1.0);
+    // Left Armrest Cushion:
+    addBox3DRot(0.1, 0.82, 1.95, 2.08, 0.20, 0.58, {
+      top: '#ccd2dd', front: '#b1b9c9', right: '#98a2b5', left: '#b1b9c9', back: '#98a2b5', bottom: '#98a2b5'
+    }, '#1f2a3a', 1.0);
 
-    // Backrest base
-    addBox3D(0.1, 0.30, 2.0, 2.80, 0.40, 0.85, {
-      top: '#c7c2b6', front: '#b0aca4', right: '#aba79f', left: '#b0aca4', back: '#9c9890', bottom: '#9c9890'
-    }, '#2a2e38', 1.0);
+    // Right Armrest Cushion:
+    addBox3DRot(0.1, 0.82, 2.72, 2.85, 0.20, 0.58, {
+      top: '#ccd2dd', front: '#b1b9c9', right: '#98a2b5', left: '#b1b9c9', back: '#98a2b5', bottom: '#98a2b5'
+    }, '#1f2a3a', 1.0);
+
+    // Plush seat cushion 1 (Left seat cushion):
+    addBox3DRot(0.18, 0.80, 2.08, 2.40, 0.20, 0.44, {
+      top: '#d8dee9', front: '#bdc8db', right: '#a3b1cb', left: '#bdc8db', back: '#a3b1cb', bottom: '#a3b1cb'
+    }, '#1f2a3a', 1.0);
+
+    // Plush seat cushion 2 (Right seat cushion):
+    addBox3DRot(0.18, 0.80, 2.40, 2.72, 0.20, 0.44, {
+      top: '#d8dee9', front: '#bdc8db', right: '#a3b1cb', left: '#bdc8db', back: '#a3b1cb', bottom: '#a3b1cb'
+    }, '#1f2a3a', 1.0);
+
+    // Main Comfort Backrest Support:
+    addBox3DRot(0.1, 0.30, 1.95, 2.85, 0.44, 0.86, {
+      top: '#c8cbd1', front: '#aeb3bf', right: '#989eb0', left: '#aeb3bf', back: '#989eb0', bottom: '#989eb0'
+    }, '#1f2a3a', 1.0);
+
+    // Cozy Leaning Pillow 1:
+    addBox3DRot(0.25, 0.35, 2.12, 2.36, 0.42, 0.66, {
+      top: '#f0ad4e', front: '#e09839', right: '#ca8121', left: '#e09839', back: '#ca8121', bottom: '#ca8121'
+    }, '#583a0e', 0.8);
+
+    // Cozy Leaning Pillow 2:
+    addBox3DRot(0.25, 0.35, 2.44, 2.68, 0.42, 0.66, {
+      top: '#f0ad4e', front: '#e09839', right: '#ca8121', left: '#e09839', back: '#ca8121', bottom: '#ca8121'
+    }, '#583a0e', 0.8);
 
 
-    // 6. Solid Wooden standing Table (Aligned to room center axis)
-    // Tabletop solid box
-    addBox3D(1.1, 1.9, 1.1, 1.9, 0.67, 0.75, {
+    // --- REGAL/SHELVING BOOKCASE UNIT (Placed on Wall Y=0 / Left wall axis) ---
+    // Wooden Backplate:
+    addBox3DRot(2.0, 2.8, 0.0, 0.05, 0, 1.90, {
+      top: '#3b2b1d', front: '#302216', right: '#22170e', left: '#302216', back: '#22170e', bottom: '#22170e'
+    }, '#1e130a', 1.0);
+
+    // Left Shelf frame:
+    addBox3DRot(2.0, 2.06, 0.05, 0.33, 0, 1.90, {
+      top: '#4a3726', front: '#3d2d1e', right: '#2e2114', left: '#3d2d1e', back: '#2e2114', bottom: '#2e2114'
+    }, '#1e130a', 1.0);
+
+    // Right Shelf frame:
+    addBox3DRot(2.74, 2.80, 0.05, 0.33, 0, 1.90, {
+      top: '#4a3726', front: '#3d2d1e', right: '#2e2114', left: '#3d2d1e', back: '#2e2114', bottom: '#2e2114'
+    }, '#1e130a', 1.0);
+
+    // Top Cover Board:
+    addBox3DRot(2.0, 2.8, 0.0, 0.33, 1.84, 1.90, {
+      top: '#523e2b', front: '#443322', right: '#342517', left: '#443322', back: '#342517', bottom: '#342517'
+    }, '#1e130a', 1.0);
+
+    // Bottom Base Board:
+    addBox3DRot(2.06, 2.74, 0.05, 0.32, 0, 0.12, {
+      top: '#523e2b', front: '#443322', right: '#342517', left: '#443322', back: '#342517', bottom: '#342517'
+    }, '#1e130a', 1.0);
+
+    // Shelf Level 2 Platform (Y and X center dividers):
+    addBox3DRot(2.06, 2.74, 0.05, 0.31, 0.65, 0.70, {
+      top: '#523e2b', front: '#443322', right: '#342517', left: '#443322', back: '#342517', bottom: '#342517'
+    }, '#1e130a', 1.0);
+
+    // Shelf Level 3 Platform:
+    addBox3DRot(2.06, 2.74, 0.05, 0.31, 1.25, 1.30, {
+      top: '#523e2b', front: '#443322', right: '#342517', left: '#443322', back: '#342517', bottom: '#342517'
+    }, '#1e130a', 1.0);
+
+    // Drawers on Floor tier inside bookshelf:
+    addBox3DRot(2.10, 2.38, 0.06, 0.30, 0.12, 0.60, {
+      top: '#eec590', front: '#cc9e62', right: '#a2763f', left: '#cc9e62', back: '#a2763f', bottom: '#a2763f'
+    }, '#1e130a', 0.8);
+    addBox3DRot(2.42, 2.70, 0.06, 0.30, 0.12, 0.60, {
+      top: '#eec590', front: '#cc9e62', right: '#a2763f', left: '#cc9e62', back: '#a2763f', bottom: '#a2763f'
+    }, '#1e130a', 0.8);
+
+    // Multicolored Books stacked on Level 2 shelf:
+    addBox3DRot(2.10, 2.16, 0.08, 0.28, 0.70, 1.15, {
+      top: '#e35f5f', front: '#c14545', right: '#963030', left: '#c14545', back: '#963030', bottom: '#963030'
+    }, '#2d1111', 0.8);
+    addBox3DRot(2.18, 2.24, 0.08, 0.28, 0.70, 1.12, {
+      top: '#4fa1d8', front: '#3784ba', right: '#215f8a', left: '#3784ba', back: '#215f8a', bottom: '#215f8a'
+    }, '#0d2230', 0.8);
+    addBox3DRot(2.26, 2.32, 0.08, 0.28, 0.70, 1.18, {
+      top: '#dfb15b', front: '#be9342', right: '#95712c', left: '#be9342', back: '#95712c', bottom: '#95712c'
+    }, '#30220a', 0.8);
+    addBox3DRot(2.34, 2.40, 0.08, 0.28, 0.70, 1.08, {
+      top: '#5cb85c', front: '#449d44', right: '#357ebd', left: '#449d44', back: '#357ebd', bottom: '#357ebd'
+    }, '#112b11', 0.8);
+
+    // Decorative Witcher Alchemy Potter Potion bottle and Potion on top shelf (Level 3 shelf):
+    addBox3DRot(2.18, 2.28, 0.08, 0.24, 1.30, 1.62, {
+      top: '#2ca47e', front: '#187b5a', right: '#105e43', left: '#187b5a', back: '#105e43', bottom: '#105e43'
+    }, '#082b20', 0.8);
+    addBox3DRot(2.52, 2.62, 0.08, 0.24, 1.30, 1.55, {
+      top: '#bfbfbf', front: '#a6a6a6', right: '#8c8c8c', left: '#a6a6a6', back: '#8c8c8c', bottom: '#8c8c8c'
+    }, '#333333', 0.8);
+
+
+    // --- 6. SOLID WOODEN STANDING TABLE (Polished centerpiece) ---
+    addBox3DRot(1.1, 1.9, 1.1, 1.9, 0.67, 0.75, {
       top: '#a07d5d', front: '#624732', right: '#4b3524', left: '#624732', back: '#4b3524', bottom: '#4f3824'
     }, '#4f3824', 1.0);
 
-    // 4 table legs modeled as thick perspective columns
     const tblLegs = [
       { x: 1.15, y: 1.15 },
       { x: 1.85, y: 1.15 },
@@ -587,11 +889,11 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     tblLegs.forEach((leg, idx) => {
       faces.push({
         type: 'custom',
-        w_avg: getW(leg.x, leg.y) - 0.015, // Solves depth sorted leg rendering
+        w_avg: getWRot(leg.x, leg.y) - 0.015,
         render: () => {
-          const base = projectPoint(leg.x, leg.y, 0);
-          const top = projectPoint(leg.x, leg.y, 0.67);
-          const strokeWidth = 5.5 / getW(leg.x, leg.y);
+          const base = projectPointRot(leg.x, leg.y, 0);
+          const top = projectPointRot(leg.x, leg.y, 0.67);
+          const strokeWidth = 5.5 / getWRot(leg.x, leg.y);
           return (
             <line
               key={`table-leg-${idx}`}
@@ -610,13 +912,12 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     });
 
 
-    // 7. Secondary Stool (rotated by stoolRot)
-    // Cushion seat box
-    addRotatedBox3D(1.45, 1.95, 0.45, 0.95, 0.42, 0.50, {
+    // --- 7. BAR STOOL WITH ROTATING/SLIDING VANISHING PERSPECTIVE ---
+    // Cushion Seat Solid Box:
+    addStoolBox3D(1.45, 1.95, 0.45, 0.95, 0.42, 0.50, {
       top: '#7b5996', front: '#271833', right: '#1d1026', left: '#271833', back: '#1d1026', bottom: '#271833'
     }, '#3d1d4f', 1.0);
 
-    // 4 rotated stool legs
     const stoolLegs = [
       { x: 1.48, y: 0.48 },
       { x: 1.92, y: 0.48 },
@@ -624,14 +925,13 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       { x: 1.48, y: 0.92 }
     ];
     stoolLegs.forEach((leg, idx) => {
-      const rot = rotStoolCoords(leg.x, leg.y, 0);
       faces.push({
         type: 'custom',
-        w_avg: getW(rot.x, rot.y) - 0.015,
+        w_avg: getStoolWRot(leg.x, leg.y) - 0.015,
         render: () => {
-          const base = projectPoint(rot.x, rot.y, 0);
-          const top = projectPoint(rot.x, rot.y, 0.42);
-          const strokeWidth = 4.0 / getW(rot.x, rot.y);
+          const base = projectStoolPoint(leg.x, leg.y, 0);
+          const top = projectStoolPoint(leg.x, leg.y, 0.42);
+          const strokeWidth = 4.0 / getStoolWRot(leg.x, leg.y);
           return (
             <line
               key={`stool-leg-${idx}`}
@@ -650,23 +950,19 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     });
 
 
-    // 8. Red Apple sits on top of tabletop
+    // --- 8. RED APPLE (TABLETOP FRUIT SET) ---
     faces.push({
       type: 'custom',
-      w_avg: getW(1.5, 1.5) + 0.02, // Guaranteed to sit on top of the tabletop in Painter's order
+      w_avg: getWRot(1.5, 1.5) + 0.02,
       render: () => {
-        const center = projectPoint(1.5, 1.5, 0.75);
-        const stemTop = projectPoint(1.5, 1.5, 0.75 + 0.12);
-        const leafTip = projectPoint(1.53, 1.45, 0.75 + 0.14);
+        const center = projectPointRot(1.5, 1.5, 0.75);
+        const stemTop = projectPointRot(1.5, 1.5, 0.75 + 0.12);
+        const leafTip = projectPointRot(1.53, 1.45, 0.75 + 0.14);
         return (
           <g key="apple-grp" stroke="#400b0b" strokeWidth="1" filter="url(#pencil-texture)">
-            {/* Shadow underneath */}
             <ellipse cx={center.x} cy={center.y + 1} rx="9" ry="3.5" fill="#5c4d36" opacity="0.45" stroke="none" />
-            {/* Apple Body */}
             <circle cx={center.x} cy={center.y - 4} r="8.5" fill="#d93b3b" />
             <path d={`M ${center.x - 4} ${center.y - 12} Q ${center.x} ${center.y - 10} ${center.x + 4} ${center.y - 12}`} fill="none" stroke="#a32121" strokeWidth="1.2" />
-            
-            {/* Stem & Leaf */}
             <path d={`M ${center.x} ${center.y - 10} Q ${center.x + 4} ${center.y - 16} ${stemTop.x} ${stemTop.y}`} fill="none" stroke="#5a4225" strokeWidth="1.8" />
             <path d={`M ${center.x + 2} ${center.y - 13} Q ${center.x + 10} ${center.y - 17} ${leafTip.x} ${leafTip.y} Q ${center.x + 6} ${center.y - 11} ${center.x + 2} ${center.y - 13}`} fill="#4ca14c" />
           </g>
@@ -677,22 +973,22 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     // Sort all faces: smallest w (farthest background) to largest w (front closest foreground)
     faces.sort((a, b) => a.w_avg - b.w_avg);
     return faces;
-  }, [vp1, vp2, originX, originY, verticalTilt, corners, stoolRot]);
+  }, [vp1, vp2, vp3, vp4, originX, originY, verticalTilt, cornersRot, stoolRot, roomRot, frontWallsMode]);
 
-  // Derived Top/Bottom points for construction/rays
+  // Derived Top/Bottom points for construction/rays under rotation
   const tableTopPts = useMemo(() => [
-    projectPoint(1.1, 1.1, 0.75),
-    projectPoint(1.9, 1.1, 0.75),
-    projectPoint(1.9, 1.9, 0.75),
-    projectPoint(1.1, 1.9, 0.75),
-  ], [vp1, vp2, originX, originY, verticalTilt]);
+    projectPointRot(1.1, 1.1, 0.75),
+    projectPointRot(1.9, 1.1, 0.75),
+    projectPointRot(1.9, 1.9, 0.75),
+    projectPointRot(1.1, 1.9, 0.75),
+  ], [vp1, vp2, originX, originY, verticalTilt, roomRot]);
 
   const stoolTopPts = useMemo(() => [
-    projectPoint(rotStoolCoords(1.45, 0.45, 0.50).x, rotStoolCoords(1.45, 0.45, 0.50).y, 0.50),
-    projectPoint(rotStoolCoords(1.95, 0.45, 0.50).x, rotStoolCoords(1.95, 0.45, 0.50).y, 0.50),
-    projectPoint(rotStoolCoords(1.95, 0.95, 0.50).x, rotStoolCoords(1.95, 0.95, 0.50).y, 0.50),
-    projectPoint(rotStoolCoords(1.45, 0.95, 0.50).x, rotStoolCoords(1.45, 0.95, 0.50).y, 0.50),
-  ], [vp1, vp2, originX, originY, verticalTilt, stoolRot]);
+    projectStoolPoint(1.45, 0.45, 0.50),
+    projectStoolPoint(1.95, 0.45, 0.50),
+    projectStoolPoint(1.95, 0.95, 0.50),
+    projectStoolPoint(1.45, 0.95, 0.50),
+  ], [vp1, vp2, vp3, vp4, originX, originY, verticalTilt, stoolRot, roomRot]);
 
   return (
     <div className="flex flex-col h-full w-full bg-kingfisher-dark text-kingfisher-surface font-sans overflow-hidden">
@@ -834,16 +1130,16 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 {showConstruction && (
                   <g stroke="#a69f8c" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.6">
                     {/* Rays to VP1 from Room Corners */}
-                    <line x1={vp1.x} y1={vp1.y} x2={corners.c_L_0_0.x} y2={corners.c_L_0_0.y} />
-                    <line x1={vp1.x} y1={vp1.y} x2={corners.c_L_0_H.x} y2={corners.c_L_0_H.y} />
-                    <line x1={vp1.x} y1={vp1.y} x2={corners.c_0_L_0.x} y2={corners.c_0_L_0.y} />
-                    <line x1={vp1.x} y1={vp1.y} x2={corners.c_0_L_H.x} y2={corners.c_0_L_H.y} />
+                    <line x1={vp1.x} y1={vp1.y} x2={cornersRot.c_L_0_0.x} y2={cornersRot.c_L_0_0.y} />
+                    <line x1={vp1.x} y1={vp1.y} x2={cornersRot.c_L_0_H.x} y2={cornersRot.c_L_0_H.y} />
+                    <line x1={vp1.x} y1={vp1.y} x2={cornersRot.c_0_L_0.x} y2={cornersRot.c_0_L_0.y} />
+                    <line x1={vp1.x} y1={vp1.y} x2={cornersRot.c_0_L_H.x} y2={cornersRot.c_0_L_H.y} />
 
                     {/* Rays to VP2 from Room Corners */}
-                    <line x1={vp2.x} y1={vp2.y} x2={corners.c_0_L_0.x} y2={corners.c_0_L_0.y} />
-                    <line x1={vp2.x} y1={vp2.y} x2={corners.c_0_L_H.x} y2={corners.c_0_L_H.y} />
-                    <line x1={vp2.x} y1={vp2.y} x2={corners.c_L_0_0.x} y2={corners.c_L_0_0.y} />
-                    <line x1={vp2.x} y1={vp2.y} x2={corners.c_L_0_H.x} y2={corners.c_L_0_H.y} />
+                    <line x1={vp2.x} y1={vp2.y} x2={cornersRot.c_0_L_0.x} y2={cornersRot.c_0_L_0.y} />
+                    <line x1={vp2.x} y1={vp2.y} x2={cornersRot.c_0_L_H.x} y2={cornersRot.c_0_L_H.y} />
+                    <line x1={vp2.x} y1={vp2.y} x2={cornersRot.c_L_0_0.x} y2={cornersRot.c_L_0_0.y} />
+                    <line x1={vp2.x} y1={vp2.y} x2={cornersRot.c_L_0_H.x} y2={cornersRot.c_L_0_H.y} />
 
                     {/* Table points extending to primary VPs */}
                     {tableTopPts.map((p, i) => (

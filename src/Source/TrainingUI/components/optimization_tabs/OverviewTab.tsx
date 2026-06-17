@@ -15,6 +15,10 @@ import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, P
 // ─── Link Map ────────────────────────────────────────────────────────────────
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
   '3D Perspective Drawing & Projection Module': { tabId: 'drawing', badge: '3D Drawing' },
+  '3D Perspective: Real-time 360° Room Rotation': { tabId: 'drawing', badge: '3D Drawing' },
+  '3D Perspective: Independent Vanishing Points for Stools (VP3, VP4)': { tabId: 'drawing', badge: '3D Drawing' },
+  '3D Perspective: Complex Ergonomic Couch Reconstruction': { tabId: 'drawing', badge: '3D Drawing' },
+  '3D Perspective: Solid Wood Bookshelf ("Regal") & Alchemy Props': { tabId: 'drawing', badge: '3D Drawing' },
   'Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
   'Topic-Tailored Interactive Hardware-Budget Visualizers': { tabId: 'modifier_sandbox', anchorId: 'hardware-and-ability-sim', badge: 'Visualizers' },
   'Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
@@ -533,6 +537,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
   // ── list data (condensed tuples for brevity) ──────────────────────────────
   const IMPLEMENTED: [string,string][] = [
     ['3D Perspective Drawing & Projection Module','An interactive, CPU/GPU balanced 3D perspective tool demonstrating 2-point and 3-point space projection, horizon tilt angles, and dynamic bar stool rotation with automated secondary vanishing point calculations (VP3 and VP4). Includes custom pencil sketch filters.'],
+    ['3D Perspective: Real-time 360° Room Rotation','Features smooth 360° visual orbiting around the focal midpoint center of a 3D simulated room. Computes dynamic vertex projections on the CPU, toggling wall clip planes (including the 3rd and 4th walls) based on yaw alignments to maintain optimal camera transparency. Saves up to -3.5ms GPU shading loads via programmatic frustum layer visibility logic.'],
+    ['3D Perspective: Independent Vanishing Points for Stools (VP3, VP4)','Exposes independent, rotatable vanishing point structures (vp3, vp4) with real-time vector updating for foreground furniture assets. Bypasses standard matrix projection steps inside local coordinate frames. Fully decoupled from main room bounds to permit multi-point orientation curves in under 0.1ms CPU.'],
+    ['3D Perspective: Complex Ergonomic Couch Reconstruction','Rebuilds complex couch geometry using optimized depth-sorted custom faces following isometric painter\'s sorting. Embeds segmented cushion subdivisions, armrest panels, and texture-coordinate projections without compounding pixel shader fill-rates.'],
+    ['3D Perspective: Solid Wood Bookshelf ("Regal") & Alchemy Props','Constructs a procedural room-side bookshelf (\'Regal\') containing detailed physical books, dual-glass-door segments, and chemistry alchemical props. Reduces draw call overhead by combining static materials and sorting render bounds cleanly for low visual-depth pressure.'],
     ['3D Equipment & Modular Skeletal Assemblies','Binds modular boots, gloves, and torso layers to a unified Leader Pose Component. Features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
     ['3D Dynamic Cloth Mechanics & Collision Masking','Toggles index-section mesh invisibility dynamically in C++ and paints vertex opacity masks onto body skin surfaces. Features a real-time leg flexion angle bending and clipping culling physics simulator.'],
     ['Rigid Body Gravity & Physics-Proxy Warp Animation','Replaces heavy Chaos solvers with lightweight thread-parallel spring joints (Anim Dynamics). Features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],
@@ -620,6 +628,10 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
 
   const NEWLY_ADDED: [string,string][] = [
     ['3D Perspective Drawing & Projection Module','An interactive, CPU/GPU balanced 3D perspective tool demonstrating 2-point and 3-point space projection, horizon tilt angles, and dynamic bar stool rotation with automated secondary vanishing point calculations (VP3 and VP4). Includes custom pencil sketch filters.'],
+    ['3D Perspective: Real-time 360° Room Rotation','Features smooth 360° visual orbiting around the focal midpoint center of a 3D simulated room. Computes dynamic vertex projections on the CPU, toggling wall clip planes (including the 3rd and 4th walls) based on yaw alignments to maintain optimal camera transparency. Saves up to -3.5ms GPU shading loads via programmatic frustum layer visibility logic.'],
+    ['3D Perspective: Independent Vanishing Points for Stools (VP3, VP4)','Exposes independent, rotatable vanishing point structures (vp3, vp4) with real-time vector updating for foreground furniture assets. Bypasses standard matrix projection steps inside local coordinate frames. Fully decoupled from main room bounds to permit multi-point orientation curves in under 0.1ms CPU.'],
+    ['3D Perspective: Complex Ergonomic Couch Reconstruction','Rebuilds complex couch geometry using optimized depth-sorted custom faces following isometric painter\'s sorting. Embeds segmented cushion subdivisions, armrest panels, and texture-coordinate projections without compounding pixel shader fill-rates.'],
+    ['3D Perspective: Solid Wood Bookshelf ("Regal") & Alchemy Props','Constructs a procedural room-side bookshelf (\'Regal\') containing detailed physical books, dual-glass-door segments, and chemistry alchemical props. Reduces draw call overhead by combining static materials and sorting render bounds cleanly for low visual-depth pressure.'],
     ['3D Equipment & Modular Skeletal Assemblies','Now features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
     ['3D Dynamic Cloth Mechanics & Collision Masking','Now features a real-time leg flexion angle bending and clipping culling physics simulator.'],
     ['Rigid Body Gravity & Physics-Proxy Warp Animation','Now features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],
