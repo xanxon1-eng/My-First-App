@@ -14,6 +14,7 @@ import { FeatureMatrix, MultiplayerImpact, SectionCard, HighlightBox, StatRow, P
 
 // ─── Link Map ────────────────────────────────────────────────────────────────
 const LINK_MAP: Record<string, { tabId: string; anchorId?: string; badge?: string }> = {
+  '3D Perspective Drawing & Projection Module': { tabId: 'drawing', badge: '3D Drawing' },
   'Unreal Engine 5.5 Default/Basic Cap Analyzer Dashboard': { tabId: 'overview', anchorId: 'unreal-default-ceilings', badge: 'Unreal Caps' },
   'Topic-Tailored Interactive Hardware-Budget Visualizers': { tabId: 'modifier_sandbox', anchorId: 'hardware-and-ability-sim', badge: 'Visualizers' },
   'Listen Server Co-op Multiplayer with Multi-Region Jitter & Rollback Simulators': { tabId: 'coop_net', anchorId: 'coop-jitter-simulator', badge: 'Netcode Jitter' },
@@ -488,6 +489,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
   const getNavigationTarget = (title: string): { tabId: string; anchorId?: string; badge?: string } | null => {
     if (LINK_MAP[title]) return LINK_MAP[title];
     const lower = title.toLowerCase();
+    if (lower.includes('drawing') || lower.includes('perspective') || lower.includes('vanishing point')) return { tabId: 'drawing', badge: '3D Drawing' };
     if (lower.includes('relevance bubble') || lower.includes('co-op network') || lower.includes('dormancy')) return { tabId:'coop_net', anchorId:'spatial-relevance-bubbles', badge:'Relevance Bubble' };
     if (lower.includes('jitter') || lower.includes('latency') || lower.includes('connection ping') || lower.includes('desync')) return { tabId:'coop_net', anchorId:'coop-jitter-simulator', badge:'Netcode Jitter' };
     if (lower.includes('combat pipeline') || lower.includes('bitmask')) return { tabId:'modder_opt', anchorId:'poe-combat-pipeline', badge:'Combat Pipeline' };
@@ -530,6 +532,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
 
   // ── list data (condensed tuples for brevity) ──────────────────────────────
   const IMPLEMENTED: [string,string][] = [
+    ['3D Perspective Drawing & Projection Module','An interactive, CPU/GPU balanced 3D perspective tool demonstrating 2-point and 3-point space projection, horizon tilt angles, and dynamic bar stool rotation with automated secondary vanishing point calculations (VP3 and VP4). Includes custom pencil sketch filters.'],
     ['3D Equipment & Modular Skeletal Assemblies','Binds modular boots, gloves, and torso layers to a unified Leader Pose Component. Features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
     ['3D Dynamic Cloth Mechanics & Collision Masking','Toggles index-section mesh invisibility dynamically in C++ and paints vertex opacity masks onto body skin surfaces. Features a real-time leg flexion angle bending and clipping culling physics simulator.'],
     ['Rigid Body Gravity & Physics-Proxy Warp Animation','Replaces heavy Chaos solvers with lightweight thread-parallel spring joints (Anim Dynamics). Features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],
@@ -616,6 +619,7 @@ export const OverviewTab: React.FC<{ onNavigate: (tabId: string, anchorId?: stri
   ];
 
   const NEWLY_ADDED: [string,string][] = [
+    ['3D Perspective Drawing & Projection Module','An interactive, CPU/GPU balanced 3D perspective tool demonstrating 2-point and 3-point space projection, horizon tilt angles, and dynamic bar stool rotation with automated secondary vanishing point calculations (VP3 and VP4). Includes custom pencil sketch filters.'],
     ['3D Equipment & Modular Skeletal Assemblies','Now features an interactive 2D character modular mesh slot checkbox checker and matrix ticks overhead visualizer.'],
     ['3D Dynamic Cloth Mechanics & Collision Masking','Now features a real-time leg flexion angle bending and clipping culling physics simulator.'],
     ['Rigid Body Gravity & Physics-Proxy Warp Animation','Now features an interactive HTML5 spring-mass particle chain canvas simulation with distance-based tick rate decimation.'],

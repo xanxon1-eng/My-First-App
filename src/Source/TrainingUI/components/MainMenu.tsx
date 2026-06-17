@@ -1,10 +1,10 @@
 import React from 'react';
-import { Bird, Timer, GraduationCap, Download, Settings, Moon, Sun } from 'lucide-react';
+import { Bird, Timer, GraduationCap, Download, Settings, Moon, Sun, Layers } from 'lucide-react';
 import { motion } from 'motion/react';
 import { COLORS } from '../../../constants/colors';
 
 interface MainMenuProps {
-  onSelectView: (view: 'school' | 'timer' | 'optimization') => void;
+  onSelectView: (view: 'school' | 'timer' | 'optimization' | 'drawing') => void;
   isAndroidFirefox?: boolean;
   isStandalone?: boolean;
   showInstallButton?: boolean;
@@ -67,43 +67,55 @@ export const MainMenu: React.FC<MainMenuProps> = ({
         )}
       </motion.div>
 
-      <div className="flex flex-col md:flex-row gap-3 md:gap-6 w-full max-w-2xl px-2 mb-auto">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full max-w-4xl px-2 mb-auto">
         {showContentButtons && (
           <>
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('timer')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
+              className="flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-8 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
             >
-              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
-                <Timer className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-warm" />
+              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-4 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
+                <Timer className="w-6 h-6 md:w-10 md:h-10 text-kingfisher-warm" />
               </div>
-              <h2 className="text-lg md:text-2xl font-bold text-white">Gym Timer</h2>
+              <h2 className="text-lg md:text-xl font-bold text-white">Gym Timer</h2>
             </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('school')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-blue/10 transition-colors group min-h-[80px] md:min-h-0"
+              className="flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-8 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-blue/10 transition-colors group min-h-[80px] md:min-h-0"
             >
-              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-blue/20 transition-colors shrink-0">
-                <GraduationCap className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-blue" />
+              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-4 group-hover:bg-kingfisher-blue/20 transition-colors shrink-0">
+                <GraduationCap className="w-6 h-6 md:w-10 md:h-10 text-kingfisher-blue" />
               </div>
-              <h2 className="text-lg md:text-2xl font-bold text-white text-center">C++ School</h2>
+              <h2 className="text-lg md:text-xl font-bold text-white text-center">C++ School</h2>
             </motion.button>
 
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelectView('optimization')}
-              className="flex-1 flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-10 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
+              className="flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-8 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-warm/10 transition-colors group min-h-[80px] md:min-h-0"
             >
-              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-6 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
-                <Settings className="w-6 h-6 md:w-12 md:h-12 text-kingfisher-warm" />
+              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-4 group-hover:bg-kingfisher-warm/20 transition-colors shrink-0">
+                <Settings className="w-6 h-6 md:w-10 md:h-10 text-kingfisher-warm" />
               </div>
-              <h2 className="text-lg md:text-2xl font-bold text-white text-center text-left md:text-center">Optimization</h2>
+              <h2 className="text-lg md:text-xl font-bold text-white text-center">Optimization</h2>
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onSelectView('drawing')}
+              className="flex flex-row md:flex-col items-center justify-start md:justify-center p-4 md:p-8 bg-kingfisher-panel border border-kingfisher-border rounded-2xl md:rounded-3xl hover:bg-kingfisher-blue/10 transition-colors group min-h-[80px] md:min-h-0"
+            >
+              <div className="p-3 md:p-4 bg-kingfisher-panel rounded-xl md:rounded-full mr-4 md:mr-0 md:mb-4 group-hover:bg-kingfisher-blue/20 transition-colors shrink-0">
+                <Layers className="w-6 h-6 md:w-10 md:h-10 text-kingfisher-blue" />
+              </div>
+              <h2 className="text-lg md:text-xl font-bold text-white text-center">3D Drawing</h2>
             </motion.button>
           </>
         )}

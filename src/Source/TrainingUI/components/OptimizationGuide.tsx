@@ -64,6 +64,7 @@ const TAB_TO_COMPONENT_NAME: Record<string, string> = {
 
 interface OptimizationGuideProps {
   onBack: () => void;
+  onSelectView?: (view: 'school' | 'timer' | 'optimization' | 'drawing') => void;
 }
 
 const TAB_GROUPS = [
@@ -157,7 +158,7 @@ const TAB_GROUPS = [
   }
 ];
 
-export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) => {
+export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack, onSelectView }) => {
   const [activeTab, setActiveTab] = useState(TAB_GROUPS[0].tabs[0].id);
   const [scrollTarget, setScrollTarget] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -165,6 +166,12 @@ export const OptimizationGuide: React.FC<OptimizationGuideProps> = ({ onBack }) 
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   const handleNavigate = (tabId: string, anchorId?: string) => {
+    if (tabId === 'drawing') {
+      if (onSelectView) {
+        onSelectView('drawing');
+      }
+      return;
+    }
     setActiveTab(tabId);
     if (anchorId) {
       (window as any).__scrollTarget = anchorId;

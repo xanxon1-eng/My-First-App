@@ -4,8 +4,9 @@ import { MainMenu } from './components/MainMenu';
 import { GymTimer } from './components/GymTimer';
 import { CppSchool } from './components/CppSchool';
 import { OptimizationGuide } from './components/OptimizationGuide';
+import { DrawingModule } from './components/DrawingModule';
 
-type AppView = 'menu' | 'school' | 'timer' | 'optimization';
+type AppView = 'menu' | 'school' | 'timer' | 'optimization' | 'drawing';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<AppView>('menu');
@@ -121,7 +122,11 @@ export default function App() {
       )}
 
       {currentView === 'optimization' && (
-        <OptimizationGuide onBack={() => setCurrentView('menu')} />
+        <OptimizationGuide onBack={() => setCurrentView('menu')} onSelectView={setCurrentView} />
+      )}
+
+      {currentView === 'drawing' && (
+        <DrawingModule onBack={() => setCurrentView('menu')} />
       )}
     </div>
   );
