@@ -75,6 +75,10 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const [draggedElement, setDraggedElement] = useState<'vp1' | 'vp2' | 'vp3' | 'vp4' | 'origin' | 'horizon' | null>(null);
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [roomPitch, setRoomPitch] = useState(0);
+  const [dragMode, setDragMode] = useState<'rotate' | 'pan'>('rotate');
+  const [isRotating, setIsRotating] = useState(false);
+  const [rotateStart, setRotateStart] = useState({ x: 0, y: 0, roomRot: 0, roomPitch: 0 });
 
   // 2. Mathematical Calculations derived from Independent VPs
   const vpCenter = useMemo(() => ({
@@ -237,17 +241,45 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     return { x: px, y: py };
   };
 
-  // Projects a 3D coordinate with room 360° rotation about center axis (1.5, 1.5)
-  const projectPointRot = (x3D: number, y3D: number, z3D: number): { x: number; y: number } => {
-    const angleRad = (roomRot * Math.PI) / 180;
+  // Helper to rotate a 3D coordinate freely in all directions around center (1.5, 1.5, 1.1)
+  const rotate3D = (x: number, y: number, z: number): { x: number; y: number; z: number } => {
     const cx = 1.5;
     const cy = 1.5;
-    const dx = x3D - cx;
-    const dy = y3D - cy;
-    const rx = cx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-    const ry = cy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+    const cz = 1.1; // H / 2 where H = 2.2
 
-    return projectPoint(rx, ry, z3D);
+    // 1. Translate to origin relative to rotation center
+    let dx = x - cx;
+    let dy = y - cy;
+    let dz = z - cz;
+
+    // 2. Rotate around Z-axis (Yaw) by roomRot
+    const yawRad = (roomRot * Math.PI) / 180;
+    const cosYaw = Math.cos(yawRad);
+    const sinYaw = Math.sin(yawRad);
+    const x1 = dx * cosYaw - dy * sinYaw;
+    const y1 = dx * sinYaw + dy * cosYaw;
+    const z1 = dz;
+
+    // 3. Rotate around X-axis (Pitch) by roomPitch
+    const pitchRad = (roomPitch * Math.PI) / 180;
+    const cosPitch = Math.cos(pitchRad);
+    const sinPitch = Math.sin(pitchRad);
+    const x2 = x1;
+    const y2 = y1 * cosPitch - z1 * sinPitch;
+    const z2 = y1 * sinPitch + z1 * cosPitch;
+
+    // 4. Translate back
+    return {
+      x: cx + x2,
+      y: cy + y2,
+      z: cz + z2,
+    };
+  };
+
+  // Projects a 3D coordinate with room 360° rotation about center axis (1.5, 1.5)
+  const projectPointRot = (x3D: number, y3D: number, z3D: number): { x: number; y: number } => {
+    const rot = rotate3D(x3D, y3D, z3D);
+    return projectPoint(rot.x, rot.y, rot.z);
   };
 
   // Projects dual-rotated stool vertices using custom vanishing points (vp3, vp4) to allow independent sliding
@@ -265,28 +297,19 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const roomX = cx + localRotX;
     const roomY = cy + localRotY;
 
-    // 2. Rotate room frame around room center (1.5, 1.5) by roomRot
-    const angleRad = (roomRot * Math.PI) / 180;
-    const rcx = 1.5;
-    const rcy = 1.5;
-    const dx = roomX - rcx;
-    const dy = roomY - rcy;
-    const rotX = rcx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-    const rotY = rcy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
+    // 2. Apply 3D room rotation
+    const rot = rotate3D(roomX, roomY, lz);
 
-    // 3. Project! We combine the rotated stool center (under roomRot) with stool VP3 and VP4 recession offsets
-    const cdx = cx - rcx;
-    const cdy = cy - rcy;
-    const rotCX = rcx + (cdx * Math.cos(angleRad) - cdy * Math.sin(angleRad));
-    const rotCY = rcy + (cdx * Math.sin(angleRad) + cdy * Math.cos(angleRad));
+    // 3. Project! Find the 3D-rotated stool center:
+    const rotC = rotate3D(cx, cy, 0);
 
-    const rotRx = rotX - rotCX;
-    const rotRy = rotY - rotCY;
+    const rotRx = rot.x - rotC.x;
+    const rotRy = rot.y - rotC.y;
 
-    const w = 1.0 + k_x * (rotCX + rotRx) / 3.0 + k_y * (rotCY + rotRy) / 3.0;
+    const w = 1.0 + k_x * (rot.x) / 3.0 + k_y * (rot.y) / 3.0;
 
-    const px = (originX + k_x * (rotCX / 3.0) * vp1.x + k_y * (rotCY / 3.0) * vp2.x + (k_x / 3.0) * rotRx * vp3.x + (k_y / 3.0) * rotRy * vp4.x) / w + (lz * scaleZ * vertHat.x) / w;
-    const py = (originY + k_x * (rotCX / 3.0) * vp1.y + k_y * (rotCY / 3.0) * vp2.y + (k_x / 3.0) * rotRx * vp3.y + (k_y / 3.0) * rotRy * vp4.y) / w + (lz * scaleZ * vertHat.y) / w;
+    const px = (originX + k_x * (rotC.x / 3.0) * vp1.x + k_y * (rotC.y / 3.0) * vp2.x + (k_x / 3.0) * rotRx * vp3.x + (k_y / 3.0) * rotRy * vp4.x) / w + (rot.z * scaleZ * vertHat.x) / w;
+    const py = (originY + k_x * (rotC.x / 3.0) * vp1.y + k_y * (rotC.y / 3.0) * vp2.y + (k_x / 3.0) * rotRx * vp3.y + (k_y / 3.0) * rotRy * vp4.y) / w + (rot.z * scaleZ * vertHat.y) / w;
 
     return { x: px, y: py };
   };
@@ -299,19 +322,13 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   };
 
   // Rotated room depth coefficient helper
-  const getWRot = (x3D: number, y3D: number): number => {
-    const angleRad = (roomRot * Math.PI) / 180;
-    const cx = 1.5;
-    const cy = 1.5;
-    const dx = x3D - cx;
-    const dy = y3D - cy;
-    const rx = cx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-    const ry = cy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
-    return getW(rx, ry);
+  const getWRot = (x3D: number, y3D: number, z3D: number = 0): number => {
+    const rot = rotate3D(x3D, y3D, z3D);
+    return getW(rot.x, rot.y);
   };
 
   // Rotated stool depth helper
-  const getStoolWRot = (lx: number, ly: number): number => {
+  const getStoolWRot = (lx: number, ly: number, lz: number = 0): number => {
     const cx = 1.7;
     const cy = 0.7;
     const rx = lx - cx;
@@ -323,15 +340,8 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     const roomX = cx + localRotX;
     const roomY = cy + localRotY;
 
-    const angleRad = (roomRot * Math.PI) / 180;
-    const rcx = 1.5;
-    const rcy = 1.5;
-    const dx = roomX - rcx;
-    const dy = roomY - rcy;
-    const rotX = rcx + (dx * Math.cos(angleRad) - dy * Math.sin(angleRad));
-    const rotY = rcy + (dx * Math.sin(angleRad) + dy * Math.cos(angleRad));
-
-    return 1.0 + k_x * rotX / 3.0 + k_y * rotY / 3.0;
+    const rot = rotate3D(roomX, roomY, lz);
+    return 1.0 + k_x * rot.x / 3.0 + k_y * rot.y / 3.0;
   };
 
   // Projected SVG coordinates path string
@@ -339,31 +349,74 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
     return pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ') + ' Z';
   };
 
+  // Helper to extract clean viewport coordinates from Mouse or Touch events
+  const getEventCoords = (e: React.MouseEvent<any> | React.TouchEvent<any>): { clientX: number; clientY: number } => {
+    if ('touches' in e && e.touches && e.touches.length > 0) {
+      return { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY };
+    }
+    if ('changedTouches' in e && e.changedTouches && e.changedTouches.length > 0) {
+      return { clientX: e.changedTouches[0].clientX, clientY: e.changedTouches[0].clientY };
+    }
+    return { clientX: (e as React.MouseEvent).clientX, clientY: (e as React.MouseEvent).clientY };
+  };
+
   // Handle Dragging / Panning on SVG canvas
-  const handleMouseDown = (e: React.MouseEvent<any>, el: 'vp1' | 'vp2' | 'vp3' | 'vp4' | 'origin' | 'horizon') => {
+  const handleMouseDown = (e: React.MouseEvent<any> | React.TouchEvent<any>, el: 'vp1' | 'vp2' | 'vp3' | 'vp4' | 'origin' | 'horizon') => {
     e.stopPropagation();
-    if (e.button === 1) return; // Ignore on middle click
+    if ('button' in e && e.button === 1) return; // Ignore on middle click
     setDraggedElement(el);
   };
 
   // Middle-mouse or Space dragging setup
-  const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (e.button === 1) { // Middle mouse button
+  const handleCanvasMouseDown = (e: React.MouseEvent<SVGSVGElement> | React.TouchEvent<SVGSVGElement>) => {
+    const coords = getEventCoords(e);
+    if ('button' in e && e.button === 1) { // Middle mouse button
       e.preventDefault();
       setIsPanning(true);
-      setPanStart({ x: e.clientX - panX, y: e.clientY - panY });
+      setPanStart({ x: coords.clientX - panX, y: coords.clientY - panY });
+    } else {
+      if (dragMode === 'pan') {
+        setIsPanning(true);
+        setPanStart({ x: coords.clientX - panX, y: coords.clientY - panY });
+      } else {
+        setIsRotating(true);
+        setRotateStart({ x: coords.clientX, y: coords.clientY, roomRot, roomPitch });
+      }
     }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent>) => {
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement, MouseEvent> | React.TouchEvent<SVGSVGElement>) => {
     if (!canvasRef.current) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const coords = getEventCoords(e);
+    const mx = coords.clientX - rect.left;
+    const my = coords.clientY - rect.top;
+
+    if ('touches' in e && (isPanning || isRotating || draggedElement)) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
+    }
 
     if (isPanning) {
-      setPanX(e.clientX - panStart.x);
-      setPanY(e.clientY - panStart.y);
+      setPanX(coords.clientX - panStart.x);
+      setPanY(coords.clientY - panStart.y);
+      return;
+    }
+
+    if (isRotating) {
+      const dx = coords.clientX - rotateStart.x;
+      const dy = coords.clientY - rotateStart.y;
+      
+      const sensitivity = 0.5;
+      let nextYaw = (rotateStart.roomRot + dx * sensitivity) % 360;
+      if (nextYaw < 0) nextYaw += 360;
+      
+      let nextPitch = rotateStart.roomPitch - dy * sensitivity;
+      nextPitch = Math.max(-180, Math.min(180, nextPitch));
+      
+      setRoomRot(nextYaw);
+      setRoomPitch(nextPitch);
       return;
     }
 
@@ -408,6 +461,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
   const handleMouseUp = () => {
     setDraggedElement(null);
     setIsPanning(false);
+    setIsRotating(false);
   };
 
   // Scroll wheel zooming (centered on mouse position)
@@ -699,7 +753,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       ];
 
       faceDefs.forEach(f => {
-        const w_avg = f.pts.reduce((sum, v2) => sum + getWRot(v2.x, v2.y), 0) / f.pts.length;
+        const w_avg = f.pts.reduce((sum, v2) => sum + getWRot(v2.x, v2.y, v2.z), 0) / f.pts.length;
         const projPts = f.pts.map(v2 => projectPointRot(v2.x, v2.y, v2.z));
         faces.push({
           type: 'polygon',
@@ -739,7 +793,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       ];
 
       faceDefs.forEach(f => {
-        const w_avg = f.pts.reduce((sum, v2) => sum + getStoolWRot(v2.x, v2.y), 0) / f.pts.length;
+        const w_avg = f.pts.reduce((sum, v2) => sum + getStoolWRot(v2.x, v2.y, v2.z), 0) / f.pts.length;
         const projPts = f.pts.map(v2 => projectStoolPoint(v2.x, v2.y, v2.z));
         faces.push({
           type: 'polygon',
@@ -1028,9 +1082,9 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
       <div className="flex flex-1 flex-col lg:flex-row overflow-hidden relative">
         
         {/* LEFT DRAFTING PANEL & INTERACTIVE CANVAS */}
-        <div className="flex-1 flex flex-col p-4 sm:p-6 overflow-y-auto custom-scrollbar bg-black/15">
+        <div className="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden bg-black/15 h-[620px] lg:h-auto min-h-[500px]">
           {/* Main SVG Drafting Canvas */}
-          <div className="w-full h-[525px] bg-[#fdfcf7] rounded-2xl border-2 border-kingfisher-border shadow-2xl relative select-none overflow-hidden" 
+          <div className="w-full h-full bg-[#fdfcf7] rounded-2xl border-2 border-kingfisher-border shadow-2xl relative select-none overflow-hidden flex-1" 
                style={{ backgroundImage: 'radial-gradient(#e4dfd2 1px, transparent 1px)', backgroundSize: '16px 16px' }}>
             
             {/* Ink-wash top brand marker */}
@@ -1039,7 +1093,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
             </div>
 
             {/* FLOATING ZOOM AND PAN ACCESSIBILITY TOOLBAR */}
-            <div className="absolute top-4 right-4 bg-[#fbf9f2]/95 border border-neutral-300 p-1 rounded-xl flex items-center gap-1 backdrop-blur shadow-md z-10">
+            <div className="absolute top-4 right-4 bg-[#fbf9f2]/95 border border-neutral-300 p-1.5 rounded-xl flex items-center gap-1.5 backdrop-blur shadow-md z-10">
               <button 
                 onClick={() => handleZoomButton('in')} 
                 title="Zoom In"
@@ -1061,21 +1115,57 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
               >
                 100%
               </button>
-              <div className="w-px h-4 bg-neutral-300 mx-1" />
-              <div className="text-[9px] font-mono font-bold text-neutral-600 px-1 select-none">
+              <div className="w-px h-4 bg-neutral-300 mx-0.5" />
+              <div className="text-[9px] font-mono font-bold text-neutral-600 px-0.5 select-none">
                 {Math.round(zoom * 100)}%
               </div>
+              <div className="w-px h-4 bg-neutral-300 mx-0.5" />
+              {/* INTERACTIVE MODE TOGGLE (ROTATE VS PAN) */}
+              <button 
+                onClick={() => setDragMode(dragMode === 'rotate' ? 'pan' : 'rotate')} 
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  setDragMode(dragMode === 'rotate' ? 'pan' : 'rotate');
+                }}
+                title={dragMode === 'rotate' ? "Switch to Pan Mode" : "Switch to Rotate Mode"}
+                className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 font-bold font-sans text-[10px] ${
+                  dragMode === 'rotate' 
+                    ? 'bg-amber-600/10 text-amber-800 hover:bg-amber-600/20' 
+                    : 'bg-blue-600/10 text-blue-800 hover:bg-blue-600/20'
+                }`}
+              >
+                {dragMode === 'rotate' ? (
+                  <>
+                    <Compass className="w-4 h-4 text-amber-700" />
+                    <span className="hidden xs:inline">Rotate Mode</span>
+                  </>
+                ) : (
+                  <>
+                    <Move className="w-4 h-4 text-blue-700" />
+                    <span className="hidden xs:inline">Pan Mode</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* SVG CANVAS */}
             <svg
               ref={canvasRef}
-              className={`w-full h-full ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+              viewBox="0 0 800 520"
+              width="100%"
+              height="100%"
+              preserveAspectRatio="xMidYMid meet"
+              style={{ touchAction: 'none' }}
+              className={`w-full h-full ${isPanning ? 'cursor-grabbing' : (dragMode === 'pan' ? 'cursor-grab' : 'cursor-move')}`}
               onMouseDown={handleCanvasMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUp}
               onMouseLeave={handleMouseUp}
               onWheel={handleWheel}
+              onTouchStart={handleCanvasMouseDown}
+              onTouchMove={handleMouseMove}
+              onTouchEnd={handleMouseUp}
+              onTouchCancel={handleMouseUp}
             >
               <defs>
                 <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
@@ -1105,6 +1195,7 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   <line
                     className="cursor-ns-resize"
                     onMouseDown={(e) => handleMouseDown(e, 'horizon')}
+                    onTouchStart={(e) => handleMouseDown(e, 'horizon')}
                     x1={vpCenter.x - 1200 * uHat.x}
                     y1={vpCenter.y - 1200 * uHat.y}
                     x2={vpCenter.x + 1200 * uHat.x}
@@ -1191,11 +1282,16 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                   r="6"
                   className="cursor-pointer fill-[#ffd700] hover:fill-[#ffea6c] stroke-[#222] transition-colors"
                   onMouseDown={(e) => handleMouseDown(e, 'origin')}
+                  onTouchStart={(e) => handleMouseDown(e, 'origin')}
                 />
 
                 {/* DRAGGABLE INDEPENDENT VANISHING POINTS */}
                 {/* Left VP1 Indicator */}
-                <g className="cursor-pointer select-none group" onMouseDown={(e) => handleMouseDown(e, 'vp1')}>
+                <g 
+                  className="cursor-pointer select-none group" 
+                  onMouseDown={(e) => handleMouseDown(e, 'vp1')}
+                  onTouchStart={(e) => handleMouseDown(e, 'vp1')}
+                >
                   <circle cx={vp1.x} cy={vp1.y} r="18" fill="transparent" />
                   <circle cx={vp1.x} cy={vp1.y} r="6.2" fill="#d97706" className="stroke-white" strokeWidth="1.8" />
                   <circle cx={vp1.x} cy={vp1.y} r="11" fill="none" stroke="#d97706" strokeWidth="1" strokeDasharray="3,1" />
@@ -1204,7 +1300,11 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 </g>
 
                 {/* Right VP2 Indicator */}
-                <g className="cursor-pointer select-none group" onMouseDown={(e) => handleMouseDown(e, 'vp2')}>
+                <g 
+                  className="cursor-pointer select-none group" 
+                  onMouseDown={(e) => handleMouseDown(e, 'vp2')}
+                  onTouchStart={(e) => handleMouseDown(e, 'vp2')}
+                >
                   <circle cx={vp2.x} cy={vp2.y} r="18" fill="transparent" />
                   <circle cx={vp2.x} cy={vp2.y} r="6.2" fill="#d97706" className="stroke-white" strokeWidth="1.8" />
                   <circle cx={vp2.x} cy={vp2.y} r="11" fill="none" stroke="#d97706" strokeWidth="1" strokeDasharray="3,1" />
@@ -1250,11 +1350,11 @@ export const DrawingModule: React.FC<{ onBack: () => void }> = ({ onBack }) => {
                 <p className="text-xs text-neutral-800 font-medium leading-relaxed">
                   <strong>Interactive drafting upgrades:</strong> 
                   <br />
-                  &bull; <strong>Zoom:</strong> Scroll your wheel or use the top-right zoom keys.
+                  &bull; <strong>360° Free Room Rotation:</strong> Single finger (mobile) or left-click (PC) drag on the canvas to orient, flip, or view the room in 3D from any coordinate perspective! Switch modes to Panning for full scene pan.
                   <br />
-                  &bull; <strong>Slick Pan:</strong> Hold and drag the scene with your <strong className="text-amber-800">Middle Mouse Button</strong>.
+                  &bull; <strong>Zoom:</strong> Pinch-to-zoom / scroll your wheel or use the top-right toolbars.
                   <br />
-                  &bull; <strong>Free VPs:</strong> Hold and drag <strong className="text-amber-700">L-VP1</strong> or <strong className="text-amber-700">R-VP2</strong> crosshairs <em>anywhere</em> independently! Everything updates in real-time with flawless depth sorted watertight 3D solids.
+                  &bull; <strong>Free VPs &amp; Origin:</strong> Drag crosshairs <strong className="text-amber-700">L-VP1</strong>, <strong className="text-amber-700">R-VP2</strong>, and <strong className="text-yellow-600">Origin Corner</strong> on PC or mobile in real-time.
                 </p>
               </div>
             </div>
